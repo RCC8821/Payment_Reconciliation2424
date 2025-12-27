@@ -53,9 +53,15 @@ useEffect(() => {
       allowedUserTypes: ["admin"],
     },
     {
-      id: "Form",
-      name: "Form",
+      id: "Form ",
+      name: "Client In Form",
       path: "/dashboard/Form",
+      allowedUserTypes: ["admin"],
+    },
+     {
+      id: "Actual_Payment_in ",
+      name: "Actual_Payment_in",
+      path: "/dashboard/Actual_Payment_in",
       allowedUserTypes: ["admin"],
     },
     // Add more pages here

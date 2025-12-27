@@ -2,10 +2,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import Login from './pages/Login';
+import Login from './Pages/Login';
 import Dashboard from './Pages/Dashboard';
 import Reconciliation from './components/Payment/Reconciliation';
 import Form from './components/Payment/Form';
+import Actual_Payment_in from './components/Payment/Actual_Payment_in';
 
 const ProtectedRoute = ({ children }) => {
   const { token } = useSelector((state) => state.auth);
@@ -31,6 +32,7 @@ function App() {
           {/* Nested route for Reconciliation */}
           <Route path="reconciliation" element={<Reconciliation />} />
           <Route path='form' element={<Form/>}/>
+          <Route path='Actual_Payment_in' element={<Actual_Payment_in/>}/>
           {/* Optional: Add more nested pages here in future */}
           {/* <Route path="another-page" element={<AnotherComponent />} /> */}
 

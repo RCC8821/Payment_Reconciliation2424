@@ -10,7 +10,7 @@ const authLogin = require('./auth/Login');
 ///// Payment ///////
 const Payment  = require('./payment/Payment')
 const Form = require('./payment/Form')
-
+const Actual_Bank_In= require('./payment/Actual_Bank_In')
 
 
 const app = express();
@@ -53,6 +53,7 @@ app.use('/api',authLogin)
 
 app.use('/api',Payment)
 app.use('/api',Form)
+app.use('/api',Actual_Bank_In)
 
 // 8. Start Server
 const PORT = process.env.PORT || 5000;

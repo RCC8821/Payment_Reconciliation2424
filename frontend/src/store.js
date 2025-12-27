@@ -6,6 +6,8 @@ import authReducer from '../src/features/Auth/LoginSlice';
 // === Slices Import ===
 import { PaymentSlice } from './features/Payment/PaymentSlice';
 import { FormSlice } from './features/Payment/FormSlice';
+import {ActualBankInSlice} from './features/Payment/Actual_Bank_In_Slice'
+
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +16,8 @@ export const store = configureStore({
     // RTK Query reducers
     [PaymentSlice.reducerPath]: PaymentSlice.reducer,
     [FormSlice.reducerPath]: FormSlice.reducer,
+    [ActualBankInSlice.reducerPath]: ActualBankInSlice.reducer,
+    
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -21,5 +25,6 @@ export const store = configureStore({
       serializableCheck: false, // non-serializable values jaise functions, dates ke liye
     })
     .concat(PaymentSlice.middleware)  // PaymentSlice ke liye
-    .concat(FormSlice.middleware),    // ← YEH LINE ADD KARNA ZAROORI HAI!
+    .concat(FormSlice.middleware)    
+    .concat(ActualBankInSlice.middleware),    
 });
