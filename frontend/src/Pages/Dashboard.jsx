@@ -54,7 +54,7 @@ useEffect(() => {
     },
     {
       id: "Form ",
-      name: "Client In Form",
+      name: "Forms",
       path: "/dashboard/Form",
       allowedUserTypes: ["admin"],
     },
@@ -64,7 +64,13 @@ useEffect(() => {
       path: "/dashboard/Actual_Payment_in",
       allowedUserTypes: ["admin"],
     },
-    // Add more pages here
+ 
+  {
+      id: "Transfer_bank_To_bank ",
+      name: "Transfer_bank_To_bank",
+      path: "/dashboard/Transfer_bank_To_bank",
+      allowedUserTypes: ["admin"],
+    },
   ];
 
   // Filter pages user has access to

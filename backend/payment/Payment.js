@@ -47,7 +47,7 @@ router.get('/bank-balance/:bankName', async (req, res) => {
     console.log('Requested Bank:', bankName);
 
     // Sheet name ko single quotes mein wrap karo (safe way)
-    const range = `'${bankName}'!E3`;
+    const range = `'${bankName}'!F3`;
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -57,7 +57,7 @@ router.get('/bank-balance/:bankName', async (req, res) => {
     const bankClosingBalance = response.data.values?.[0]?.[0] || 'Not Found';
 
     console.log('Fetched Range:', range);
-    console.log('E3 Value:', bankClosingBalance);
+    console.log('F3 Value:', bankClosingBalance);
 
     // Hamesha success: true bhejo agar koi error nahi hai
     res.status(200).json({

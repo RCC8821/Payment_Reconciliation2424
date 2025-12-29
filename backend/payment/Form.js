@@ -67,146 +67,10 @@ async function uploadToGoogleDrive(base64Data, fileName) {
   }
 }
 
-// // Helper: Next UID generate (Pay001, Pay002...)
-// async function getNextUID() {
-//   try {
-//     const response = await sheets.spreadsheets.values.get({
-//       spreadsheetId,
-//       range: `${SHEET_NAME}!B:B`,
-//     });
-
-//     const values = response.data.values || [];
-
-//     if (values.length <= 1) return 'IN001'; // khali sheet ya sirf header
-
-//     const payUIDs = values
-//       .slice(1)
-//       .flat()
-//       .filter(uid => typeof uid === 'string' && uid.trim().startsWith('Pay'))
-//       .map(uid => uid.trim());
-
-//     if (payUIDs.length === 0) return 'IN001';
-
-//     const numbers = payUIDs.map(uid => parseInt(uid.replace('Pay', ''), 10));
-//     const maxNum = Math.max(...numbers);
-//     const nextNum = maxNum + 1;
-
-//     return `Pay${String(nextNum).padStart(3, '0')}`;
-
-//   } catch (error) {
-//     console.error('Error generating UID:', error);
-//     throw new Error('Failed to generate UID');
-//   }
-// }
-
-// POST Route
-// router.post('/add-payment', async (req, res) => {
-//   try {
-//     const {
-      
-//       SiteName,
-//       Amount,
-//       CGST,
-//       SGST,
-//       NetAmount,
-//       RccCreditAccountName,
-//       PaymentMode,
-//       ChequeNo,
-//       ChequeDate,
-//       ChequePhoto
-//       // UID yaha se bilkul nahi liya ja raha → backend generate karega
-//     } = req.body;
-
-//     // Required fields check
-//     if (!SiteName || Amount === undefined) {
-//       return res.status(400).json({
-//         status: 'error',
-//         message: 'SiteName and Amount are required'
-//       });
-//     }
-
-//     // Step 1: Backend mein UID generate karo
-//     const finalUID = await getNextUID();
-
-//     // Step 2: Duplicate safety ke liye ek baar aur check (though getNextUID safe hai)
-//     const checkRes = await sheets.spreadsheets.values.get({
-//       spreadsheetId,
-//       range: `${SHEET_NAME}!B:B`,
-//     });
-
-//     const existingUIDs = (checkRes.data.values || [])
-//                           .slice(1)
-//                           .flat()
-//                           .map(uid => uid?.toString().trim());
-
-//     if (existingUIDs.includes(finalUID)) {
-//       // Rare case, but safe
-//       return res.status(400).json({
-//         status: 'error',
-//         message: 'Generated UID already exists (try again)',
-//         uid: finalUID
-//       });
-//     }
-
-//     // Photo upload
-//     let chequePhotoUrl = '';
-//     if (ChequePhoto && ChequePhoto.startsWith('data:')) {
-//       const fileName = `cheque_${finalUID}_${Date.now()}.jpg`;
-//       chequePhotoUrl = await uploadToGoogleDrive(ChequePhoto, fileName);
-//     }
-
-//     // Timestamp
-//     const now = new Date();
-//     const timestamp = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-
-//     // Row data
-//     const row = [
-//       timestamp,
-//       // finalUID,  
-//       '',         
-//       SiteName,
-//       Amount || 0,
-//       CGST || 0,
-//       SGST || 0,
-//       NetAmount || 0,
-//       RccCreditAccountName || '',
-//       PaymentMode || '',
-//       ChequeNo || '',
-//       ChequeDate || '',
-//       chequePhotoUrl
-//     ];
-
-//     // Append to sheet
-//     await sheets.spreadsheets.values.append({
-//       spreadsheetId,
-//       range: `${SHEET_NAME}!A:M`,
-//       valueInputOption: 'RAW',
-//       insertDataOption: 'INSERT_ROWS',
-//       requestBody: { values: [row] },
-//     });
-
-//     // Success response (UID bhi bata do frontend ko)
-//     res.json({
-//       status: 'success',
-//       message: 'Payment data added successfully',
-//       uid: finalUID,
-//       timestamp,
-//       chequePhotoUrl
-//     });
-
-//   } catch (error) {
-//     console.error('Add payment error:', error);
-//     res.status(500).json({
-//       status: 'error',
-//       message: error.message || 'Server error'
-//     });
-//   }
-// });
 
 
 
 
-// POST Route - UID bilkul nahi generate ya store kar rahe backend se
 router.post('/add-payment', async (req, res) => {
   try {
     const {
@@ -238,19 +102,22 @@ router.post('/add-payment', async (req, res) => {
       chequePhotoUrl = await uploadToGoogleDrive(ChequePhoto, fileName);
     }
 
-    // Timestamp
+    // Timestamp - Exact format: 29/12/2025 11:31:54
     const now = new Date();
-    const timestamp = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+    const Timestamp = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+
+    // Force as plain string to prevent Google Sheets from adding '
+    const cleanTimestamp = Timestamp.toString().trim();
 
     // Row data - Column B (UID) ke liye empty string daal rahe hain taaki formula safe rahe
     const row = [
-      timestamp,          // A - Timestamp
-      '',                 // B - UID → empty chhod rahe hain (sheet ka formula apne aap fill karega)
-      SiteName,           // C - SiteName
-      Amount || 0,        // D - Amount
-      CGST || 0,          // E - CGST
-      SGST || 0,          // F - SGST
-      NetAmount || 0,     // G - NetAmount
+      cleanTimestamp,             // A - Timestamp (clean - no leading ')
+      '',                         // B - UID → empty chhod rahe hain (sheet ka formula apne aap fill karega)
+      SiteName,                   // C - SiteName
+      Amount || 0,                // D - Amount
+      CGST || 0,                  // E - CGST
+      SGST || 0,                  // F - SGST
+      NetAmount || 0,             // G - NetAmount
       RccCreditAccountName || '', // H
       PaymentMode || '',          // I
       ChequeNo || '',             // J
@@ -258,11 +125,11 @@ router.post('/add-payment', async (req, res) => {
       chequePhotoUrl              // L - Photo URL
     ];
 
-    // Append to sheet
+    // Append to sheet - USER_ENTERED mode use kar rahe hain taaki quote nahi aaye
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: `${SHEET_NAME}!A:M`,
-      valueInputOption: 'RAW',
+      valueInputOption: 'USER_ENTERED',  // ← Yeh line add ki hai (important)
       insertDataOption: 'INSERT_ROWS',
       requestBody: { values: [row] },
     });
@@ -271,7 +138,7 @@ router.post('/add-payment', async (req, res) => {
     res.json({
       status: 'success',
       message: 'Payment data added successfully',
-      timestamp,
+      timestamp: cleanTimestamp,  // clean timestamp bhej rahe hain
       chequePhotoUrl
     });
 
@@ -283,6 +150,7 @@ router.post('/add-payment', async (req, res) => {
     });
   }
 });
+
 
 router.get('/Dropdown-Data', async (req, res) => {
   try {
@@ -327,5 +195,112 @@ router.get('/Dropdown-Data', async (req, res) => {
   }
 });
 
+
+//////// transfer form Api 
+async function generateUniqueUID() {
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'A/C To A/C Transfer!B7:B',
+    });
+
+    const values = response.data.values;
+
+    if (!values || values.length === 0) {
+      return 'TRF001';
+    }
+
+    const lastUID = values[values.length - 1][0];
+
+    if (!lastUID || !lastUID.startsWith('TRF')) {
+      return 'TRF001';
+    }
+
+    const lastNumber = parseInt(lastUID.replace('TRF', ''), 10);
+    const nextNumber = lastNumber + 1;
+    return `TRF${String(nextNumber).padStart(3, '0')}`;
+  } catch (error) {
+    console.error('Error generating UID:', error);
+    return 'TRF001';
+  }
+}
+
+router.post('/Bank_Transfer_form', async (req, res) => {
+  try {
+    const {
+      Transfer_A_C_Name,
+      Transfer_Received_A_C_Name,
+      Amount,
+      PAYMENT_MODE,
+      PAYMENT_DETAILS,
+      PAYMENT_DATE,
+      Remark
+    } = req.body;
+
+    if (
+      !Transfer_A_C_Name ||
+      !Transfer_Received_A_C_Name ||
+      !Amount ||
+      !PAYMENT_MODE ||
+      !PAYMENT_DATE
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'All required fields must be provided'
+      });
+    }
+
+    // Generate UID
+    const UID = await generateUniqueUID();
+
+    // Exact timestamp format: 29/12/2025 11:31:54
+    const now = new Date();
+    const Timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    // Force as plain string to prevent Google Sheets from adding '
+    const cleanTimestamp = Timestamp.toString().trim();
+
+    const rowData = [
+      cleanTimestamp,             // A - Timestamp → 29/12/2025 11:31:54 (clean)
+      UID,                        // B - UID
+      Transfer_A_C_Name,          // C
+      Transfer_Received_A_C_Name, // D
+      Amount,                     // E
+      PAYMENT_MODE,               // F
+      PAYMENT_DETAILS || '',      // G
+      PAYMENT_DATE,               // H
+      Remark || ''                // I
+    ];
+
+    // Yeh line sabse important hai → USER_ENTERED mode use karo
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'A/C To A/C Transfer!A7:I',
+      valueInputOption: 'USER_ENTERED',  // ← Isse quote nahi aayega
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: {
+        values: [rowData]
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Bank transfer data saved successfully',
+      data: {
+        UID,
+        Timestamp: cleanTimestamp,
+        ...req.body
+      }
+    });
+
+  } catch (error) {
+    console.error('Error saving to Google Sheet:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save data',
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;

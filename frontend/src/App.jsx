@@ -7,6 +7,7 @@ import Dashboard from './Pages/Dashboard';
 import Reconciliation from './components/Payment/Reconciliation';
 import Form from './components/Payment/Form';
 import Actual_Payment_in from './components/Payment/Actual_Payment_in';
+import Transfer_bank_To_bank from './components/Payment/Transfer_bank_To_bank';
 
 const ProtectedRoute = ({ children }) => {
   const { token } = useSelector((state) => state.auth);
@@ -33,6 +34,7 @@ function App() {
           <Route path="reconciliation" element={<Reconciliation />} />
           <Route path='form' element={<Form/>}/>
           <Route path='Actual_Payment_in' element={<Actual_Payment_in/>}/>
+          <Route path='Transfer_bank_To_bank' element={<Transfer_bank_To_bank/>}/>
           {/* Optional: Add more nested pages here in future */}
           {/* <Route path="another-page" element={<AnotherComponent />} /> */}
 

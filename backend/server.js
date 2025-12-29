@@ -11,7 +11,7 @@ const authLogin = require('./auth/Login');
 const Payment  = require('./payment/Payment')
 const Form = require('./payment/Form')
 const Actual_Bank_In= require('./payment/Actual_Bank_In')
-
+const Bank_to_bank_transfer=require('./payment/bank_to_bank_Transfer')
 
 const app = express();
 // 1. CORS (Pehle daalo)
@@ -54,7 +54,7 @@ app.use('/api',authLogin)
 app.use('/api',Payment)
 app.use('/api',Form)
 app.use('/api',Actual_Bank_In)
-
+app.use('/api',Bank_to_bank_transfer)
 // 8. Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
