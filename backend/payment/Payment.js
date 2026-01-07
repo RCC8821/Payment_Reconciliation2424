@@ -19,7 +19,7 @@ router.get('/payment-Reconsilation', async (req, res) => {
 
   
     const filteredData = rows
-    //  .filter(row => row[11] && !row[12])
+     .filter(row => row[11] && !row[12])
       .map(row => ({
         timestamp: (row[0] || '').toString().trim(),
         uid: (row[1] || '').toString().trim(),

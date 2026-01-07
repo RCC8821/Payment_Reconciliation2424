@@ -9,6 +9,21 @@ import Form from './components/Payment/Form';
 import Actual_Payment_in from './components/Payment/Actual_Payment_in';
 import Transfer_bank_To_bank from './components/Payment/Transfer_bank_To_bank';
 
+////// RCC OFFICE /////////////
+import RCC_Approvel from './components/RccOffice/RCC_Approvel';
+import Approvel_By_Mayaksir from './components/RccOffice/Approvel_By_Mayaksir';
+import OfficeExpensesPayment from './components/RccOffice/OfficeExpensesPayment';
+
+//////// VRN Office ///////////
+
+import VRN_Approvel1 from './components/VRNOffice/VRN_Approvel1';
+import VRN_Approvel2 from './components/VRNOffice/VRN_Approvel2';
+
+// //////////// Dimension Office ///////////////
+
+import Dim_Approvel1 from './components/DimensionOffice/Dim_Approvel1';
+import Dim_Approvel2 from './components/DimensionOffice/Dim_Approvel2';
+
 const ProtectedRoute = ({ children }) => {
   const { token } = useSelector((state) => state.auth);
   return token ? children : <Navigate to="/" replace />;
@@ -35,17 +50,19 @@ function App() {
           <Route path='form' element={<Form/>}/>
           <Route path='Actual_Payment_in' element={<Actual_Payment_in/>}/>
           <Route path='Transfer_bank_To_bank' element={<Transfer_bank_To_bank/>}/>
-          {/* Optional: Add more nested pages here in future */}
-          {/* <Route path="another-page" element={<AnotherComponent />} /> */}
+        ////// RCC OFFICE EXPENSES
+          <Route path='RCC_Approvel' element={<RCC_Approvel/>}/>
+          <Route path='Approvel_By_Mayaksir' element={<Approvel_By_Mayaksir/>}/>
+          <Route path='OfficeExpensesPayment' element={<OfficeExpensesPayment/>}/>
 
-          {/* Default inside dashboard - optional redirect or welcome */}
-          {/* <Route index element={
-            <div className="flex items-center justify-center h-full">
-              <p className="text-gray-500 text-lg">
-                Please select a module from the sidebar.
-              </p>
-            </div>
-          } /> */}
+         /////// VRN OFFICE 
+         <Route path='VRN_Approvel1' element={<VRN_Approvel1/>}/>
+         <Route path='VRN_Approvel2' element={<VRN_Approvel2/>}/>
+
+         ////// Dimension 
+
+         <Route path='Dim_Approvel1' element={<Dim_Approvel1/>}/>
+         <Route path='Dim_Approvel2' element={<Dim_Approvel2/>}/>
         </Route>
 
         {/* Catch all unknown routes */}

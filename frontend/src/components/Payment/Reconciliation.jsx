@@ -35,7 +35,7 @@
 //   const [editForm, setEditForm] = useState({
 //     BANK_CLOSING_BALANCE: "",
 //     Remark: "",
-//     Status: "pending",
+//     Status: "---- Select ----- ",
 //   });
 
 //   // Universal Date Parser
@@ -170,7 +170,7 @@
 //     setEditForm({
 //       BANK_CLOSING_BALANCE: "",
 //       Remark: item.Remark || "",
-//       Status: item.Status || "pending",
+//       Status: item.Status || "--- Select ----",
 //     });
 //     setIsModalOpen(true);
 //   };
@@ -337,7 +337,7 @@
 //                 <table className="w-full text-left border-collapse">
 //                   <thead className="bg-gray-800 text-white">
 //                     <tr>
-//                       {["Timestamp","UID","Contractor","Paid Amount","Bank","Mode","Details","Bill Date","Exp Head","Planned 2","Actions"].map(h => (
+//                       {["UID","Timestamp","Contractor","Paid Amount","Bank","Mode","Details","Bill Date","Exp Head","Planned 2","Actions"].map(h => (
 //                         <th key={h} className="px-3 py-3 text-[10px] font-bold uppercase whitespace-normal">{h}</th>
 //                       ))}
 //                     </tr>
@@ -352,8 +352,8 @@
 //                     ) : (
 //                       filteredData.map(item => (
 //                         <tr key={item.uid || item.paymentDetails} className="hover:bg-gray-50">
-//                           <td className="px-3 py-3 text-[11px] font-bold">{item.uid}</td>
 //                           <td className="px-3 py-3 text-[11px] whitespace-nowrap">{item.timestamp}</td>
+//                           <td className="px-3 py-3 text-[11px] font-bold">{item.uid}</td>
 //                           <td className="px-3 py-3 text-[11px]">{item.contractorName}</td>
 //                           <td className="px-3 py-3 text-[11px] font-black text-blue-600">₹{item.paidAmount}</td>
 //                           <td className="px-3 py-4 text-[11px] break-words whitespace-normal align-top">{item.bankDetails || "-"}</td>
@@ -430,8 +430,9 @@
 //                       onChange={(e) => setEditForm({ ...editForm, Status: e.target.value })}
 //                       className="w-full p-2 border rounded-lg font-bold text-xs"
 //                     >
-//                       <option value="pending">Pending</option>
+//                       <option value=" ">----- Select----</option>
 //                       <option value="Done">Done</option>
+//                       <option value="Cancel">Cancel</option>
 //                     </select>
 //                   </div>
 //                 </div>
@@ -460,7 +461,6 @@
 // };
 
 // export default Reconciliation;
-
 
 
 
@@ -500,7 +500,7 @@ const Reconciliation = () => {
   const [editForm, setEditForm] = useState({
     BANK_CLOSING_BALANCE: "",
     Remark: "",
-    Status: "pending",
+    Status: "---- Select ----- ",
   });
 
   // Universal Date Parser
@@ -531,7 +531,7 @@ const Reconciliation = () => {
   const { data: mainBankData = {}, isLoading: isMainBankLoading } =
     useGetBankClosingBalanceQuery(selectedBank, { skip: !selectedBank });
 
-  // Modal Bank Balance Query - Fixed: default empty object to avoid undefined error
+  // Modal Bank Balance Query
   const { 
     data: modalBankData = {}, 
     isLoading: isModalBankLoading 
@@ -602,7 +602,7 @@ const Reconciliation = () => {
       }
     }
 
-    // Search Filter - हर बार सही काम करेगा
+    // Search Filter
     if (debouncedSearchTerm) {
       const term = debouncedSearchTerm.toLowerCase();
       data = data.filter(item => {
@@ -635,12 +635,12 @@ const Reconciliation = () => {
     setEditForm({
       BANK_CLOSING_BALANCE: "",
       Remark: item.Remark || "",
-      Status: item.Status || "pending",
+      Status: item.Status || "--- Select ----",
     });
     setIsModalOpen(true);
   };
 
-  // Modal auto-calculate balance - Fixed: modalBankData?.bankClosingBalance check
+  // Modal auto-calculate balance
   useEffect(() => {
     if (isModalOpen && selectedItem && modalBankData?.bankClosingBalance) {
       const originalBalance = Number(modalBankData.bankClosingBalance.replace(/[₹,]/g, ""));
@@ -758,11 +758,11 @@ const Reconciliation = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">From Bill Date</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">From Payment Date</label>
                   <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">To Bill Date</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">To Payment Date</label>
                   <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
                 <div className="flex items-end">
@@ -796,13 +796,25 @@ const Reconciliation = () => {
               )}
             </div>
 
-            {/* Table */}
+            {/* Table - Updated Headers */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="w-full">
+              <div className="w-full overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-gray-800 text-white">
                     <tr>
-                      {["UID","Timestamp","Contractor","Paid Amount","Bank","Mode","Details","Bill Date","Exp Head","Planned 2","Actions"].map(h => (
+                      {[
+                        "UID",
+                        "Timestamp",
+                        "Particulars",         // ← Contractor की जगह
+                        "Paid Amount",
+                        "Bank",
+                        "Mode",
+                        "Payment Details",     // ← Details की जगह
+                        "Payment Date",        // ← Bill Date की जगह
+                        "Exp Head",
+                        "Planned 2",
+                        "Actions"
+                      ].map(h => (
                         <th key={h} className="px-3 py-3 text-[10px] font-bold uppercase whitespace-normal">{h}</th>
                       ))}
                     </tr>
@@ -817,9 +829,9 @@ const Reconciliation = () => {
                     ) : (
                       filteredData.map(item => (
                         <tr key={item.uid || item.paymentDetails} className="hover:bg-gray-50">
-                          <td className="px-3 py-3 text-[11px] font-bold">{item.uid}</td>
                           <td className="px-3 py-3 text-[11px] whitespace-nowrap">{item.timestamp}</td>
-                          <td className="px-3 py-3 text-[11px]">{item.contractorName}</td>
+                          <td className="px-3 py-3 text-[11px] font-bold">{item.uid}</td>
+                          <td className="px-3 py-3 text-[11px]">{item.contractorName}</td> {/* Particulars में contractorName दिख रहा है */}
                           <td className="px-3 py-3 text-[11px] font-black text-blue-600">₹{item.paidAmount}</td>
                           <td className="px-3 py-4 text-[11px] break-words whitespace-normal align-top">{item.bankDetails || "-"}</td>
                           <td className="px-3 py-3 text-[11px]">{item.paymentMode}</td>
@@ -895,8 +907,9 @@ const Reconciliation = () => {
                       onChange={(e) => setEditForm({ ...editForm, Status: e.target.value })}
                       className="w-full p-2 border rounded-lg font-bold text-xs"
                     >
-                      <option value="pending">Pending</option>
+                      <option value=" ">----- Select----</option>
                       <option value="Done">Done</option>
+                      <option value="Cancel">Cancel</option>
                     </select>
                   </div>
                 </div>
@@ -912,7 +925,7 @@ const Reconciliation = () => {
                     disabled={isSaving}
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold text-xs uppercase hover:bg-blue-700"
                   >
-                    Save
+                    {isSaving ? "Saving..." : "Save"}
                   </button>
                 </div>
               </div>

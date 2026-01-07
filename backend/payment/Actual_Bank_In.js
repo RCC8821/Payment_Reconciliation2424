@@ -21,7 +21,7 @@ router.get('/GET-Actual-Bank-In', async (req, res) => {
     const filteredData = rows
      .filter(row => row[12] && !row[13])
       .map(row => ({
-        timestamp: (row[0] || '').toString().trim(),
+        // timestamp: (row[0] || '').toString().trim(),
         uid: (row[1] || '').toString().trim(),
         SiteName: (row[2] || '').toString().trim(),
         Amount: (row[3] || '').toString().trim(),

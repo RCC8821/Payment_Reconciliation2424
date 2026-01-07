@@ -6,14 +6,14 @@ const USERS = [
     type: "admin"
   },
   {
-    email: "employee1@example.com",
-    password: "emp123",
-    type: "employee"
+    email: "Ramprasad@gmail.com",
+    password: "Ram$123",
+    type: "Payment"
   },
   {
-    email: "employee2@example.com",
-    password: "emp456",
-    type: "employee"
+    email: "Rcc24@gmail.com",
+    password: "RCC@123",
+    type: "RCC"
   }
   // यहाँ जितने चाहो users add कर दो
 ];

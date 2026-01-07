@@ -225,6 +225,8 @@ async function generateUniqueUID() {
   }
 }
 
+
+
 router.post('/Bank_Transfer_form', async (req, res) => {
   try {
     const {
@@ -273,15 +275,16 @@ router.post('/Bank_Transfer_form', async (req, res) => {
     ];
 
     // Yeh line sabse important hai → USER_ENTERED mode use karo
-    await sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range: 'A/C To A/C Transfer!A7:I',
-      valueInputOption: 'USER_ENTERED',  // ← Isse quote nahi aayega
-      insertDataOption: 'INSERT_ROWS',
-      requestBody: {
-        values: [rowData]
-      }
-    });
+  await sheets.spreadsheets.values.append({
+  spreadsheetId,
+  range: 'A/C To A/C Transfer!A7:I',
+  valueInputOption: 'USER_ENTERED',
+  // insertDataOption: 'INSERT_ROWS',  ← इस line को comment/remove कर दो
+  // या अगर रखना ही है तो: insertDataOption: 'OVERWRITE',
+  requestBody: {
+    values: [rowData]
+  }
+});
 
     res.status(200).json({
       success: true,

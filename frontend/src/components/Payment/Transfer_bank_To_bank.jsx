@@ -238,8 +238,19 @@ const Transfer_bank_To_bank = () => {
                   </p>
                 </div>
               </div>
-
-              <div>
+<div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase">Status</label>
+                    <select
+                      value={status}
+                       onChange={(e) => setStatus(e.target.value)}
+                      className="w-full p-2 border rounded-lg font-bold text-xs"
+                    >
+                      <option value=" ">----- Select----</option>
+                      <option value="Done">Done</option>
+                      <option value="Cancel">Cancel</option>
+                    </select>
+                  </div>
+              {/* <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase">
                   Status <span className="text-red-600">*</span>
                 </label>
@@ -250,7 +261,7 @@ const Transfer_bank_To_bank = () => {
                   placeholder="e.g., Completed, Pending, Failed"
                   className="w-full p-3 mt-1 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </div>
+              </div> */}
 
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase">Remark (optional)</label>

@@ -1,128 +1,4 @@
-// // src/pages/Login.jsx
-// import React, { useState, useEffect } from 'react';
-// import { useDispatch, useSelector } from 'react-redux';
-// import { loginUser, clearError } from '../features/Auth/LoginSlice';
-// import { useNavigate } from 'react-router-dom';
 
-// const Login = () => {
-//   const [email, setEmail] = useState('');
-//   const [password, setPassword] = useState('');
-
-//   const dispatch = useDispatch();
-//   const navigate = useNavigate();
-
-//   const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
-
-//   // Agar already logged in hai to direct dashboard pe bhej do
-//   useEffect(() => {
-//     if (isAuthenticated) {
-//       navigate('/dashboard');
-//     }
-//   }, [isAuthenticated, navigate]);
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     dispatch(clearError());
-//     dispatch(loginUser({ email, password }));
-//   };
-
-//   return (
-//     <div style={{
-//       display: 'flex',
-//       justifyContent: 'center',
-//       alignItems: 'center',
-//       minHeight: '100vh',
-//       backgroundColor: '#f0f2f5'
-//     }}>
-//       <div style={{
-//         background: 'white',
-//         padding: '40px',
-//         borderRadius: '10px',
-//         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-//         width: '100%',
-//         maxWidth: '400px'
-//       }}>
-//         <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#333' }}>
-//           Login to Dashboard
-//         </h2>
-
-//         <form onSubmit={handleSubmit}>
-//           <div style={{ marginBottom: '20px' }}>
-//             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-//               Email
-//             </label>
-//             <input
-//               type="email"
-//               value={email}
-//               onChange={(e) => setEmail(e.target.value)}
-//               required
-//               placeholder="Enter your email"
-//               style={{
-//                 width: '100%',
-//                 padding: '12px',
-//                 borderRadius: '6px',
-//                 border: '1px solid #ccc',
-//                 fontSize: '16px'
-//               }}
-//             />
-//           </div>
-
-//           <div style={{ marginBottom: '20px' }}>
-//             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-//               Password
-//             </label>
-//             <input
-//               type="password"
-//               value={password}
-//               onChange={(e) => setPassword(e.target.value)}
-//               required
-//               placeholder="Enter your password"
-//               style={{
-//                 width: '100%',
-//                 padding: '12px',
-//                 borderRadius: '6px',
-//                 border: '1px solid #ccc',
-//                 fontSize: '16px'
-//               }}
-//             />
-//           </div>
-
-//           {error && (
-//             <p style={{ color: 'red', textAlign: 'center', marginBottom: '15px' }}>
-//               {error}
-//             </p>
-//           )}
-
-//           <button
-//             type="submit"
-//             disabled={isLoading}
-//             style={{
-//               width: '100%',
-//               padding: '14px',
-//               backgroundColor: '#007bff',
-//               color: 'white',
-//               border: 'none',
-//               borderRadius: '6px',
-//               fontSize: '18px',
-//               cursor: isLoading ? 'not-allowed' : 'pointer',
-//               opacity: isLoading ? 0.7 : 1
-//             }}
-//           >
-//             {isLoading ? 'Logging in...' : 'Login'}
-//           </button>
-//         </form>
-
-//         <p style={{ textAlign: 'center', marginTop: '20px', color: '#666' }}>
-//           Test Credentials (example):<br />
-//           Email: nandu24@gmail.com<br />
-//           Password: jo bhi backend mein set hai
-//         </p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Login;
 
 // src/pages/Login.jsx
 import React, { useState, useEffect } from 'react';
@@ -178,7 +54,7 @@ const Login = () => {
   // Landing Page
   if (showLanding) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center overflow-hidden">
+      <div className="fixed inset-0 bg-blue-400 to-indigo-900 flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
           <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -218,7 +94,7 @@ const Login = () => {
 
   // Main Login Form
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-blue-500 to-pink-900 flex items-center justify-center p-4">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
           <div
@@ -235,12 +111,12 @@ const Login = () => {
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-        <div className="bg-purple-900 bg-opacity-10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white border-opacity-20 transform transition-all hover:scale-105 duration-300">
+        <div className="bg-blue-500 bg-opacity-10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white border-opacity-20 transform transition-all ">
           <div className="flex justify-center mb-6">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full blur-xl opacity-50" />
-              <div className="relative bg-gradient-to-r from-blue-500 to-purple-600 p-4 rounded-full">
-                <LogIn className="w-8 h-8 text-white" />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-300 to-purple-300 rounded-full blur-xl opacity-50" />
+              <div className="relative bg-white p-4 rounded-full">
+                <img src='rcc-logo.png' className="w-9 h-9 text-white" />
               </div>
             </div>
           </div>
@@ -286,7 +162,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={isLoading || !email.trim() || !password}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transform transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="w-full py-3 px-4 bg-gray-800 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transform transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center">
@@ -311,15 +187,13 @@ const Login = () => {
           </div> */}
 
           <div className="mt-6 text-center">
-            <button className="text-sm text-blue-300 hover:text-blue-200 transition-colors">
+            <button className="text-sm text-black hover:text-white transition-colors">
               Forgot Password?
             </button>
           </div>
         </div>
 
-        <p className="text-center text-blue-200 mt-6 text-sm">
-          Don't have an account? <button className="text-purple-300 hover:text-purple-200 font-semibold">Contact Admin</button>
-        </p>
+     
       </div>
 
       <style jsx>{`

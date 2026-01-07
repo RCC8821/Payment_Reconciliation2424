@@ -1,5 +1,4 @@
 const dotenv = require("dotenv");
-
 dotenv.config();
 
 const validateEnv = () => {
@@ -16,7 +15,9 @@ const validateEnv = () => {
     "GOOGLE_CLIENT_X509_CERT_URL",
     "GOOGLE_UNIVERSE_DOMAIN",
     "SPREADSHEET_ID",
+    "SPREADSHEET_ID_OFFICE_EXPENSES",
     "PORT",
+    "GOOGLE_DRIVE_FOLDER_ID", // optional hai agar nahi use kar rahe, to remove kar sakte ho
   ];
 
   const missingEnvVars = requiredEnvVars.filter(

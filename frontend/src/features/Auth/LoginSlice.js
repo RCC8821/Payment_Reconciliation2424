@@ -25,9 +25,9 @@ export const loginUser = createAsyncThunk(
       const userType = data.user?.type || 'user';
 
       // Save to localStorage (page refresh pe login rahe)
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userType', userType);
-      localStorage.setItem('userEmail', data.user?.email || email);
+      sessionStorage.setItem('token', data.token);
+      sessionStorage.setItem('userType', userType);
+      sessionStorage.setItem('userEmail', data.user?.email || email);
 
       return {
         token: data.token,
