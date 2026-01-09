@@ -1,4 +1,3 @@
-// src/features/auth/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 // Async Thunk for Login
@@ -16,23 +15,22 @@ export const loginUser = createAsyncThunk(
 
       const data = await response.json();
 
-      // Check for error or unsuccessful login
       if (!response.ok || !data.success) {
         return rejectWithValue(data.message || 'Invalid email or password');
       }
 
-      // Backend already short/lowercase type bhej raha hai jaise "admin"
       const userType = data.user?.type || 'user';
+      const userEmail = data.user?.email || email;
 
-      // Save to localStorage (page refresh pe login rahe)
+      // sessionStorage में save करो (tab close होते ही clear हो जाएगा)
       sessionStorage.setItem('token', data.token);
       sessionStorage.setItem('userType', userType);
-      sessionStorage.setItem('userEmail', data.user?.email || email);
+      sessionStorage.setItem('userEmail', userEmail);
 
       return {
         token: data.token,
         userType,
-        email: data.user?.email || email,
+        email: userEmail,
       };
     } catch (error) {
       return rejectWithValue('Network error. Please check your connection and try again.');
@@ -40,13 +38,13 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Initial State – app start hone pe localStorage se load karo
+// Initial State – page load/refresh पर sessionStorage से values load करो
 const initialState = {
-  token: localStorage.getItem('token') || null,
-  userType: localStorage.getItem('userType') || null,
-  email: localStorage.getItem('userEmail') || null,
+  token: sessionStorage.getItem('token') || null,
+  userType: sessionStorage.getItem('userType') || null,
+  email: sessionStorage.getItem('userEmail') || null,
   isLoading: false,
-  isAuthenticated: !!localStorage.getItem('token'),
+  isAuthenticated: !!sessionStorage.getItem('token'),
   error: null,
 };
 
@@ -62,12 +60,13 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
 
-      localStorage.removeItem('token');
-      localStorage.removeItem('userType');
-      localStorage.removeItem('userEmail');
+      // sessionStorage से सब remove करो
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('userType');
+      sessionStorage.removeItem('userEmail');
     },
 
-    // Clear error message (retry ya new login ke liye)
+    // Error clear karne ke liye
     clearError: (state) => {
       state.error = null;
     },
@@ -84,6 +83,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.userType = action.payload.userType;
         state.email = action.payload.email;
+        // Note: sessionStorage already set in thunk
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
