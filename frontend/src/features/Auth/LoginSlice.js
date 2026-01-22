@@ -1,3 +1,6 @@
+
+
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 // Async Thunk for Login
@@ -5,7 +8,7 @@ export const loginUser = createAsyncThunk(
   'auth/login',
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/login-user`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -16,32 +19,38 @@ export const loginUser = createAsyncThunk(
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        return rejectWithValue(data.message || 'Invalid email or password');
+        return rejectWithValue(data.error || 'Invalid email or password');
       }
 
-      const userType = data.user?.type || 'user';
-      const userEmail = data.user?.email || email;
+      // Backend response से values ले रहे हैं (latest API के हिसाब से)
+      const token = data.token;
+      const userType = data.userType || 'user';
+      const name = data.name || '';           // ← नया: name आ रहा है backend से
+      const emailFromResponse = data.email || email; // fallback
 
-      // sessionStorage में save करो (tab close होते ही clear हो जाएगा)
-      sessionStorage.setItem('token', data.token);
+      // sessionStorage में save (tab close पर clear हो जाएगा)
+      sessionStorage.setItem('token', token);
       sessionStorage.setItem('userType', userType);
-      sessionStorage.setItem('userEmail', userEmail);
+      sessionStorage.setItem('userName', name);       // ← name save
+      sessionStorage.setItem('userEmail', emailFromResponse);
 
       return {
-        token: data.token,
+        token,
         userType,
-        email: userEmail,
+        name,                    // ← state में भी रखेंगे
+        email: emailFromResponse,
       };
     } catch (error) {
-      return rejectWithValue('Network error. Please check your connection and try again.');
+      return rejectWithValue('Network error. Please check your connection.');
     }
   }
 );
 
-// Initial State – page load/refresh पर sessionStorage से values load करो
+// Initial State – page refresh पर sessionStorage से load
 const initialState = {
   token: sessionStorage.getItem('token') || null,
   userType: sessionStorage.getItem('userType') || null,
+  userName: sessionStorage.getItem('userName') || null,   // ← नया field
   email: sessionStorage.getItem('userEmail') || null,
   isLoading: false,
   isAuthenticated: !!sessionStorage.getItem('token'),
@@ -56,17 +65,19 @@ const authSlice = createSlice({
     logout: (state) => {
       state.token = null;
       state.userType = null;
+      state.userName = null;       // ← clear name
       state.email = null;
       state.isAuthenticated = false;
       state.error = null;
 
-      // sessionStorage से सब remove करो
+      // sessionStorage clear
       sessionStorage.removeItem('token');
       sessionStorage.removeItem('userType');
+      sessionStorage.removeItem('userName');     // ← name remove
       sessionStorage.removeItem('userEmail');
     },
 
-    // Error clear karne ke liye
+    // Error clear
     clearError: (state) => {
       state.error = null;
     },
@@ -82,8 +93,8 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.userType = action.payload.userType;
+        state.userName = action.payload.name;       // ← state update
         state.email = action.payload.email;
-        // Note: sessionStorage already set in thunk
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;

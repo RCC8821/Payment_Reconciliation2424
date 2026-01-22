@@ -213,79 +213,170 @@ router.get('/bank-balance/:bankName', async (req, res) => {
   }
 });
 
+
+
+// router.post('/update-reconciliation', async (req, res) => {
+//   console.log('Received body:', req.body); 
+
+//   try {
+//     const { paymentDetails, bankClosingBalanceAfterPayment, status, remark } = req.body;
+
+//     if (!paymentDetails || !paymentDetails.trim()) {
+//       return res.status(400).json({ success: false, message: 'Payment Details is required' });
+//     }
+
+//     const trimmedInput = paymentDetails.trim().toLowerCase();
+
+//     const response = await sheets.spreadsheets.values.get({
+//       spreadsheetId,
+//       range: 'FMS!A7:Q',
+//     });
+
+//     const rows = response.data.values || [];
+
+//     const rowIndex = rows.findIndex(row => {
+//       const sheetValue = row[6] ? row[6].toString().trim().toLowerCase() : '';
+//       return sheetValue === trimmedInput;
+//     });
+
+//     if (rowIndex === -1) {
+//       return res.status(404).json({ 
+//         success: false, 
+//         message: 'Row not found with this Payment Details',
+//         searchedFor: paymentDetails 
+//       });
+//     }
+
+//     const sheetRowNumber = 7 + rowIndex;
+
+//     await sheets.spreadsheets.values.batchUpdate({
+//       spreadsheetId,
+//       resource: {
+//         valueInputOption: 'USER_ENTERED',
+//         data: [
+//           { range: `FMS!P${sheetRowNumber}`, values: [[bankClosingBalanceAfterPayment || '']] },
+//           { range: `FMS!N${sheetRowNumber}`, values: [[status || '']] },
+//           { range: `FMS!Q${sheetRowNumber}`, values: [[remark || '']] }
+//         ]
+//       }
+//     });
+
+//     // Naya part: Force recalculation by dummy write
+//     const bankName = rows[rowIndex][4]?.toString().trim(); 
+
+//     if (bankName) {
+//       const dummyRange = `'${bankName}'!Z3`; 
+
+//       const triggerValue = Date.now().toString(); 
+
+//       await sheets.spreadsheets.values.update({
+//         spreadsheetId,
+//         range: dummyRange,
+//         valueInputOption: 'RAW',
+//         resource: {
+//           values: [[triggerValue]]
+//         }
+//       });
+
+//       console.log(`Forced recalculation for ${bankName} by writing to Z1`);
+//     }
+
+//     res.json({ 
+//       success: true, 
+//       message: 'Reconciliation updated successfully'
+//     });
+//   } catch (error) {
+//     console.error('Update error:', error);
+//     res.status(500).json({ success: false, message: 'Server error', error: error.message });
+//   }
+// });
+
+
+
+
 router.post('/update-reconciliation', async (req, res) => {
-  console.log('Received body:', req.body); // Debug
+  console.log('Received body:', req.body);
 
   try {
     const { paymentDetails, bankClosingBalanceAfterPayment, status, remark } = req.body;
 
-    if (!paymentDetails || !paymentDetails.trim()) {
+    if (!paymentDetails?.trim()) {
       return res.status(400).json({ success: false, message: 'Payment Details is required' });
     }
 
     const trimmedInput = paymentDetails.trim().toLowerCase();
 
+    // Get data
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'FMS!A7:Q',
+      range: 'FMS!A7:Q1000',  // thoda zyada range le lo safety ke liye
     });
 
     const rows = response.data.values || [];
 
     const rowIndex = rows.findIndex(row => {
-      const sheetValue = row[6] ? row[6].toString().trim().toLowerCase() : '';
+      const sheetValue = row[6]?.toString().trim().toLowerCase() || '';
       return sheetValue === trimmedInput;
     });
 
     if (rowIndex === -1) {
       return res.status(404).json({ 
         success: false, 
-        message: 'Row not found with this Payment Details',
-        searchedFor: paymentDetails 
+        message: 'Payment Details not found in column G (index 6)',
+        searched: trimmedInput 
       });
     }
 
     const sheetRowNumber = 7 + rowIndex;
+    console.log(`Found row: ${sheetRowNumber} (0-based index ${rowIndex})`);
 
-    await sheets.spreadsheets.values.batchUpdate({
+    // Very clear single update - batch ki jagah simple update try karte hain pehle
+    await sheets.spreadsheets.values.update({
       spreadsheetId,
+      range: `FMS!P${sheetRowNumber}`,
+      valueInputOption: 'RAW',
       resource: {
-        valueInputOption: 'USER_ENTERED',
-        data: [
-          { range: `FMS!P${sheetRowNumber}`, values: [[bankClosingBalanceAfterPayment || '']] },
-          { range: `FMS!N${sheetRowNumber}`, values: [[status || '']] },
-          { range: `FMS!Q${sheetRowNumber}`, values: [[remark || '']] }
-        ]
+        values: [[bankClosingBalanceAfterPayment || '']]
       }
     });
 
-    // Naya part: Force recalculation by dummy write
-    const bankName = rows[rowIndex][4]?.toString().trim(); // Column E (index 4) se bank name nikaalo
+    // Optional: status aur remark bhi update (agar chahiye to uncomment kar dena)
+   
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `FMS!N${sheetRowNumber}`,
+      valueInputOption: 'USER_ENTERED',
+      resource: { values: [[status || '']] }
+    });
 
-    if (bankName) {
-      const dummyRange = `'${bankName}'!Z1`; // Unused cell Z1 mein write karo (hide kar sakte ho)
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `FMS!Q${sheetRowNumber}`,
+      valueInputOption: 'USER_ENTERED',
+      resource: { values: [[remark || '']] }
+    });
+    
 
-      const triggerValue = Date.now().toString(); // Chhota unique value (timestamp)
+    console.log(`Updated P${sheetRowNumber} with value: ${bankClosingBalanceAfterPayment}`);
 
-      await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: dummyRange,
-        valueInputOption: 'RAW',
-        resource: {
-          values: [[triggerValue]]
-        }
-      });
-
-      console.log(`Forced recalculation for ${bankName} by writing to Z1`);
-    }
+    // Browser mein check karne ke liye thoda wait (real mein nahi chahiye)
+    // await new Promise(r => setTimeout(r, 1500));
 
     res.json({ 
       success: true, 
-      message: 'Reconciliation updated successfully'
+      message: `Updated row ${sheetRowNumber} in FMS sheet`,
+      row: sheetRowNumber,
+      updatedColumnP: bankClosingBalanceAfterPayment
     });
+
   } catch (error) {
-    console.error('Update error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    console.error('Detailed error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Update failed', 
+      error: error.message,
+      stack: error.stack?.substring(0, 300)  // thoda clue milega
+    });
   }
 });
 

@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useSelector } from 'react-redux';
 import Login from './Pages/Login';
 import Dashboard from './Pages/Dashboard';
+import Summary from './components/paymentSummary/Summary';
 import Reconciliation from './components/Payment/Reconciliation';
 import Form from './components/Payment/Form';
 import Actual_Payment_in from './components/Payment/Actual_Payment_in';
@@ -46,6 +47,7 @@ function App() {
           }
         >
           {/* Nested route for Reconciliation */}
+          <Route path='summary' element={<Summary/>}/>
           <Route path="reconciliation" element={<Reconciliation />} />
           <Route path='form' element={<Form/>}/>
           <Route path='Actual_Payment_in' element={<Actual_Payment_in/>}/>

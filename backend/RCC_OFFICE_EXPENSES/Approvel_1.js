@@ -15,7 +15,7 @@ router.get('/GET-Office-Expenses-Data-Approved1', async (req, res) => {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,  // ← Yahi sahi syntax hai
-      range: 'RCC_OFFICE_FMS!A8:Q', // ← Apne sheet ke tab name aur range ke hisaab se badal sakte ho
+      range: 'RCC_OFFICE_FMS!A8:V', // ← Apne sheet ke tab name aur range ke hisaab se badal sakte ho
       // Agar sheet ka naam alag hai to yahan change karo, jaise 'Sheet1!A7:L' ya 'Expenses!A1:Z'
     });
 
@@ -26,7 +26,7 @@ router.get('/GET-Office-Expenses-Data-Approved1', async (req, res) => {
     }
 
     const filteredData = rows
-      .filter(row => row[15] && !row[16])   // Pending approval wale only (optional)
+      .filter(row => row[20] && !row[21])   // Pending approval wale only (optional)
       .map(row => ({
         timestamp: (row[0] || '').toString().trim(),
         uid: (row[1] || '').toString().trim(),
@@ -34,15 +34,18 @@ router.get('/GET-Office-Expenses-Data-Approved1', async (req, res) => {
         PAYEE_NAME_1: (row[3] || '').toString().trim(),
         EXPENSES_HEAD_1: (row[4] || '').toString().trim(),
         EXPENSES_SUBHEAD_1: (row[5] || '').toString().trim(),
-        EXPENSES_DETAILS_1: (row[6] || '').toString().trim(),
-        Amount: (row[7] || '').toString().trim(),
-        DEPARTMENT_1: (row[8] || '').toString().trim(),
-        APPROVAL_DOER: (row[9] || '').toString().trim(),
-        RAISED_BY_1: (row[10] || '').toString().trim(),
-        REMARK_1: (row[11] || '').toString().trim(),
-        Bill_Photo: (row[12] || '').toString().trim(), 
-        PLANNED_2:(row[15] || '').toString().trim(),
-        ACTUAL_2:(row[16] || '').toString().trim()
+        ITEM_NAME_1: (row[6] || '').toString().trim(),
+        UNIT_1: (row[7] || '').toString().trim(),
+        SKU_CODE_1: (row[8] || '').toString().trim(),
+        Qty_1: (row[9] || '').toString().trim(),
+        Amount: (row[10] || '').toString().trim(),
+        DEPARTMENT_1: (row[11] || '').toString().trim(),
+        APPROVAL_DOER: (row[12] || '').toString().trim(),
+        RAISED_BY_1: (row[13] || '').toString().trim(),
+        REMARK_1: (row[14] || '').toString().trim(),
+        Bill_Photo: (row[15] || '').toString().trim(), 
+        PLANNED_2:(row[20] || '').toString().trim(),
+        ACTUAL_2:(row[21] || '').toString().trim()
       }));
 
     res.json({
@@ -105,10 +108,10 @@ router.post('/update-RCC-OFFICE-Expenses-Data-Approved1', async (req, res) => {
       resource: {
         valueInputOption: 'USER_ENTERED',
         data: [
-          { range: `RCC_OFFICE_FMS!R${sheetRowNumber}`, values: [[STATUS_2 || '']] },
-          { range: `RCC_OFFICE_FMS!T${sheetRowNumber}`, values: [[REVISED_AMOUNT_3 || '']] },
-          { range: `RCC_OFFICE_FMS!U${sheetRowNumber}`, values: [[APPROVAL_DOER_2 || '']] },
-          { range: `RCC_OFFICE_FMS!V${sheetRowNumber}`, values: [[REMARK_2 || '']] }
+          { range: `RCC_OFFICE_FMS!W${sheetRowNumber}`, values: [[STATUS_2 || '']] },
+          { range: `RCC_OFFICE_FMS!Y${sheetRowNumber}`, values: [[REVISED_AMOUNT_3 || '']] },
+          { range: `RCC_OFFICE_FMS!Z${sheetRowNumber}`, values: [[APPROVAL_DOER_2 || '']] },
+          { range: `RCC_OFFICE_FMS!AA${sheetRowNumber}`, values: [[REMARK_2 || '']] }
         ]
       }
     });

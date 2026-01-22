@@ -8,7 +8,8 @@ const USERS = [
   {
     email: "Ramprasad@gmail.com",
     password: "Ram$123",
-    type: "Payment"
+    type: "Payment",
+    Name:"Ramprasad Vishwakarma"
   },
   {
     email: "Rcc24@gmail.com",
