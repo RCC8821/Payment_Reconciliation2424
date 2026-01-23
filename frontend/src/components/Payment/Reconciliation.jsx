@@ -804,7 +804,7 @@ const Reconciliation = () => {
   }
 
   return (
-    <div className="mt-15 space-y-6 p-4 md:p-6 ">
+    <div className=" space-y-6  md:p-6 ">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 pb-4 border-b border-indigo-700/40">
         <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-200 via-purple-200 to-indigo-200 bg-clip-text text-transparent">

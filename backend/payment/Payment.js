@@ -309,7 +309,7 @@ router.post('/update-reconciliation', async (req, res) => {
     // Get data
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'FMS!A7:Q1000',  // thoda zyada range le lo safety ke liye
+      range: 'FMS!A7:Q',  // thoda zyada range le lo safety ke liye
     });
 
     const rows = response.data.values || [];
@@ -379,5 +379,9 @@ router.post('/update-reconciliation', async (req, res) => {
     });
   }
 });
+
+
+
+
 
 module.exports = router;

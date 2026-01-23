@@ -3,8 +3,71 @@ const { sheets, SPREADSHEET_ID_OFFICE_EXPENSES } = require('../config/googleShee
 const router = express.Router();
 
 // NEW ROUTE: Office Expenses Sheet (SPREADSHEET_ID_OFFICE_EXPENSES) se data fetch
+// router.get('/GET-DIM-Expenses-Data-Approved2', async (req, res) => {
+//   try {
+//     // Safety check
+//     if (!SPREADSHEET_ID_OFFICE_EXPENSES) {
+//       return res.status(500).json({
+//         success: false,
+//         error: 'SPREADSHEET_ID_OFFICE_EXPENSES is not configured',
+//       });
+//     }
+
+//     const response = await sheets.spreadsheets.values.get({
+//       spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,  // ← Yahi sahi syntax hai
+//       range: 'DIMENSION_OFFICE!A8:Z', // ← Apne sheet ke tab name aur range ke hisaab se badal sakte ho
+//       // Agar sheet ka naam alag hai to yahan change karo, jaise 'Sheet1!A7:L' ya 'Expenses!A1:Z'
+//     });
+
+//     let rows = response.data.values || [];
+
+//     if (rows.length === 0) {
+//       return res.json({ success: true, message: 'No data found', data: [] });
+//     }
+
+//     const filteredData = rows
+//       .filter(row => row[24] && !row[25])   // Pending approval wale only (optional)
+//       .map(row => ({
+//         timestamp: (row[0] || '').toString().trim(),
+//         uid: (row[1] || '').toString().trim(),
+//         OFFICE_NAME_1: (row[2] || '').toString().trim(),
+//         PAYEE_NAME_1: (row[3] || '').toString().trim(),
+//         EXPENSES_HEAD_1: (row[4] || '').toString().trim(),
+//         EXPENSES_SUBHEAD_1: (row[5] || '').toString().trim(),
+//         EXPENSES_DETAILS_1: (row[6] || '').toString().trim(),
+//         Amount: (row[7] || '').toString().trim(),
+//         DEPARTMENT_1: (row[8] || '').toString().trim(),
+//         APPROVAL_DOER: (row[9] || '').toString().trim(),
+//         RAISED_BY_1: (row[10] || '').toString().trim(),
+//         REMARK_1: (row[11] || '').toString().trim(),
+//         Bill_Photo: (row[12] || '').toString().trim(), 
+//         REVISED_AMOUNT_2:(row[19] || '').toString().trim(),
+//         APPROVAL_DOER_2:(row[20] || '').toString().trim(),
+//         REMARK_2:(row[21] || '').toString().trim(),
+//         PLANNED_3:(row[24] || '').toString().trim(),
+//         ACTUAL_3:(row[25] || '').toString().trim()
+//       }));
+
+//     res.json({
+//       success: true,
+//       totalRecords: filteredData.length,
+//       data: filteredData,
+//     });
+//   } catch (error) {
+//     console.error('Error in /GET-Office-Expenses-Data:', error.message);
+//     res.status(500).json({
+//       success: false,
+//       error: 'Failed to fetch office expenses data',
+//       details: error.message,
+//     });
+//   }
+// });
+
+
+
+
 router.get('/GET-DIM-Expenses-Data-Approved2', async (req, res) => {
-  try {
+ try {
     // Safety check
     if (!SPREADSHEET_ID_OFFICE_EXPENSES) {
       return res.status(500).json({
@@ -14,9 +77,9 @@ router.get('/GET-DIM-Expenses-Data-Approved2', async (req, res) => {
     }
 
     const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,  // ← Yahi sahi syntax hai
-      range: 'DIMENSION_OFFICE!A8:Z', // ← Apne sheet ke tab name aur range ke hisaab se badal sakte ho
-      // Agar sheet ka naam alag hai to yahan change karo, jaise 'Sheet1!A7:L' ya 'Expenses!A1:Z'
+      spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,  
+      range: 'DIMENSION_OFFICE_PAYMANT!A7:R', 
+      
     });
 
     let rows = response.data.values || [];
@@ -26,26 +89,20 @@ router.get('/GET-DIM-Expenses-Data-Approved2', async (req, res) => {
     }
 
     const filteredData = rows
-      .filter(row => row[24] && !row[25])   // Pending approval wale only (optional)
+      .filter(row => row[15] && !row[16])   // Pending approval wale only (optional)
       .map(row => ({
-        timestamp: (row[0] || '').toString().trim(),
-        uid: (row[1] || '').toString().trim(),
-        OFFICE_NAME_1: (row[2] || '').toString().trim(),
-        PAYEE_NAME_1: (row[3] || '').toString().trim(),
-        EXPENSES_HEAD_1: (row[4] || '').toString().trim(),
-        EXPENSES_SUBHEAD_1: (row[5] || '').toString().trim(),
-        EXPENSES_DETAILS_1: (row[6] || '').toString().trim(),
-        Amount: (row[7] || '').toString().trim(),
-        DEPARTMENT_1: (row[8] || '').toString().trim(),
-        APPROVAL_DOER: (row[9] || '').toString().trim(),
-        RAISED_BY_1: (row[10] || '').toString().trim(),
-        REMARK_1: (row[11] || '').toString().trim(),
-        Bill_Photo: (row[12] || '').toString().trim(), 
-        REVISED_AMOUNT_2:(row[19] || '').toString().trim(),
-        APPROVAL_DOER_2:(row[20] || '').toString().trim(),
-        REMARK_2:(row[21] || '').toString().trim(),
-        PLANNED_3:(row[24] || '').toString().trim(),
-        ACTUAL_3:(row[25] || '').toString().trim()
+      Timestamp      : (row[0]  || '').toString().trim(),   // A
+      Office_Bill_No : (row[1]  || '').toString().trim(),   // B
+      OFFICE_NAME_1  : (row[2]  || '').toString().trim(),   // C
+      PAYEE_NAME_1   : (row[3]  || '').toString().trim(),   // D
+      EXPENSES_HEAD_1: (row[4]  || '').toString().trim(),   // E
+      EXPENSES_SUBHEAD_1: (row[5]  || '').toString().trim(), // F
+      DEPARTMENT_1   : (row[6] || '').toString().trim(),   // L (very important – confirm this column)
+      APPROVAL_DOER  : (row[7] || '').toString().trim(),   // M
+      RAISED_BY_1    : (row[8] || '').toString().trim(),   // N
+      Bill_Photo_1   : (row[9] || '').toString().trim(),   // P
+      Total_Amount   : (row[10] || '').toString().trim(),   // K (most common position for amount)
+      PLANNED_3   : (row[15] || '').toString().trim(),   // 
       }));
 
     res.json({
@@ -64,70 +121,62 @@ router.get('/GET-DIM-Expenses-Data-Approved2', async (req, res) => {
 });
 
 
-
 router.post('/update-DIM-OFFICE-Expenses-Data-Approved2', async (req, res) => {
   console.log('Received body:', req.body); // Debug
 
-  try {
+   try {
     const { uid, STATUS_3, FINAL_AMOUNT_3, REMARK_3 } = req.body;
 
     if (!uid) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'UID is required' 
-      });
+      return res.status(400).json({ success: false, message: 'Bill No (uid) is required' });
     }
 
-    const trimmedUid = uid.toString().trim();
+    const trimmedBillNo = String(uid).trim();
 
-    // FIX 1: Yahan SPREADSHEET_ID_OFFICE_EXPENSES use karo
+    // Get all values from the Bill No column (change C7:C → your actual column)
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,
-      range: 'DIMENSION_OFFICE!B7:B',
+      range: 'DIMENSION_OFFICE_PAYMANT!B7:B',   //  ←←← Change to correct Bill No column
     });
 
     const values = response.data.values || [];
 
     const rowIndex = values.findIndex(row => {
-      if (row.length === 0) return false;
-      const sheetValue = row[0] ? row[0].toString().trim() : '';
-      return sheetValue === trimmedUid;
+      if (!row || row.length === 0) return false;
+      const sheetValue = String(row[0]).trim();
+      return sheetValue === trimmedBillNo;
     });
 
     if (rowIndex === -1) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Row not found with this UID',
-        searchedFor: uid 
+      return res.status(404).json({
+        success: false,
+        message: 'No matching Bill No found',
+        searchedFor: trimmedBillNo,
       });
     }
 
     const sheetRowNumber = 7 + rowIndex;
 
-    // FIX 2: Yahan bhi SPREADSHEET_ID_OFFICE_EXPENSES
+    // Update STATUS_3 → column R, FINAL_AMOUNT_3 → T, REMARK_3 → U
     await sheets.spreadsheets.values.batchUpdate({
       spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,
       resource: {
         valueInputOption: 'USER_ENTERED',
         data: [
-          { range: `DIMENSION_OFFICE!AA${sheetRowNumber}`, values: [[STATUS_3 || '']] },
-          { range: `DIMENSION_OFFICE!AC${sheetRowNumber}`, values: [[FINAL_AMOUNT_3 || '']] },
-          { range: `DIMENSION_OFFICE!AD${sheetRowNumber}`, values: [[REMARK_3 || '']] },
-         
+          { range: `DIMENSION_OFFICE_PAYMANT!R${sheetRowNumber}`, values: [[STATUS_3 ?? '']] },
+          { range: `DIMENSION_OFFICE_PAYMANT!T${sheetRowNumber}`, values: [[FINAL_AMOUNT_3 ?? '']] },
+          { range: `DIMENSION_OFFICE_PAYMANT!U${sheetRowNumber}`, values: [[REMARK_3 ?? '']] },
         ]
       }
     });
 
-    res.json({ 
-      success: true, 
-      message: 'Data updated successfully'
-    });
+    res.json({ success: true, message: 'Final approval updated', row: sheetRowNumber });
   } catch (error) {
     console.error('Update error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
     });
   }
 });

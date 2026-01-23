@@ -25,28 +25,32 @@ router.get('/GET-Office-Expenses-Data-Approved1', async (req, res) => {
       return res.json({ success: true, message: 'No data found', data: [] });
     }
 
-    const filteredData = rows
-      .filter(row => row[20] && !row[21])   // Pending approval wale only (optional)
-      .map(row => ({
-        timestamp: (row[0] || '').toString().trim(),
-        uid: (row[1] || '').toString().trim(),
-        OFFICE_NAME_1: (row[2] || '').toString().trim(),
-        PAYEE_NAME_1: (row[3] || '').toString().trim(),
-        EXPENSES_HEAD_1: (row[4] || '').toString().trim(),
-        EXPENSES_SUBHEAD_1: (row[5] || '').toString().trim(),
-        ITEM_NAME_1: (row[6] || '').toString().trim(),
-        UNIT_1: (row[7] || '').toString().trim(),
-        SKU_CODE_1: (row[8] || '').toString().trim(),
-        Qty_1: (row[9] || '').toString().trim(),
-        Amount: (row[10] || '').toString().trim(),
-        DEPARTMENT_1: (row[11] || '').toString().trim(),
-        APPROVAL_DOER: (row[12] || '').toString().trim(),
-        RAISED_BY_1: (row[13] || '').toString().trim(),
-        REMARK_1: (row[14] || '').toString().trim(),
-        Bill_Photo: (row[15] || '').toString().trim(), 
-        PLANNED_2:(row[20] || '').toString().trim(),
-        ACTUAL_2:(row[21] || '').toString().trim()
-      }));
+  const filteredData = rows
+ .filter(row => row[20] && !row[21])  // at least up to Remark column
+  .map(row => ({
+    // timestamp:     (row[0]  || '').toString().trim(),
+    OFFBILLUID:    (row[1]  || '').toString().trim(),
+    uid:           (row[2]  || '').toString().trim(),
+    OFFICE_NAME_1: (row[3]  || '').toString().trim(),
+    PAYEE_NAME_1:  (row[4]  || '').toString().trim(),
+    EXPENSES_HEAD_1: (row[5]  || '').toString().trim(),
+    EXPENSES_SUBHEAD_1: (row[6]  || '').toString().trim(),
+    ITEM_NAME_1:   (row[7]  || '').toString().trim(),
+    UNIT_1:        (row[8]  || '').toString().trim(),
+    SKU_CODE_1:    (row[9]  || '').toString().trim(),
+    Qty_1:         (row[10] || '').toString().trim(),
+    Amount:        (row[11] || '').toString().trim(),
+    DEPARTMENT_1:  (row[12] || '').toString().trim(),
+    APPROVAL_DOER: (row[13] || '').toString().trim(),
+    RAISED_BY_1:   (row[14] || '').toString().trim(),
+    Bill_Photo:    (row[15] || '').toString().trim(),
+    REMARK_1:      (row[16] || '').toString().trim(),
+
+    // If you have PLANNED_2 and ACTUAL_2 in later columns (e.g. V=21, W=22)
+    // Adjust these indices based on your actual sheet
+    PLANNED_2:     (row[20] || row[21] || '').toString().trim(),   // example: column U or V
+    ACTUAL_2:      (row[21] || row[22] || '').toString().trim(),   // example: column V or W
+  }));
 
     res.json({
       success: true,
@@ -81,7 +85,7 @@ router.post('/update-RCC-OFFICE-Expenses-Data-Approved1', async (req, res) => {
     // FIX 1: Yahan SPREADSHEET_ID_OFFICE_EXPENSES use karo
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,
-      range: 'RCC_OFFICE_FMS!B7:B',
+      range: 'RCC_OFFICE_FMS!C7:C',
     });
 
     const values = response.data.values || [];
