@@ -1,4 +1,379 @@
+// import React, { useState } from "react";
+// import {
+//   useGetPendingOfficeExpensesLevel2Query,
+//   useUpdateOfficeExpenseFinalApprovalMutation,
+// } from '../../features/RCC_Office_Expenses/approval2ApiSlice';
+// import { Image as LucideImage, Loader2, CheckCircle, Edit3, X } from 'lucide-react';
 
+// function Approvel_By_Mayaksir() {
+//   const {
+//     data: response,
+//     isLoading,
+//     isError,
+//     error,
+//   } = useGetPendingOfficeExpensesLevel2Query();
+
+//   const [updateFinalApproval, { isLoading: isUpdating }] = useUpdateOfficeExpenseFinalApprovalMutation();
+
+//   const expenses = response?.data || [];
+//   const totalRecords = response?.totalRecords || expenses.length;
+
+//   // Modal state
+//   const [isModalOpen, setIsModalOpen] = useState(false);
+//   const [selectedExpense, setSelectedExpense] = useState(null);
+//   const [formData, setFormData] = useState({
+//     STATUS_3: '',
+//     FINAL_AMOUNT_3: '',
+//     PAYMENT_MODE_3: '',
+//     REMARK_3: '',
+//   });
+
+//   const openModal = (expense) => {
+//     console.log("Selected expense:", expense); // Debug ke liye - console me check karo
+//     setSelectedExpense(expense);
+//     setFormData({
+//       STATUS_3: '',
+//       FINAL_AMOUNT_3: expense.Total_Amount || expense.REVISED_AMOUNT_2 || '',
+//       PAYMENT_MODE_3: '',
+//       REMARK_3: '',
+//     });
+//     setIsModalOpen(true);
+//   };
+
+//   const closeModal = () => {
+//     setIsModalOpen(false);
+//     setSelectedExpense(null);
+//     setFormData({
+//       STATUS_3: '',
+//       FINAL_AMOUNT_3: '',
+//       PAYMENT_MODE_3: '',
+//       REMARK_3: '',
+//     });
+//   };
+
+//   const handleSubmit = async () => {
+//     // Required fields validation
+//     if (!formData.STATUS_3) {
+//       alert('Status select karo (Done) ❌');
+//       return;
+//     }
+
+//     if (!selectedExpense?.Office_Bill_No?.trim()) {
+//       alert('Bill No nahi mila! ❌\nConsole me check karo selected expense');
+//       console.log("selectedExpense:", selectedExpense);
+//       return;
+//     }
+
+//     if (formData.FINAL_AMOUNT_3 !== '' && isNaN(Number(formData.FINAL_AMOUNT_3))) {
+//       alert('Final amount valid number daalo ❌');
+//       return;
+//     }
+
+//     // 🔥 MAIN FIX: uid = Office_Bill_No bhej rahe hai
+//     const payload = {
+//       uid: selectedExpense.Office_Bill_No.trim(), // Bill No ko uid bhej rahe hai
+//       STATUS_3: formData.STATUS_3,
+//       FINAL_AMOUNT_3: formData.FINAL_AMOUNT_3 ? Number(formData.FINAL_AMOUNT_3) : null,
+//       PAYMENT_MODE_3: formData.PAYMENT_MODE_3.trim() || null,
+//       REMARK_3: formData.REMARK_3.trim() || null,
+//     };
+
+//     console.log("API Payload:", payload); // Debug ke liye check karo
+
+//     try {
+//       await updateFinalApproval(payload).unwrap();
+//       alert('✅ Final approval submit ho gaya!');
+//       closeModal();
+//       // Optional: page refresh/refetch
+//       window.location.reload();
+//     } catch (err) {
+//       console.error('Final approval error:', err);
+//       alert('❌ Submit failed: ' + (err?.data?.message || err.message || 'Unknown error'));
+//     }
+//   };
+
+//   if (isLoading) {
+//     return (
+//       <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 flex items-center justify-center">
+//         <div className="flex flex-col items-center space-y-5">
+//           <Loader2 className="w-16 h-16 text-indigo-400 animate-spin" />
+//           <p className="text-xl font-medium text-indigo-300">Loading pending final approvals...</p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   if (isError) {
+//     return (
+//       <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 flex items-center justify-center p-6">
+//         <div className="text-center max-w-md">
+//           <h2 className="text-2xl font-bold text-red-400 mb-4">Data loading failed</h2>
+//           <p className="text-gray-300 mb-6">{error?.data?.message || 'Cannot load pending records'}</p>
+//           <button
+//             onClick={() => window.location.reload()}
+//             className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg"
+//           >
+//             Retry
+//           </button>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   if (expenses.length === 0) {
+//     return (
+//       <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 flex items-center justify-center p-6">
+//         <div className="text-center max-w-md">
+//           <h2 className="text-3xl font-bold text-indigo-300 mb-4">No Pending Data</h2>
+//           <p className="text-gray-400 text-lg">
+//             All records processed or no expenses waiting for Level-2 (Mayank Sir) approval.
+//           </p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 relative overflow-hidden py-8 px-4 sm:px-6 lg:px-8 xl:px-10 w-full">
+
+//       {/* Background effects */}
+//       <div className="absolute inset-0 pointer-events-none overflow-hidden">
+//         <div className="absolute -top-20 -left-20 w-[500px] h-[500px] bg-purple-700 rounded-full mix-blend-multiply blur-3xl opacity-30 animate-pulse"></div>
+//         <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-blue-700 rounded-full mix-blend-multiply blur-3xl opacity-25 animate-pulse" style={{ animationDelay: '4s' }}></div>
+//       </div>
+
+//       {/* Main content – full width */}
+//       <div className="relative z-10 w-full space-y-8 lg:space-y-10">
+
+//         {/* Header */}
+//         <div className="bg-black/50 backdrop-blur-xl rounded-2xl border border-indigo-700/50 p-6 sm:p-8 lg:p-10 xl:p-12 shadow-2xl w-full">
+//           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+//             <div>
+//               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-200 to-purple-200 bg-clip-text text-transparent">
+//                 Final Approval – Mayank Sir
+//               </h1>
+//               <p className="text-indigo-300/90 mt-2 text-base sm:text-lg lg:text-xl">
+//                 Level 2 • {totalRecords} pending record{totalRecords !== 1 ? 's' : ''}
+//               </p>
+//             </div>
+//             <div className="bg-gradient-to-br from-purple-900/70 to-indigo-900/70 px-6 py-4 lg:py-6 rounded-2xl border border-purple-600/40 shadow-lg min-w-[140px] lg:min-w-[180px] text-center">
+//               <p className="text-sm uppercase tracking-wider text-purple-200 font-semibold mb-1">Pending</p>
+//               <p className="text-3xl lg:text-4xl font-black text-white">{totalRecords}</p>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Table */}
+//         <div className="overflow-x-auto rounded-2xl border border-indigo-700/50 bg-black/40 backdrop-blur-md shadow-2xl w-full">
+//           <table className="w-full min-w-[1400px] border-collapse">
+//             <thead>
+//               <tr className="bg-gradient-to-r from-indigo-950 via-purple-950 to-indigo-950 text-white">
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Timestamp</th>
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Bill No</th>
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Office</th>
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Payee</th>
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Head</th>
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Subhead</th>
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Department</th>
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Approver</th>
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Raised By</th>
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Amount</th>
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-center text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Bill</th>
+//                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-center text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Action</th>
+//               </tr>
+//             </thead>
+
+//             <tbody className="divide-y divide-gray-800/60 bg-gray-950/10">
+//               {expenses.map((item) => (
+//                 <tr
+//                   key={item.Office_Bill_No || item.uid}
+//                   className="hover:bg-indigo-950/40 transition-colors duration-150"
+//                 >
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.Timestamp || '-'}</td>
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-indigo-300 font-medium font-bold text-base">
+//                     {item.Office_Bill_No || '-'}
+//                   </td>
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.OFFICE_NAME_1 || '-'}</td>
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.PAYEE_NAME_1 || '-'}</td>
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.EXPENSES_HEAD_1 || '-'}</td>
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.EXPENSES_SUBHEAD_1 || '-'}</td>
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.DEPARTMENT_1 || '-'}</td>
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.APPROVAL_DOER || item.APPROVAL_DOER_2 || '-'}</td>
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.RAISED_BY_1 || '-'}</td>
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-emerald-400 font-medium text-base">
+//                     ₹{(item.Total_Amount || item.Amount || '—').toLocaleString('en-IN')}
+//                   </td>
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-center">
+//                     {item.Bill_Photo_1 || item.Bill_Photo ? (
+//                       <a
+//                         href={item.Bill_Photo_1 || item.Bill_Photo}
+//                         target="_blank"
+//                         rel="noopener noreferrer"
+//                         className="inline-flex items-center justify-center p-3 bg-cyan-900/50 text-cyan-300 rounded-lg hover:bg-cyan-800/70 transition hover:scale-105"
+//                         title="View bill photo"
+//                       >
+//                         <LucideImage className="w-6 h-6" />
+//                       </a>
+//                     ) : (
+//                       <span className="text-gray-600 text-xl">—</span>
+//                     )}
+//                   </td>
+//                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-center">
+//                     <button
+//                       onClick={() => openModal(item)}
+//                       className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-5 py-3 lg:py-4 rounded-lg font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2 justify-center mx-auto min-w-[140px] lg:min-w-[160px] text-base lg:text-lg"
+//                       title={`Review ${item.Office_Bill_No}`}
+//                     >
+//                       <Edit3 className="w-5 h-5" />
+//                       Review
+//                     </button>
+//                   </td>
+//                 </tr>
+//               ))}
+//             </tbody>
+//           </table>
+//         </div>
+//       </div>
+
+//       {/* Modal – wider on large screens */}
+//       {isModalOpen && selectedExpense && (
+//         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+//           <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl shadow-2xl w-full max-w-3xl lg:max-w-5xl border border-indigo-700/50 overflow-hidden">
+//             <div className="bg-gradient-to-r from-indigo-950 to-purple-950 p-6 lg:p-8 flex justify-between items-center border-b border-indigo-700/60">
+//               <h3 className="text-2xl lg:text-3xl font-bold text-white">
+//                 Final Approval – {selectedExpense.Office_Bill_No}
+//               </h3>
+//               <button 
+//                 onClick={closeModal} 
+//                 className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition"
+//               >
+//                 <X className="w-8 h-8" />
+//               </button>
+//             </div>
+
+//             <div className="p-6 lg:p-10 space-y-8">
+//               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
+//                 <div className="bg-gray-900/60 p-5 lg:p-6 rounded-xl border border-gray-800/50">
+//                   <p className="text-sm lg:text-base text-gray-400 uppercase mb-2">Bill No</p>
+//                   <p className="text-xl lg:text-2xl font-bold text-indigo-300 break-all">
+//                     {selectedExpense.Office_Bill_No || '—'}
+//                   </p>
+//                 </div>
+//                 <div className="bg-gray-900/60 p-5 lg:p-6 rounded-xl border border-gray-800/50">
+//                   <p className="text-sm lg:text-base text-gray-400 uppercase mb-2">Original Amount</p>
+//                   <p className="text-2xl lg:text-3xl font-bold text-emerald-400">
+//                     ₹{(selectedExpense.Total_Amount || selectedExpense.Amount || '0').toLocaleString('en-IN')}
+//                   </p>
+//                 </div>
+//               </div>
+
+//               {/* Status - REQUIRED */}
+//               <div className="space-y-3">
+//                 <label className="block text-base lg:text-lg font-medium text-gray-200">
+//                   Final Status <span className="text-red-400">*</span>
+//                 </label>
+//                 <select
+//                   value={formData.STATUS_3}
+//                   onChange={(e) => setFormData({ ...formData, STATUS_3: e.target.value })}
+//                   className={`w-full px-5 py-4 rounded-lg text-white focus:outline-none focus:ring-2 transition-all text-base lg:text-lg ${
+//                     formData.STATUS_3
+//                       ? 'bg-gray-800 border border-gray-700 focus:ring-emerald-500 border-emerald-500/50'
+//                       : 'bg-gray-800/70 border border-red-500/50 focus:ring-red-500'
+//                   }`}
+//                 >
+//                   <option value="">----- Select ----- *</option>
+//                   <option value="Done">✅ Done</option>
+//                 </select>
+//               </div>
+
+//               {/* Final Amount */}
+//               <div className="space-y-3">
+//                 <label className="block text-base lg:text-lg font-medium text-gray-200">Final Amount (Optional)</label>
+//                 <input
+//                   type="number"
+//                   step="0.01"
+//                   min="0"
+//                   value={formData.FINAL_AMOUNT_3}
+//                   onChange={(e) => setFormData({ ...formData, FINAL_AMOUNT_3: e.target.value })}
+//                   className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base lg:text-lg"
+//                   placeholder="Original amount ya revised daalo"
+//                 />
+//               </div>
+
+//               {/* ← Add this new block */}
+// <div className="space-y-3">
+//   <label className="block text-base lg:text-lg font-medium text-gray-200">
+//     Payment Mode <span className="text-yellow-400 text-sm">(preferred)</span>
+//   </label>
+//   <select
+//     value={formData.PAYMENT_MODE_3}
+//     onChange={(e) => setFormData({ ...formData, PAYMENT_MODE_3: e.target.value })}
+//     className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base lg:text-lg"
+//   >
+//     <option value="">Select Payment Mode</option>
+//     <option value="Cash">Cash</option>
+//     <option value="Bank Transfer">Bank Transfer</option>
+//     <option value="UPI">UPI</option>
+//     <option value="Cheque">Cheque</option>
+//     <option value="NEFT">NEFT</option>
+//     <option value="RTGS">RTGS</option>
+//     <option value="IMPS">IMPS</option>
+//     {/* Add more modes if needed */}
+//   </select>
+// </div>
+
+//               {/* Remark */}
+//               <div className="space-y-3">
+//                 <label className="block text-base lg:text-lg font-medium text-gray-200">Final Remark (Optional)</label>
+//                 <textarea
+//                   value={formData.REMARK_3}
+//                   onChange={(e) => setFormData({ ...formData, REMARK_3: e.target.value })}
+//                   rows={4}
+//                   className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y text-base lg:text-lg"
+//                   placeholder="Approval reason / rejection note / comments..."
+//                 />
+//               </div>
+
+//               {/* Buttons */}
+//               <div className="flex flex-col sm:flex-row justify-end gap-5 pt-6 border-t border-gray-800">
+//                 <button
+//                   onClick={closeModal}
+//                   className="px-8 py-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition text-base lg:text-lg"
+//                   disabled={isUpdating}
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button
+//                   onClick={handleSubmit}
+//                   disabled={isUpdating || !formData.STATUS_3 || !selectedExpense?.Office_Bill_No}
+//                   className={`px-10 py-4 rounded-lg font-medium flex items-center justify-center gap-3 min-w-[220px] transition-all text-base lg:text-lg ${
+//                     isUpdating || !formData.STATUS_3 || !selectedExpense?.Office_Bill_No
+//                       ? 'bg-gray-700 text-gray-500 cursor-not-allowed border border-gray-600'
+//                       : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl border border-emerald-500/50 hover:scale-[1.02]'
+//                   }`}
+//                 >
+//                   {isUpdating ? (
+//                     <>
+//                       <Loader2 className="w-6 h-6 animate-spin" />
+//                       Submit kar raha...
+//                     </>
+//                   ) : (
+//                     <>
+//                       <CheckCircle className="w-6 h-6" />
+//                       Submit Final Approval
+//                     </>
+//                   )}
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// export default Approvel_By_Mayaksir;
 
 
 
@@ -15,6 +390,7 @@ function Approvel_By_Mayaksir() {
     isLoading,
     isError,
     error,
+    refetch,
   } = useGetPendingOfficeExpensesLevel2Query();
 
   const [updateFinalApproval, { isLoading: isUpdating }] = useUpdateOfficeExpenseFinalApprovalMutation();
@@ -22,21 +398,22 @@ function Approvel_By_Mayaksir() {
   const expenses = response?.data || [];
   const totalRecords = response?.totalRecords || expenses.length;
 
-  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [formData, setFormData] = useState({
     STATUS_3: '',
     FINAL_AMOUNT_3: '',
+    PAYMENT_MODE_3: '',
     REMARK_3: '',
   });
 
   const openModal = (expense) => {
-    console.log("Selected expense:", expense); // Debug ke liye - console me check karo
+    console.log("Opening modal with expense:", expense);
     setSelectedExpense(expense);
     setFormData({
       STATUS_3: '',
-      FINAL_AMOUNT_3: expense.Total_Amount || expense.REVISED_AMOUNT_2 || '',
+      FINAL_AMOUNT_3: expense.Total_Amount || expense.REVISED_AMOUNT_2 || expense.Amount || '',
+      PAYMENT_MODE_3: '',
       REMARK_3: '',
     });
     setIsModalOpen(true);
@@ -48,19 +425,19 @@ function Approvel_By_Mayaksir() {
     setFormData({
       STATUS_3: '',
       FINAL_AMOUNT_3: '',
+      PAYMENT_MODE_3: '',
       REMARK_3: '',
     });
   };
 
   const handleSubmit = async () => {
-    // Required fields validation
     if (!formData.STATUS_3) {
       alert('Status select karo (Done) ❌');
       return;
     }
 
     if (!selectedExpense?.Office_Bill_No?.trim()) {
-      alert('Bill No nahi mila! ❌\nConsole me check karo selected expense');
+      alert('Bill No nahi mila! ❌');
       console.log("selectedExpense:", selectedExpense);
       return;
     }
@@ -70,27 +447,33 @@ function Approvel_By_Mayaksir() {
       return;
     }
 
-    // 🔥 MAIN FIX: uid = Office_Bill_No bhej rahe hai
+    // Debug: show what is actually in state
+    console.log("Form data BEFORE payload:", formData);
+
     const payload = {
-      uid: selectedExpense.Office_Bill_No.trim(), // Bill No ko uid bhej rahe hai
+      uid: selectedExpense.Office_Bill_No.trim(),
       STATUS_3: formData.STATUS_3,
       FINAL_AMOUNT_3: formData.FINAL_AMOUNT_3 ? Number(formData.FINAL_AMOUNT_3) : null,
+      PAYMENT_MODE_3: formData.PAYMENT_MODE_3 || null,   // will send null if empty
       REMARK_3: formData.REMARK_3.trim() || null,
     };
 
-    console.log("API Payload:", payload); // Debug ke liye check karo
+    console.log("Sending this payload to backend:", payload);
 
     try {
       await updateFinalApproval(payload).unwrap();
       alert('✅ Final approval submit ho gaya!');
       closeModal();
-      // Optional: page refresh/refetch
-      window.location.reload();
+      refetch();
     } catch (err) {
-      console.error('Final approval error:', err);
-      alert('❌ Submit failed: ' + (err?.data?.message || err.message || 'Unknown error'));
+      console.error('API error:', err);
+      alert('❌ Submit failed: ' + (err?.data?.message || err?.message || 'Unknown error'));
     }
   };
+
+  // ────────────────────────────────────────────────
+  // Loading / Error / Empty states
+  // ────────────────────────────────────────────────
 
   if (isLoading) {
     return (
@@ -133,95 +516,101 @@ function Approvel_By_Mayaksir() {
     );
   }
 
+  // ────────────────────────────────────────────────
+  // Main UI
+  // ────────────────────────────────────────────────
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 relative overflow-hidden py-6 px-4 md:px-6">
+    <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 relative overflow-hidden py-8 px-4 sm:px-6 lg:px-8 xl:px-10 w-full">
+
       {/* Background effects */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-20 -left-20 w-[500px] h-[500px] bg-purple-700 rounded-full mix-blend-multiply blur-3xl opacity-30 animate-pulse"></div>
         <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-blue-700 rounded-full mix-blend-multiply blur-3xl opacity-25 animate-pulse" style={{ animationDelay: '4s' }}></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto space-y-6">
+      <div className="relative z-10 w-full space-y-8 lg:space-y-10">
+
         {/* Header */}
-        <div className="bg-black/50 backdrop-blur-xl rounded-xl border border-indigo-700/50 p-6 shadow-2xl">
+        <div className="bg-black/50 backdrop-blur-xl rounded-2xl border border-indigo-700/50 p-6 sm:p-8 lg:p-10 xl:p-12 shadow-2xl w-full">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-200 to-purple-200 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-200 to-purple-200 bg-clip-text text-transparent">
                 Final Approval – Mayank Sir
               </h1>
-              <p className="text-indigo-300/90 mt-1">
+              <p className="text-indigo-300/90 mt-2 text-base sm:text-lg lg:text-xl">
                 Level 2 • {totalRecords} pending record{totalRecords !== 1 ? 's' : ''}
               </p>
             </div>
-            <div className="bg-gradient-to-br from-purple-900/70 to-indigo-900/70 px-6 py-4 rounded-xl border border-purple-600/40 shadow-lg min-w-[140px] text-center">
+            <div className="bg-gradient-to-br from-purple-900/70 to-indigo-900/70 px-6 py-4 lg:py-6 rounded-2xl border border-purple-600/40 shadow-lg min-w-[140px] lg:min-w-[180px] text-center">
               <p className="text-sm uppercase tracking-wider text-purple-200 font-semibold mb-1">Pending</p>
-              <p className="text-3xl font-black text-white">{totalRecords}</p>
+              <p className="text-3xl lg:text-4xl font-black text-white">{totalRecords}</p>
             </div>
           </div>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto rounded-xl border border-indigo-700/50 bg-black/40 backdrop-blur-md shadow-2xl">
-          <table className="w-full min-w-max border-collapse">
+        <div className="overflow-x-auto rounded-2xl border border-indigo-700/50 bg-black/40 backdrop-blur-md shadow-2xl w-full">
+          <table className="w-full min-w-[1400px] border-collapse">
             <thead>
               <tr className="bg-gradient-to-r from-indigo-950 via-purple-950 to-indigo-950 text-white">
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Timestamp</th>
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Bill No</th>
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Office</th>
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Payee</th>
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Head</th>
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Subhead</th>
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Department</th>
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Approver</th>
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Raised By</th>
-                <th className="px-5 py-4 text-left text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Amount</th>
-                <th className="px-5 py-4 text-center text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Bill</th>
-                <th className="px-5 py-4 text-center text-sm font-semibold uppercase tracking-wider border-b border-indigo-700/60">Action</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Timestamp</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Bill No</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Office</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Payee</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Head</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Subhead</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Department</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Approver</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Raised By</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Amount</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-center text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Bill</th>
+                <th className="px-4 py-5 lg:px-6 lg:py-6 text-center text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Action</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-800/60 bg-gray-950/10">
               {expenses.map((item) => (
                 <tr
-                  key={item.Office_Bill_No || item.uid} // Bill No ko key bana diya
+                  key={item.Office_Bill_No || item.uid}
                   className="hover:bg-indigo-950/40 transition-colors duration-150"
                 >
-                  <td className="px-5 py-4 text-gray-300">{item.Timestamp || '-'}</td>
-                  <td className="px-5 py-4 text-indigo-300 font-medium font-bold">
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.Timestamp || '-'}</td>
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-indigo-300 font-medium font-bold text-base">
                     {item.Office_Bill_No || '-'}
                   </td>
-                  <td className="px-5 py-4 text-gray-200">{item.OFFICE_NAME_1 || '-'}</td>
-                  <td className="px-5 py-4 text-gray-200">{item.PAYEE_NAME_1 || '-'}</td>
-                  <td className="px-5 py-4 text-gray-200">{item.EXPENSES_HEAD_1 || '-'}</td>
-                  <td className="px-5 py-4 text-gray-200">{item.EXPENSES_SUBHEAD_1 || '-'}</td>
-                  <td className="px-5 py-4 text-gray-300">{item.DEPARTMENT_1 || '-'}</td>
-                  <td className="px-5 py-4 text-gray-300">{item.APPROVAL_DOER || item.APPROVAL_DOER_2 || '-'}</td>
-                  <td className="px-5 py-4 text-gray-300">{item.RAISED_BY_1 || '-'}</td>
-                  <td className="px-5 py-4 text-emerald-400 font-medium">
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.OFFICE_NAME_1 || '-'}</td>
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.PAYEE_NAME_1 || '-'}</td>
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.EXPENSES_HEAD_1 || '-'}</td>
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.EXPENSES_SUBHEAD_1 || '-'}</td>
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.DEPARTMENT_1 || '-'}</td>
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.APPROVAL_DOER || item.APPROVAL_DOER_2 || '-'}</td>
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.RAISED_BY_1 || '-'}</td>
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-emerald-400 font-medium text-base">
                     ₹{(item.Total_Amount || item.Amount || '—').toLocaleString('en-IN')}
                   </td>
-                  <td className="px-5 py-4 text-center">
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-center">
                     {item.Bill_Photo_1 || item.Bill_Photo ? (
                       <a
                         href={item.Bill_Photo_1 || item.Bill_Photo}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center p-2.5 bg-cyan-900/50 text-cyan-300 rounded-lg hover:bg-cyan-800/70 transition"
+                        className="inline-flex items-center justify-center p-3 bg-cyan-900/50 text-cyan-300 rounded-lg hover:bg-cyan-800/70 transition hover:scale-105"
                         title="View bill photo"
                       >
-                        <LucideImage className="w-5 h-5" />
+                        <LucideImage className="w-6 h-6" />
                       </a>
                     ) : (
-                      <span className="text-gray-600">—</span>
+                      <span className="text-gray-600 text-xl">—</span>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-center">
+                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-center">
                     <button
                       onClick={() => openModal(item)}
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2 justify-center mx-auto min-w-[140px]"
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-5 py-3 lg:py-4 rounded-lg font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2 justify-center mx-auto min-w-[140px] lg:min-w-[160px] text-base lg:text-lg"
                       title={`Review ${item.Office_Bill_No}`}
                     >
-                      <Edit3 className="w-4 h-4" />
+                      <Edit3 className="w-5 h-5" />
                       Review
                     </button>
                   </td>
@@ -232,50 +621,50 @@ function Approvel_By_Mayaksir() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* ────────────────────────────────────────────────
+           MODAL
+      ──────────────────────────────────────────────── */}
       {isModalOpen && selectedExpense && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl shadow-2xl w-full max-w-lg border border-indigo-700/50 overflow-hidden">
-            <div className="bg-gradient-to-r from-indigo-950 to-purple-950 p-5 flex justify-between items-center border-b border-indigo-700/60">
-              <h3 className="text-xl font-bold text-white">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+          <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl shadow-2xl w-full max-w-3xl lg:max-w-5xl border border-indigo-700/50 overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-950 to-purple-950 p-6 lg:p-8 flex justify-between items-center border-b border-indigo-700/60">
+              <h3 className="text-2xl lg:text-3xl font-bold text-white">
                 Final Approval – {selectedExpense.Office_Bill_No}
               </h3>
-              <button 
-                onClick={closeModal} 
-                className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition"
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition"
               >
-                <X className="w-6 h-6" />
+                <X className="w-8 h-8" />
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-gray-900/60 p-4 rounded-xl border border-gray-800/50">
-                  <p className="text-xs text-gray-400 uppercase mb-1">Bill No</p>
-                  <p className="text-lg font-bold text-indigo-300 break-all">
+            <div className="p-6 lg:p-10 space-y-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
+                <div className="bg-gray-900/60 p-5 lg:p-6 rounded-xl border border-gray-800/50">
+                  <p className="text-sm lg:text-base text-gray-400 uppercase mb-2">Bill No</p>
+                  <p className="text-xl lg:text-2xl font-bold text-indigo-300 break-all">
                     {selectedExpense.Office_Bill_No || '—'}
                   </p>
                 </div>
-                <div className="bg-gray-900/60 p-4 rounded-xl border border-gray-800/50">
-                  <p className="text-xs text-gray-400 uppercase mb-1">Original Amount</p>
-                  <p className="text-xl font-bold text-emerald-400">
+                <div className="bg-gray-900/60 p-5 lg:p-6 rounded-xl border border-gray-800/50">
+                  <p className="text-sm lg:text-base text-gray-400 uppercase mb-2">Original Amount</p>
+                  <p className="text-2xl lg:text-3xl font-bold text-emerald-400">
                     ₹{(selectedExpense.Total_Amount || selectedExpense.Amount || '0').toLocaleString('en-IN')}
                   </p>
                 </div>
               </div>
 
-              {/* Status - REQUIRED */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-200">
+              {/* Status */}
+              <div className="space-y-3">
+                <label className="block text-base lg:text-lg font-medium text-gray-200">
                   Final Status <span className="text-red-400">*</span>
                 </label>
                 <select
                   value={formData.STATUS_3}
                   onChange={(e) => setFormData({ ...formData, STATUS_3: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-lg text-white focus:outline-none focus:ring-2 transition-all ${
-                    formData.STATUS_3
-                      ? 'bg-gray-800 border border-gray-700 focus:ring-emerald-500 border-emerald-500/50'
-                      : 'bg-gray-800/70 border border-red-500/50 focus:ring-red-500'
+                  className={`w-full px-5 py-4 rounded-lg text-white focus:outline-none focus:ring-2 transition-all text-base lg:text-lg ${
+                    formData.STATUS_3 ? 'bg-gray-800 border border-gray-700 focus:ring-emerald-500 border-emerald-500/50' : 'bg-gray-800/70 border border-red-500/50 focus:ring-red-500'
                   }`}
                 >
                   <option value="">----- Select ----- *</option>
@@ -284,57 +673,81 @@ function Approvel_By_Mayaksir() {
               </div>
 
               {/* Final Amount */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-200">Final Amount (Optional)</label>
+              <div className="space-y-3">
+                <label className="block text-base lg:text-lg font-medium text-gray-200">Final Amount (Optional)</label>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={formData.FINAL_AMOUNT_3}
                   onChange={(e) => setFormData({ ...formData, FINAL_AMOUNT_3: e.target.value })}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base lg:text-lg"
                   placeholder="Original amount ya revised daalo"
                 />
               </div>
 
+              {/* Payment Mode – IMPORTANT PART */}
+              <div className="space-y-3">
+                <label className="block text-base lg:text-lg font-medium text-gray-200">
+                  Payment Mode <span className="text-yellow-400 text-sm">(preferred)</span>
+                </label>
+                <select
+                  value={formData.PAYMENT_MODE_3 || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    console.log("Payment mode selected:", value);
+                    setFormData((prev) => ({
+                      ...prev,
+                      PAYMENT_MODE_3: value,
+                    }));
+                  }}
+                  className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base lg:text-lg"
+                >
+                  <option value="">Select Payment Mode</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Bank">Bank</option>
+                  
+                </select>
+              </div>
+
               {/* Remark */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-200">Final Remark (Optional)</label>
+              <div className="space-y-3">
+                <label className="block text-base lg:text-lg font-medium text-gray-200">Final Remark (Optional)</label>
                 <textarea
                   value={formData.REMARK_3}
                   onChange={(e) => setFormData({ ...formData, REMARK_3: e.target.value })}
-                  rows={3}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+                  rows={4}
+                  className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y text-base lg:text-lg"
                   placeholder="Approval reason / rejection note / comments..."
                 />
               </div>
 
               {/* Buttons */}
-              <div className="flex justify-end gap-4 pt-4 border-t border-gray-800">
+              <div className="flex flex-col sm:flex-row justify-end gap-5 pt-6 border-t border-gray-800">
                 <button
                   onClick={closeModal}
-                  className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition"
+                  className="px-8 py-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition text-base lg:text-lg"
                   disabled={isUpdating}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
-                  disabled={isUpdating || !formData.STATUS_3 || !selectedExpense?.Office_Bill_No}
-                  className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 min-w-[200px] justify-center transition-all ${
-                    isUpdating || !formData.STATUS_3 || !selectedExpense?.Office_Bill_No
+                  disabled={isUpdating || !formData.STATUS_3}
+                  className={`px-10 py-4 rounded-lg font-medium flex items-center justify-center gap-3 min-w-[220px] transition-all text-base lg:text-lg ${
+                    isUpdating || !formData.STATUS_3
                       ? 'bg-gray-700 text-gray-500 cursor-not-allowed border border-gray-600'
-                      : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl border border-emerald-500/50'
+                      : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl border border-emerald-500/50 hover:scale-[1.02]'
                   }`}
                 >
                   {isUpdating ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-6 h-6 animate-spin" />
                       Submit kar raha...
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="w-5 h-5" />
+                      <CheckCircle className="w-6 h-6" />
                       Submit Final Approval
                     </>
                   )}
