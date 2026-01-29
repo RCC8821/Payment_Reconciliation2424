@@ -783,6 +783,9 @@
 
 // export default Dashboard;
 
+
+
+
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -883,13 +886,13 @@ const Dashboard = () => {
   const vrnOfficePages = [
     { id: "VRN_Approvel1", name: "VRN Approval 1" },
     { id: "VRN_Approvel2", name: "VRN Approval 2" },
-    { id: "VRN_Report", name: "VRN Report" },
+    { id: "VRN_payment_Office", name: "VRN_payment_Office" },
   ];
 
   const dimensionOfficePages = [
     { id: "Dim_Approvel1", name: "Dim Approval 1" },
     { id: "Dim_Approvel2", name: "Dim Approval 2" },
-    { id: "Dimension_Transfer", name: "Dimension Transfer" },
+    { id: "Dim_Payment", name: "Dim_Payment_Office" },
   ];
 
   const selectPage = (id, type) => {
@@ -1021,12 +1024,12 @@ const Dashboard = () => {
     pageTitle = vrnOfficePages.find((p) => p.id === selectedVrnPage)?.name || "VRN Office";
     if (selectedVrnPage === "VRN_Approvel1") ActiveComponent = VrnApproval1;
     else if (selectedVrnPage === "VRN_Approvel2") ActiveComponent = VrnApproval2;
-    else if (selectedVrnPage === "VRN_Report") ActiveComponent = VrnReport;
+    else if (selectedVrnPage === "VRN_payment_Office") ActiveComponent = VrnReport;
   } else if (selectedDimensionPage) {
     pageTitle = dimensionOfficePages.find((p) => p.id === selectedDimensionPage)?.name || "Dimension";
     if (selectedDimensionPage === "Dim_Approvel1") ActiveComponent = DimApproval1;
     else if (selectedDimensionPage === "Dim_Approvel2") ActiveComponent = DimApproval2;
-    else if (selectedDimensionPage === "Dimension_Transfer") ActiveComponent = DimensionTransfer;
+    else if (selectedDimensionPage === "Dim_Payment") ActiveComponent = DimensionTransfer;
   }
 
   return (

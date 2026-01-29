@@ -8,6 +8,8 @@ import {
 } from '../../features/Payment/Actual_Bank_In_Slice';
 import { X, FileText, Eye, Loader2 } from "lucide-react";
 
+import Swal from 'sweetalert2';
+
 const Actual_Payment_in = () => {
   const {
     data: pendingPayments = [],
@@ -34,26 +36,95 @@ const Actual_Payment_in = () => {
     setRemark("");
   };
 
-  const handleUpdate = async () => {
-    if (!status.trim()) {
-      alert("Status is required!");
-      return;
+  // const handleUpdate = async () => {
+  //   if (!status.trim()) {
+  //     alert("Status is required!");
+  //     return;
+  //   }
+
+  //   try {
+  //     await updateActualBankIn({
+  //       UID: selectedRow.uid,
+  //       status: status.trim(),
+  //       remark: remark.trim(),
+  //     }).unwrap();
+
+  //     alert("Actual Bank In updated successfully!");
+  //     closeModal();
+  //     refetch();
+  //   } catch (err) {
+  //     alert("Update failed: " + (err?.data?.message || "Server error"));
+  //   }
+  // };
+
+
+  
+
+
+const handleUpdate = async () => {
+  // Validation
+  if (!status.trim()) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Status Required',
+      text: 'Please enter a status',
+      confirmButtonColor: '#6366f1',
+      confirmButtonText: 'OK',
+    });
+    return;
+  }
+
+  // Show loading state
+  Swal.fire({
+    title: 'Updating...',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  try {
+    await updateActualBankIn({
+      UID: selectedRow.uid,
+      status: status.trim(),
+      remark: remark.trim(),
+    }).unwrap();
+
+    // Success message
+    await Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: 'Actual Bank In updated successfully!',
+      confirmButtonColor: '#10b981',
+      timer: 2200,              // auto close after 2.2 seconds
+      showConfirmButton: false,
+    });
+
+    closeModal();
+    refetch();
+
+  } catch (err) {
+    console.error('Update failed:', err);
+
+    let errorMessage = 'Something went wrong. Please try again.';
+    
+    // Try to get a more specific error message from the server
+    if (err?.data?.message) {
+      errorMessage = err.data.message;
+    } else if (err?.error) {
+      errorMessage = err.error;
     }
 
-    try {
-      await updateActualBankIn({
-        UID: selectedRow.uid,
-        status: status.trim(),
-        remark: remark.trim(),
-      }).unwrap();
+    Swal.fire({
+      icon: 'error',
+      title: 'Update Failed',
+      text: errorMessage,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'OK',
+    });
+  }
+};
 
-      alert("Actual Bank In updated successfully!");
-      closeModal();
-      refetch();
-    } catch (err) {
-      alert("Update failed: " + (err?.data?.message || "Server error"));
-    }
-  };
 
   const totalNetAmount = pendingPayments.reduce((sum, item) => {
     return sum + Number(item.NetAmount?.replace(/[₹,]/g, "") || 0);

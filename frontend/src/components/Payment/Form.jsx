@@ -10,6 +10,9 @@ import {
   useGetDropdownDataQuery 
 } from '../../features/Payment/FormSlice';
 
+
+import Swal from 'sweetalert2';
+
 const Form = () => {
   const [activeTab, setActiveTab] = useState('client-in');
 
@@ -121,79 +124,180 @@ const Form = () => {
   };
 
   // Client In Submit
+  // const handleClientSubmit = async () => {
+  //   if (!clientFormData.SiteName) return alert('Site Name is required');
+  //   if (!clientFormData.Amount || Number(clientFormData.Amount) <= 0) return alert('Valid Amount is required');
+  //   if (!clientFormData.RccCreditAccountName) return alert('Please select RCC Credit Account Name');
+  //   if (showClientTransactionFields && (!clientFormData.TransactionNo.trim() || !clientFormData.TransactionDate.trim())) {
+  //     return alert('Transaction No and Date are required for selected payment mode');
+  //   }
+
+  //   try {
+  //     const result = await addPayment({
+  //       SiteName: clientFormData.SiteName.trim(),
+  //       Amount: Number(clientFormData.Amount),
+  //       CGST: clientFormData.CGST ? Number(clientFormData.CGST) : 0,
+  //       SGST: clientFormData.SGST ? Number(clientFormData.SGST) : 0,
+  //       NetAmount: clientFormData.NetAmount ? Number(clientFormData.NetAmount) : 0,
+  //       RccCreditAccountName: clientFormData.RccCreditAccountName,
+  //       PaymentMode: clientFormData.PaymentMode,
+  //       ChequeNo: clientFormData.TransactionNo,
+  //       ChequeDate: clientFormData.TransactionDate,
+  //       ChequePhoto: clientFormData.ChequePhoto,
+  //     }).unwrap();
+
+  //     alert(`Payment added successfully! UID: ${result.uid || 'N/A'}`);
+
+  //     setClientFormData({
+  //       SiteName: '', Amount: '', GST: '', CGST: '', SGST: '', NetAmount: '',
+  //       RccCreditAccountName: '', PaymentMode: '', TransactionNo: '', TransactionDate: '', ChequePhoto: null
+  //     });
+  //   } catch (err) {
+  //     console.error('Client payment error:', err);
+  //     alert(err?.data?.message || 'Failed to add payment. Please try again.');
+  //   }
+  // };
+
+  // // Transfer Submit
+  // const handleTransferSubmit = async () => {
+  //   if (!transferFormData.Transfer_A_C_Name) return alert('Please select From Account');
+  //   if (!transferFormData.Transfer_Received_A_C_Name) return alert('Please select To Account');
+  //   if (transferFormData.Transfer_A_C_Name === transferFormData.Transfer_Received_A_C_Name) 
+  //     return alert('From and To accounts cannot be the same');
+  //   if (!transferFormData.Amount || Number(transferFormData.Amount) <= 0) return alert('Valid Amount is required');
+  //   if (!transferFormData.PAYMENT_MODE) return alert('Please select Payment Mode');
+  //   if (showTransferDetails && (!transferFormData.PAYMENT_DETAILS.trim() || !transferFormData.PAYMENT_DATE.trim())) {
+  //     return alert('Payment Details and Date are required for selected mode');
+  //   }
+
+  //   try {
+  //     const result = await submitBankTransfer({
+  //       Transfer_A_C_Name: transferFormData.Transfer_A_C_Name,
+  //       Transfer_Received_A_C_Name: transferFormData.Transfer_Received_A_C_Name,
+  //       Amount: Number(transferFormData.Amount),
+  //       PAYMENT_MODE: transferFormData.PAYMENT_MODE,
+  //       PAYMENT_DETAILS: transferFormData.PAYMENT_DETAILS || null,
+  //       PAYMENT_DATE: transferFormData.PAYMENT_DATE || null,
+  //       Remark: transferFormData.Remark || null,
+  //     }).unwrap();
+
+  //     alert(`Bank transfer submitted successfully! ${result.message || ''}`);
+
+  //     setTransferFormData({
+  //       Transfer_A_C_Name: '',
+  //       Transfer_Received_A_C_Name: '',
+  //       Amount: '',
+  //       PAYMENT_MODE: '',
+  //       PAYMENT_DETAILS: '',
+  //       PAYMENT_DATE: '',
+  //       Remark: '',
+  //     });
+  //   } catch (err) {
+  //     console.error('Transfer error:', err);
+  //     alert(err?.data?.message || 'Failed to submit bank transfer. Please try again.');
+  //   }
+  // };
+
+
   const handleClientSubmit = async () => {
-    if (!clientFormData.SiteName) return alert('Site Name is required');
-    if (!clientFormData.Amount || Number(clientFormData.Amount) <= 0) return alert('Valid Amount is required');
-    if (!clientFormData.RccCreditAccountName) return alert('Please select RCC Credit Account Name');
-    if (showClientTransactionFields && (!clientFormData.TransactionNo.trim() || !clientFormData.TransactionDate.trim())) {
-      return alert('Transaction No and Date are required for selected payment mode');
-    }
+  // Basic validations (keeping your original alert style for errors)
+  if (!clientFormData.SiteName) return alert('Site Name is required');
+  if (!clientFormData.Amount || Number(clientFormData.Amount) <= 0) return alert('Valid Amount is required');
+  if (!clientFormData.RccCreditAccountName) return alert('Please select RCC Credit Account Name');
+  if (showClientTransactionFields && (!clientFormData.TransactionNo.trim() || !clientFormData.TransactionDate.trim())) {
+    return alert('Transaction No and Date are required for selected payment mode');
+  }
 
-    try {
-      const result = await addPayment({
-        SiteName: clientFormData.SiteName.trim(),
-        Amount: Number(clientFormData.Amount),
-        CGST: clientFormData.CGST ? Number(clientFormData.CGST) : 0,
-        SGST: clientFormData.SGST ? Number(clientFormData.SGST) : 0,
-        NetAmount: clientFormData.NetAmount ? Number(clientFormData.NetAmount) : 0,
-        RccCreditAccountName: clientFormData.RccCreditAccountName,
-        PaymentMode: clientFormData.PaymentMode,
-        ChequeNo: clientFormData.TransactionNo,
-        ChequeDate: clientFormData.TransactionDate,
-        ChequePhoto: clientFormData.ChequePhoto,
-      }).unwrap();
+  try {
+    const result = await addPayment({
+      SiteName: clientFormData.SiteName.trim(),
+      Amount: Number(clientFormData.Amount),
+      CGST: clientFormData.CGST ? Number(clientFormData.CGST) : 0,
+      SGST: clientFormData.SGST ? Number(clientFormData.SGST) : 0,
+      NetAmount: clientFormData.NetAmount ? Number(clientFormData.NetAmount) : 0,
+      RccCreditAccountName: clientFormData.RccCreditAccountName,
+      PaymentMode: clientFormData.PaymentMode,
+      ChequeNo: clientFormData.TransactionNo,
+      ChequeDate: clientFormData.TransactionDate,
+      ChequePhoto: clientFormData.ChequePhoto,
+    }).unwrap();
 
-      alert(`Payment added successfully! UID: ${result.uid || 'N/A'}`);
+    // Success SweetAlert
+    Swal.fire({
+      icon: 'success',
+      title: 'Payment Added!',
+      text: `Payment added successfully! UID: ${result.uid || 'N/A'}`,
+      confirmButtonColor: '#10b981',
+      timer: 2500,              // auto close after 2.5 seconds
+      showConfirmButton: false, // no OK button needed
+    });
 
-      setClientFormData({
-        SiteName: '', Amount: '', GST: '', CGST: '', SGST: '', NetAmount: '',
-        RccCreditAccountName: '', PaymentMode: '', TransactionNo: '', TransactionDate: '', ChequePhoto: null
-      });
-    } catch (err) {
-      console.error('Client payment error:', err);
-      alert(err?.data?.message || 'Failed to add payment. Please try again.');
-    }
-  };
+    // Reset form
+    setClientFormData({
+      SiteName: '', Amount: '', GST: '', CGST: '', SGST: '', NetAmount: '',
+      RccCreditAccountName: '', PaymentMode: '', TransactionNo: '', TransactionDate: '', ChequePhoto: null
+    });
 
-  // Transfer Submit
-  const handleTransferSubmit = async () => {
-    if (!transferFormData.Transfer_A_C_Name) return alert('Please select From Account');
-    if (!transferFormData.Transfer_Received_A_C_Name) return alert('Please select To Account');
-    if (transferFormData.Transfer_A_C_Name === transferFormData.Transfer_Received_A_C_Name) 
-      return alert('From and To accounts cannot be the same');
-    if (!transferFormData.Amount || Number(transferFormData.Amount) <= 0) return alert('Valid Amount is required');
-    if (!transferFormData.PAYMENT_MODE) return alert('Please select Payment Mode');
-    if (showTransferDetails && (!transferFormData.PAYMENT_DETAILS.trim() || !transferFormData.PAYMENT_DATE.trim())) {
-      return alert('Payment Details and Date are required for selected mode');
-    }
+  } catch (err) {
+    console.error('Client payment error:', err);
+    // Keeping original alert for error (as per your request — only success in box)
+    alert(err?.data?.message || 'Failed to add payment. Please try again.');
+  }
+};
 
-    try {
-      const result = await submitBankTransfer({
-        Transfer_A_C_Name: transferFormData.Transfer_A_C_Name,
-        Transfer_Received_A_C_Name: transferFormData.Transfer_Received_A_C_Name,
-        Amount: Number(transferFormData.Amount),
-        PAYMENT_MODE: transferFormData.PAYMENT_MODE,
-        PAYMENT_DETAILS: transferFormData.PAYMENT_DETAILS || null,
-        PAYMENT_DATE: transferFormData.PAYMENT_DATE || null,
-        Remark: transferFormData.Remark || null,
-      }).unwrap();
+// Bank Transfer Submit
+const handleTransferSubmit = async () => {
+  // Basic validations (keeping alert for errors)
+  if (!transferFormData.Transfer_A_C_Name) return alert('Please select From Account');
+  if (!transferFormData.Transfer_Received_A_C_Name) return alert('Please select To Account');
+  if (transferFormData.Transfer_A_C_Name === transferFormData.Transfer_Received_A_C_Name) 
+    return alert('From and To accounts cannot be the same');
+  if (!transferFormData.Amount || Number(transferFormData.Amount) <= 0) return alert('Valid Amount is required');
+  if (!transferFormData.PAYMENT_MODE) return alert('Please select Payment Mode');
+  if (showTransferDetails && (!transferFormData.PAYMENT_DETAILS.trim() || !transferFormData.PAYMENT_DATE.trim())) {
+    return alert('Payment Details and Date are required for selected mode');
+  }
 
-      alert(`Bank transfer submitted successfully! ${result.message || ''}`);
+  try {
+    const result = await submitBankTransfer({
+      Transfer_A_C_Name: transferFormData.Transfer_A_C_Name,
+      Transfer_Received_A_C_Name: transferFormData.Transfer_Received_A_C_Name,
+      Amount: Number(transferFormData.Amount),
+      PAYMENT_MODE: transferFormData.PAYMENT_MODE,
+      PAYMENT_DETAILS: transferFormData.PAYMENT_DETAILS || null,
+      PAYMENT_DATE: transferFormData.PAYMENT_DATE || null,
+      Remark: transferFormData.Remark || null,
+    }).unwrap();
 
-      setTransferFormData({
-        Transfer_A_C_Name: '',
-        Transfer_Received_A_C_Name: '',
-        Amount: '',
-        PAYMENT_MODE: '',
-        PAYMENT_DETAILS: '',
-        PAYMENT_DATE: '',
-        Remark: '',
-      });
-    } catch (err) {
-      console.error('Transfer error:', err);
-      alert(err?.data?.message || 'Failed to submit bank transfer. Please try again.');
-    }
-  };
+    // Success SweetAlert
+    Swal.fire({
+      icon: 'success',
+      title: 'Transfer Submitted!',
+      text: `Bank transfer submitted successfully! ${result.message || ''}`,
+      confirmButtonColor: '#10b981',
+      timer: 2500,
+      showConfirmButton: false,
+    });
+
+    // Reset form
+    setTransferFormData({
+      Transfer_A_C_Name: '',
+      Transfer_Received_A_C_Name: '',
+      Amount: '',
+      PAYMENT_MODE: '',
+      PAYMENT_DETAILS: '',
+      PAYMENT_DATE: '',
+      Remark: '',
+    });
+
+  } catch (err) {
+    console.error('Transfer error:', err);
+    // Keeping original alert for error
+    alert(err?.data?.message || 'Failed to submit bank transfer. Please try again.');
+  }
+};
+
+
 return (
   <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 relative overflow-hidden py-8 px-4 sm:px-6 lg:px-10 xl:px-12">
 

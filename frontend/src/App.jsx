@@ -19,11 +19,13 @@ import OfficeExpensesPayment from './components/RccOffice/OfficeExpensesPayment'
 
 import VRN_Approvel1 from './components/VRNOffice/VRN_Approvel1';
 import VRN_Approvel2 from './components/VRNOffice/VRN_Approvel2';
+import VRN_payment_Office from './components/VRNOffice/VRN_payment_Office';
 
 // //////////// Dimension Office ///////////////
 
 import Dim_Approvel1 from './components/DimensionOffice/Dim_Approvel1';
 import Dim_Approvel2 from './components/DimensionOffice/Dim_Approvel2';
+import Dim_Payment_Office from './components/DimensionOffice/Dim_Payment_Office';
 
 const ProtectedRoute = ({ children }) => {
   const { token } = useSelector((state) => state.auth);
@@ -60,11 +62,12 @@ function App() {
          /////// VRN OFFICE 
          <Route path='VRN_Approvel1' element={<VRN_Approvel1/>}/>
          <Route path='VRN_Approvel2' element={<VRN_Approvel2/>}/>
-
+         <Route path='VRN_payment' element={<VRN_payment_Office/>}/>
          ////// Dimension 
 
          <Route path='Dim_Approvel1' element={<Dim_Approvel1/>}/>
          <Route path='Dim_Approvel2' element={<Dim_Approvel2/>}/>
+         <Route path='Dim_Payment' element={<Dim_Payment_Office/>}/>
         </Route>
 
         {/* Catch all unknown routes */}

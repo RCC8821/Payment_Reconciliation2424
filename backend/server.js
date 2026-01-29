@@ -16,19 +16,21 @@ const Bank_to_bank_transfer=require('./payment/bank_to_bank_Transfer')
 //////////// RCC OFFICE EXPENSES
 const Approvel_1=require('./RCC_OFFICE_EXPENSES/Approvel_1')
 const Approvel_2=require('./RCC_OFFICE_EXPENSES/Approvel_2')
-
+const RCC_payment= require('./RCC_OFFICE_EXPENSES/PAYMENT_RCC_OFFICE')
 
 /////////////  VRN OFFICE EXPENSES 
 
 const VRN_Approvel1 = require('./VRN_OFFICE_EXPENSES/VRN_Approvel_1')
 const VRN_Approvel2 = require('./VRN_OFFICE_EXPENSES/VRN_Approvel_2')
-
+const VRN_Payment = require('./VRN_OFFICE_EXPENSES/VRN_Payment_Office')
 
 ////////////////// Dimension Office Expenses 
 
 
 const Dim_Approvel1 = require('./DIMENSION_OFFICE_EXPENSES/DIM_Approvel_1')
 const dimension_Approvel2 = require('./DIMENSION_OFFICE_EXPENSES/DIM_Approvel_2')
+const DIMENSION_OFFICE_PAYMANT= require('./DIMENSION_OFFICE_EXPENSES/DIM_Payment_Office')
+
 
 const app = express();
 // 1. CORS (Pehle daalo)
@@ -77,18 +79,19 @@ app.use('/api',Bank_to_bank_transfer)
 
 app.use('/api/Expenses',Approvel_1)
 app.use('/api/Expenses',Approvel_2)
-
+app.use('/api/expreses',RCC_payment)
 
 ////// VRN OFFICE EXPENSES 
 
 app.use('/api/vrn-Expenses',VRN_Approvel1)
 app.use('/api/vrn-Expenses',VRN_Approvel2)
-
+app.use('/api/vrn-Expenses',VRN_Payment)
 
 //////// Dimension Offie Expenses
 
 app.use('/api/Dim-Expenses',Dim_Approvel1)
 app.use('/api/Dim-Expenses',dimension_Approvel2)
+app.use('/api/Dim-Expenses',DIMENSION_OFFICE_PAYMANT)
 
 // 8. Start Server
 const PORT = process.env.PORT || 5000;

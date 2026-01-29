@@ -216,116 +216,137 @@ function Dim_Approvel2() {
 
       {/* Modal – wider on large screens */}
       {isModalOpen && selectedExpense && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-          <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl shadow-2xl w-full max-w-3xl lg:max-w-5xl border border-indigo-700/50 overflow-hidden">
-            <div className="bg-gradient-to-r from-indigo-950 to-purple-950 p-6 lg:p-8 flex justify-between items-center border-b border-indigo-700/60">
-              <h3 className="text-2xl lg:text-3xl font-bold text-white">
-                Final Approval – UID: {selectedExpense.uid || selectedExpense.Office_Bill_No || '—'}
-              </h3>
-              <button
-                onClick={closeModal}
-                className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition"
-              >
-                <X className="w-8 h-8" />
-              </button>
-            </div>
+  <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 md:p-6 lg:p-8">
+    <div
+      className="
+        bg-gradient-to-b from-gray-900 to-black 
+        rounded-2xl shadow-2xl 
+        w-full max-w-full sm:max-w-3xl lg:max-w-5xl 
+        border border-indigo-700/50 
+        max-h-[96vh] flex flex-col overflow-hidden
+      "
+    >
+      {/* Header – fixed at top */}
+      <div className="bg-gradient-to-r from-indigo-950 to-purple-950 p-5 sm:p-6 lg:p-8 flex justify-between items-center border-b border-indigo-700/60 shrink-0">
+        <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">
+          Final Approval – UID: {selectedExpense.uid || selectedExpense.Office_Bill_No || '—'}
+        </h3>
+        <button
+          onClick={closeModal}
+          className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition shrink-0 ml-2"
+        >
+          <X className="w-7 h-7 sm:w-8 sm:h-8" />
+        </button>
+      </div>
 
-            <div className="p-6 lg:p-10 space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
-                <div className="bg-gray-900/60 p-5 lg:p-6 rounded-xl border border-gray-800/50">
-                  <p className="text-sm lg:text-base text-gray-400 uppercase mb-2">Bill No</p>
-                  <p className="text-xl lg:text-2xl font-bold text-indigo-300 break-all">
-                    {selectedExpense.Office_Bill_No || '—'}
-                  </p>
-                </div>
-                <div className="bg-gray-900/60 p-5 lg:p-6 rounded-xl border border-gray-800/50">
-                  <p className="text-sm lg:text-base text-gray-400 uppercase mb-2">Original Amount</p>
-                  <p className="text-2xl lg:text-3xl font-bold text-emerald-400">
-                    ₹{(selectedExpense.Total_Amount || selectedExpense.Amount || '0').toLocaleString('en-IN')}
-                  </p>
-                </div>
-              </div>
-
-              {/* Status - REQUIRED */}
-              <div className="space-y-3">
-                <label className="block text-base lg:text-lg font-medium text-gray-200">
-                  Final Status <span className="text-red-400">*</span>
-                </label>
-                <select
-                  value={formData.STATUS_3}
-                  onChange={(e) => setFormData({ ...formData, STATUS_3: e.target.value })}
-                  className={`w-full px-5 py-4 rounded-lg text-white focus:outline-none focus:ring-2 transition-all text-base lg:text-lg ${
-                    formData.STATUS_3
-                      ? 'bg-gray-800 border border-gray-700 focus:ring-emerald-500 border-emerald-500/50'
-                      : 'bg-gray-800/70 border border-red-500/50 focus:ring-red-500'
-                  }`}
-                >
-                  <option value="">----- Select ----- *</option>
-                  <option value="Done">✅ Done</option>
-                </select>
-              </div>
-
-              {/* Final Amount */}
-              <div className="space-y-3">
-                <label className="block text-base lg:text-lg font-medium text-gray-200">Final Amount (optional)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.FINAL_AMOUNT_3}
-                  onChange={(e) => setFormData({ ...formData, FINAL_AMOUNT_3: e.target.value })}
-                  className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base lg:text-lg"
-                  placeholder="Enter if different from planned/revised"
-                />
-              </div>
-
-              {/* Remark */}
-              <div className="space-y-3">
-                <label className="block text-base lg:text-lg font-medium text-gray-200">Final Remark (optional)</label>
-                <textarea
-                  value={formData.REMARK_3}
-                  onChange={(e) => setFormData({ ...formData, REMARK_3: e.target.value })}
-                  rows={4}
-                  className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y text-base lg:text-lg"
-                  placeholder="Any final comments or justification..."
-                />
-              </div>
-
-              {/* Buttons */}
-              <div className="flex flex-col sm:flex-row justify-end gap-5 pt-6 border-t border-gray-800">
-                <button
-                  onClick={closeModal}
-                  className="px-8 py-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition text-base lg:text-lg"
-                  disabled={isUpdating}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={isUpdating || !formData.STATUS_3}
-                  className={`px-10 py-4 rounded-lg font-medium flex items-center justify-center gap-3 min-w-[220px] transition-all text-base lg:text-lg ${
-                    isUpdating || !formData.STATUS_3
-                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed border border-gray-600'
-                      : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl border border-emerald-500/50 hover:scale-[1.02]'
-                  }`}
-                >
-                  {isUpdating ? (
-                    <>
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-6 h-6" />
-                      Submit Final Approval
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 scrollbar-thin scrollbar-thumb-indigo-600/70 scrollbar-track-gray-900/30">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 lg:gap-8">
+          <div className="bg-gray-900/60 p-5 rounded-xl border border-gray-800/50">
+            <p className="text-sm text-gray-400 uppercase mb-2">Bill No</p>
+            <p className="text-xl sm:text-2xl font-bold text-indigo-300 break-all">
+              {selectedExpense.Office_Bill_No || '—'}
+            </p>
+          </div>
+          <div className="bg-gray-900/60 p-5 rounded-xl border border-gray-800/50">
+            <p className="text-sm text-gray-400 uppercase mb-2">Original Amount</p>
+            <p className="text-xl sm:text-3xl font-bold text-emerald-400">
+              ₹{(selectedExpense.Total_Amount || selectedExpense.Amount || '0').toLocaleString('en-IN')}
+            </p>
           </div>
         </div>
-      )}
+
+        {/* Status - REQUIRED */}
+        <div className="space-y-3">
+          <label className="block text-base sm:text-lg font-medium text-gray-200">
+            Final Status <span className="text-red-400">*</span>
+          </label>
+          <select
+            value={formData.STATUS_3}
+            onChange={(e) => setFormData({ ...formData, STATUS_3: e.target.value })}
+            className={`w-full px-5 py-4 rounded-lg text-white focus:outline-none focus:ring-2 transition-all text-base sm:text-lg ${
+              formData.STATUS_3
+                ? 'bg-gray-800 border border-gray-700 focus:ring-emerald-500 border-emerald-500/50'
+                : 'bg-gray-800/70 border border-red-500/50 focus:ring-red-500'
+            }`}
+          >
+            <option value="">----- Select ----- *</option>
+            <option value="Done">✅ Done</option>
+          </select>
+        </div>
+
+        {/* Final Amount */}
+        <div className="space-y-3">
+          <label className="block text-base sm:text-lg font-medium text-gray-200">Final Amount (optional)</label>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={formData.FINAL_AMOUNT_3}
+            onChange={(e) => setFormData({ ...formData, FINAL_AMOUNT_3: e.target.value })}
+            className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base sm:text-lg"
+            placeholder="Enter if different from planned/revised"
+          />
+        </div>
+
+        {/* Remark */}
+        <div className="space-y-3">
+          <label className="block text-base sm:text-lg font-medium text-gray-200">Final Remark (optional)</label>
+          <textarea
+            value={formData.REMARK_3}
+            onChange={(e) => setFormData({ ...formData, REMARK_3: e.target.value })}
+            rows={4}
+            className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y text-base sm:text-lg"
+            placeholder="Any final comments or justification..."
+          />
+        </div>
+
+        {/* Extra space at bottom of scroll area */}
+        <div className="h-20 sm:h-24"></div>
+      </div>
+
+      {/* Buttons – sticky at bottom */}
+      <div className="
+        shrink-0 
+        border-t border-gray-800 
+        p-5 sm:p-6 lg:p-8 
+        bg-gradient-to-t from-black via-black/95 to-transparent 
+        sticky bottom-0 z-10
+      ">
+        <div className="flex flex-col sm:flex-row justify-end gap-4 sm:gap-5">
+          <button
+            onClick={closeModal}
+            className="px-8 py-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition text-base sm:text-lg order-2 sm:order-1 w-full sm:w-auto"
+            disabled={isUpdating}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isUpdating || !formData.STATUS_3}
+            className={`px-8 sm:px-10 py-4 rounded-lg font-medium flex items-center justify-center gap-3 min-w-[200px] sm:min-w-[220px] transition-all text-base sm:text-lg order-1 sm:order-2 w-full sm:w-auto ${
+              isUpdating || !formData.STATUS_3
+                ? 'bg-gray-700 text-gray-500 cursor-not-allowed border border-gray-600'
+                : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl border border-emerald-500/50 hover:scale-[1.02]'
+            }`}
+          >
+            {isUpdating ? (
+              <>
+                <Loader2 className="w-6 h-6 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-6 h-6" />
+                Submit Final Approval
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

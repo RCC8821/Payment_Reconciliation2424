@@ -188,9 +188,9 @@ router.post('/update-RCC-OFFICE-Expenses-Data-Approved2', async (req, res) => {
         valueInputOption: 'USER_ENTERED',
         data: [
           { range: `RCC_OFFICE_PAYMANT!S${sheetRowNumber}`, values: [[STATUS_3 || '']] },
-          { range: `RCC_OFFICE_PAYMANT!T${sheetRowNumber}`, values: [[PAYMENT_MODE_3 || '']] },
+          { range: `RCC_OFFICE_PAYMANT!V${sheetRowNumber}`, values: [[PAYMENT_MODE_3 || '']] },
           { range: `RCC_OFFICE_PAYMANT!U${sheetRowNumber}`, values: [[FINAL_AMOUNT_3 !== null && FINAL_AMOUNT_3 !== '' ? FINAL_AMOUNT_3 : '']] },
-          { range: `RCC_OFFICE_PAYMANT!V${sheetRowNumber}`, values: [[REMARK_3 || '']] },
+          { range: `RCC_OFFICE_PAYMANT!W${sheetRowNumber}`, values: [[REMARK_3 || '']] },
         ]
       }
     });

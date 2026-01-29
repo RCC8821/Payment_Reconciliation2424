@@ -3,7 +3,11 @@ const { sheets, SPREADSHEET_ID_OFFICE_EXPENSES } = require('../config/googleShee
 const router = express.Router();
 
 
-router.get('/GET-Office-Expenses-Data-Approved2', async (req, res) => {
+
+
+
+
+router.get('/Get-RCC-Payment', async (req, res) => {
   try {
     if (!SPREADSHEET_ID_OFFICE_EXPENSES) {
       return res.status(500).json({
@@ -14,7 +18,7 @@ router.get('/GET-Office-Expenses-Data-Approved2', async (req, res) => {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,
-      range: 'RCC_OFFICE_PAYMANT!A7:R',   // Adjust if your data starts from different row/column
+      range: 'RCC_OFFICE_PAYMANT!A7:AC',   // Adjust if your data starts from different row/column
     });
 
     const rows = response.data.values || [];
@@ -23,10 +27,9 @@ router.get('/GET-Office-Expenses-Data-Approved2', async (req, res) => {
       return res.json({ success: true, message: 'No data found', data: [] });
     }
 
-    // Mapping only the columns you asked for
-    // Column index starts from 0 → A=0, B=1, C=2, ...
+   
     const filteredData = rows
-    .filter(row => row[16] && !row[17])
+    .filter(row => row[27] && !row[28])
     .map(row => ({
       Timestamp      : (row[0]  || '').toString().trim(),   // A
       Office_Bill_No : (row[1]  || '').toString().trim(),   // B
@@ -38,8 +41,11 @@ router.get('/GET-Office-Expenses-Data-Approved2', async (req, res) => {
       APPROVAL_DOER  : (row[7] || '').toString().trim(),   // M
       RAISED_BY_1    : (row[8] || '').toString().trim(),   // N
       Bill_Photo_1   : (row[9] || '').toString().trim(),   // P
-      Total_Amount   : (row[10] || '').toString().trim(),   // K (most common position for amount)
-      PLANNED_3   : (row[16] || '').toString().trim(),   // K (most common position for amount)
+      // Total_Amount   : (row[10] || '').toString().trim(), 
+      FINAL_AMOUNT_3 : (row[20] || '').toString().trim(), 
+      PAYMENT_MODE_3 : (row[21] || '').toString().trim(), 
+      REMARK_3       : (row[22] || '').toString().trim(),
+      PLANNED_4   : (row[27] || '').toString().trim(),   // K (most common position for amount)
     }));
 
     res.json({
@@ -59,160 +65,124 @@ router.get('/GET-Office-Expenses-Data-Approved2', async (req, res) => {
 });
 
 
-// router.post('/update-RCC-OFFICE-Expenses-Data-Approved2', async (req, res) => {
-//   console.log('Received body:', req.body); // Debug
 
-//   try {
-//     const { uid, STATUS_3, FINAL_AMOUNT_3,PAYMENT_MODE_3, REMARK_3 } = req.body;
+router.post('/update-RCC-OFFICE-Payment', async (req, res) => {
+  console.log('Received body:', req.body);
 
-//     if (!uid) {
-//       return res.status(400).json({ 
-//         success: false, 
-//         message: 'UID is required' 
-//       });
-//     }
+  try {
+    const {
+      uid,
+      STATUS_4,
+      TOTAL_PAID_AMOUNT_4,
+      BASIC_AMOUNT_4,                    
+      CGST_4,
+      SGST_4,
+      NET_AMOUNT_4,
+      PAYMENT_MODE_17,
+      BANK_DETAILS_17,
+      PAYMENT_DETAILS_17,
+       PAYMENT_DATE_17, 
+      Remark_Blank,                      
+    } = req.body;
 
-//     const trimmedUid = uid.toString().trim();
+    if (!uid) {
+      return res.status(400).json({
+        success: false,
+        message: 'UID is required',
+      });
+    }
 
-//     // FIX 1: Yahan SPREADSHEET_ID_OFFICE_EXPENSES use karo
-//     const response = await sheets.spreadsheets.values.get({
-//       spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,
-//       range: 'RCC_OFFICE_PAYMANT!B7:B',
-//     });
+    const trimmedUid = String(uid).trim();
+    console.log('Trimmed UID being searched:', trimmedUid);
 
-//     const values = response.data.values || [];
+    // Get column B values (assuming UID / Bill No is in column B starting row 7)
+    const getResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,
+      range: 'RCC_OFFICE_PAYMANT!B7:B', // adjust sheet name / range if needed
+    });
 
-//     const rowIndex = values.findIndex(row => {
-//       if (row.length === 0) return false;
-//       const sheetValue = row[0] ? row[0].toString().trim() : '';
-//       return sheetValue === trimmedUid;
-//     });
+    const values = getResponse.data.values || [];
+    console.log(`Total rows found in column B: ${values.length}`);
 
-//     if (rowIndex === -1) {
-//       return res.status(404).json({ 
-//         success: false, 
-//         message: 'Row not found with this UID',
-//         searchedFor: uid 
-//       });
-//     }
+    // Find matching row
+    const rowIndex = values.findIndex((row) => {
+      const cell = row && row[0] ? String(row[0]).trim() : '';
+      return cell === trimmedUid;
+    });
 
-//     const sheetRowNumber = 7 + rowIndex;
+    if (rowIndex === -1) {
+      // Debug helper: show some sample UIDs
+      console.log('No match. First 10 UIDs in sheet:');
+      const sample = values.slice(0, 10).map((row, i) => ({
+        row: 7 + i,
+        uid: row?.[0] ? String(row[0]).trim() : 'EMPTY',
+      }));
+      console.log(sample);
 
-//     // FIX 2: Yahan bhi SPREADSHEET_ID_OFFICE_EXPENSES
-//     await sheets.spreadsheets.values.batchUpdate({
-//       spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,
-//       resource: {
-//         valueInputOption: 'USER_ENTERED',
-//         data: [
-//           { range: `RCC_OFFICE_PAYMANT!S${sheetRowNumber}`, values: [[STATUS_3 || '']] },
-//           { range: `RCC_OFFICE_PAYMANT!U${sheetRowNumber}`, values: [[FINAL_AMOUNT_3 || '']] },
-//           { range: `RCC_OFFICE_PAYMANT!V${sheetRowNumber}`, values: [[PAYMENT_MODE_3 || '']] },
-//           { range: `RCC_OFFICE_PAYMANT!W${sheetRowNumber}`, values: [[REMARK_3 || '']] },
-         
-//         ]
-//       }
-//     });
+      return res.status(404).json({
+        success: false,
+        message: 'Row not found with this UID',
+        searchedFor: trimmedUid,
+        rowsChecked: values.length,
+      });
+    }
 
-//     res.json({ 
-//       success: true, 
-//       message: 'Data updated successfully'
-//     });
-//   } catch (error) {
-//     console.error('Update error:', error);
-//     res.status(500).json({ 
-//       success: false, 
-//       message: 'Server error', 
-//       error: error.message 
-//     });
-//   }
-// });
+    const sheetRowNumber = 7 + rowIndex;
+    console.log(`Match found → Updating row: ${sheetRowNumber}`);
 
+    // Prepare updates – adjust column letters according to your actual sheet!
+    // Example mapping (change these letters to match your Google Sheet columns):
+    const updates = [
+      { range: `RCC_OFFICE_PAYMANT!AD${sheetRowNumber}`, values: [[STATUS_4 || '']] },
+      { range: `RCC_OFFICE_PAYMANT!AF${sheetRowNumber}`, values: [[TOTAL_PAID_AMOUNT_4 || '']] },
+      { range: `RCC_OFFICE_PAYMANT!AG${sheetRowNumber}`, values: [[BASIC_AMOUNT_4 || '']] },
+      { range: `RCC_OFFICE_PAYMANT!AH${sheetRowNumber}`, values: [[CGST_4 || '']] },
+      { range: `RCC_OFFICE_PAYMANT!AI${sheetRowNumber}`, values: [[SGST_4 || '']] },
+      { range: `RCC_OFFICE_PAYMANT!AJ${sheetRowNumber}`, values: [[NET_AMOUNT_4 || '']] },
+      { range: `RCC_OFFICE_PAYMANT!AK${sheetRowNumber}`, values: [[PAYMENT_MODE_17 || '']] },
+      { range: `RCC_OFFICE_PAYMANT!AL${sheetRowNumber}`, values: [[BANK_DETAILS_17 || '']] },
+      { range: `RCC_OFFICE_PAYMANT!AM${sheetRowNumber}`, values: [[PAYMENT_DETAILS_17 || '']] },
+      { range: `RCC_OFFICE_PAYMANT!AN${sheetRowNumber}`, values: [[PAYMENT_DATE_17 || '']] },
+      { range: `RCC_OFFICE_PAYMANT!AO${sheetRowNumber}`, values: [[Remark_Blank || '']] },
+    ];
 
+    // Only send non-empty updates (optional – but cleaner)
+    const validUpdates = updates.filter(update => update.values[0][0] !== '');
 
-// router.post('/update-RCC-OFFICE-Expenses-Data-Approved2', async (req, res) => {
-//   console.log('Received body:', req.body);
+    if (validUpdates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid fields to update',
+      });
+    }
 
-//   try {
-//     const { uid, STATUS_3, FINAL_AMOUNT_3, PAYMENT_MODE_3, REMARK_3 } = req.body;
+    await sheets.spreadsheets.values.batchUpdate({
+      spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,
+      resource: {
+        valueInputOption: 'USER_ENTERED', // or 'RAW' depending on your needs
+        data: validUpdates,
+      },
+    });
 
-//     if (!uid) {
-//       return res.status(400).json({ 
-//         success: false, 
-//         message: 'UID is required' 
-//       });
-//     }
+    console.log(`Update successful for row ${sheetRowNumber} — ${validUpdates.length} fields updated`);
 
-//     const trimmedUid = String(uid).trim();
-//     console.log('Trimmed UID being searched:', trimmedUid);
+    res.json({
+      success: true,
+      message: 'Payment data updated successfully',
+      updatedRow: sheetRowNumber,
+      updatedFields: validUpdates.map(u => u.range.split('!')[1]),
+    });
 
-//     // Get column B values (Bill No) from row 7 downwards
-//     const getResponse = await sheets.spreadsheets.values.get({
-//       spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,
-//       range: 'RCC_OFFICE_PAYMANT!B7:B',  // Increased range - adjust if needed
-//     });
-
-//     const values = getResponse.data.values || [];
-//     console.log(`Total rows found in column B: ${values.length}`);
-
-//     // Find row index where UID matches
-//     const rowIndex = values.findIndex((row) => {
-//       const cell = row && row[0] ? String(row[0]).trim() : '';
-//       return cell === trimmedUid;
-//     });
-
-//     if (rowIndex === -1) {
-//       // Debug: show first 10 UIDs to compare
-//       console.log('No match found. First 10 UIDs in sheet:');
-//       const sampleUids = values.slice(0, 10).map((row, i) => ({
-//         row: 7 + i,
-//         uid: row && row[0] ? String(row[0]).trim() : 'EMPTY'
-//       }));
-//       console.log(sampleUids);
-
-//       return res.status(404).json({ 
-//         success: false, 
-//         message: 'Row not found with this UID',
-//         searchedFor: trimmedUid,
-//         rowsChecked: values.length
-//       });
-//     }
-
-//     const sheetRowNumber = 7 + rowIndex;
-//     console.log(`Match found → Updating row: ${sheetRowNumber}`);
-
-//     // Update the columns
-//     // Adjust column letters if different in your sheet!
-//     await sheets.spreadsheets.values.batchUpdate({
-//       spreadsheetId: SPREADSHEET_ID_OFFICE_EXPENSES,
-//       resource: {
-//         valueInputOption: 'USER_ENTERED',
-//         data: [
-//           { range: `RCC_OFFICE_PAYMANT!S${sheetRowNumber}`, values: [[STATUS_3 || '']] },
-//           { range: `RCC_OFFICE_PAYMANT!T${sheetRowNumber}`, values: [[PAYMENT_MODE_3 || '']] },
-//           { range: `RCC_OFFICE_PAYMANT!U${sheetRowNumber}`, values: [[FINAL_AMOUNT_3 !== null && FINAL_AMOUNT_3 !== '' ? FINAL_AMOUNT_3 : '']] },
-//           { range: `RCC_OFFICE_PAYMANT!V${sheetRowNumber}`, values: [[REMARK_3 || '']] },
-//         ]
-//       }
-//     });
-
-//     console.log(`Update successful for row ${sheetRowNumber}`);
-
-//     res.json({ 
-//       success: true, 
-//       message: 'Data updated successfully',
-//       updatedRow: sheetRowNumber
-//     });
-
-//   } catch (error) {
-//     console.error('Update error:', error);
-//     res.status(500).json({ 
-//       success: false, 
-//       message: 'Server error while updating sheet',
-//       error: error.message,
-//       stack: error.stack 
-//     });
-//   }
-// });
+  } catch (error) {
+    console.error('Update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating sheet',
+      error: error.message,
+      // stack: error.stack    // remove in production if you don't want to expose stack
+    });
+  }
+});
 
 
 module.exports = router;

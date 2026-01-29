@@ -10,6 +10,9 @@ import {
 import { X, Building, Search, FileText, CheckCircle, AlertCircle } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { PaymentSlice } from "../../features/Payment/PaymentSlice";
+import Swal from 'sweetalert2';
+
+
 
 const Reconciliation = () => {
   const dispatch = useDispatch();
@@ -200,55 +203,146 @@ const Reconciliation = () => {
   };
 
   // UPDATED SAVE FUNCTION WITH PERFECT FEEDBACK
-  const handleSaveReconciliation = async (e) => {
-    e.preventDefault();
+  // const handleSaveReconciliation = async (e) => {
+  //   e.preventDefault();
     
-    // Validation
-    if (editForm.Status === "---- Select -----") {
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus(''), 3000);
-      return;
-    }
+  //   // Validation
+  //   if (editForm.Status === "---- Select -----") {
+  //     setSaveStatus('error');
+  //     setTimeout(() => setSaveStatus(''), 3000);
+  //     return;
+  //   }
 
-    setSaveStatus('saving');
+  //   setSaveStatus('saving');
 
-    const payload = {
-      paymentDetails: selectedItem.paymentDetails.trim(),
-      bankClosingBalanceAfterPayment: editForm.BANK_CLOSING_BALANCE.replace("₹", "").trim(),
-      status: editForm.Status,
-      remark: editForm.Remark.trim(),
-    };
+  //   const payload = {
+  //     paymentDetails: selectedItem.paymentDetails.trim(),
+  //     bankClosingBalanceAfterPayment: editForm.BANK_CLOSING_BALANCE.replace("₹", "").trim(),
+  //     status: editForm.Status,
+  //     remark: editForm.Remark.trim(),
+  //   };
 
-    try {
-      await updateReconciliation(payload).unwrap();
+  //   try {
+  //     await updateReconciliation(payload).unwrap();
 
-      const bankName = selectedItem.bankDetails;
+  //     const bankName = selectedItem.bankDetails;
 
-      if (selectedBank && bankName === selectedBank) {
-        await triggerBankBalance(bankName, { forceRefetch: true }).unwrap();
-        await new Promise(resolve => setTimeout(resolve, 6000));
-        await triggerBankBalance(bankName, { forceRefetch: true }).unwrap();
-      }
+  //     if (selectedBank && bankName === selectedBank) {
+  //       await triggerBankBalance(bankName, { forceRefetch: true }).unwrap();
+  //       await new Promise(resolve => setTimeout(resolve, 6000));
+  //       await triggerBankBalance(bankName, { forceRefetch: true }).unwrap();
+  //     }
 
-      dispatch(
-        PaymentSlice.util.invalidateTags([
-          { type: 'BankBalance', id: bankName }
-        ])
-      );
+  //     dispatch(
+  //       PaymentSlice.util.invalidateTags([
+  //         { type: 'BankBalance', id: bankName }
+  //       ])
+  //     );
 
-      setSaveStatus('success');
+  //     setSaveStatus('success');
       
-      // 2 second baad auto close
-      setTimeout(() => {
-        handleModalClose();
-      }, 2000);
+  //     // 2 second baad auto close
+  //     setTimeout(() => {
+  //       handleModalClose();
+  //     }, 2000);
 
-    } catch (error) {
-      console.error("Save failed:", error);
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus(''), 4000);
-    }
+  //   } catch (error) {
+  //     console.error("Save failed:", error);
+  //     setSaveStatus('error');
+  //     setTimeout(() => setSaveStatus(''), 4000);
+  //   }
+  // };
+
+
+
+
+const handleSaveReconciliation = async (e) => {
+  e.preventDefault();
+
+  // 1. Validation with SweetAlert2
+  if (editForm.Status === "---- Select -----") {
+    Swal.fire({
+      icon: "warning",
+      title: "Status Required",
+      text: "Please select a valid Status!",
+      confirmButtonColor: "#6366f1",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+
+  // 2. Show loading popup
+  Swal.fire({
+    title: "Saving Reconciliation...",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  const payload = {
+    paymentDetails: selectedItem.paymentDetails.trim(),
+    bankClosingBalanceAfterPayment: editForm.BANK_CLOSING_BALANCE.replace("₹", "").trim(),
+    status: editForm.Status,
+    remark: editForm.Remark.trim(),
   };
+
+  try {
+    // API call
+    await updateReconciliation(payload).unwrap();
+
+    const bankName = selectedItem.bankDetails;
+
+    // Refresh bank balance if needed
+    if (selectedBank && bankName === selectedBank) {
+      await triggerBankBalance(bankName, { forceRefetch: true }).unwrap();
+      await new Promise(resolve => setTimeout(resolve, 6000));
+      await triggerBankBalance(bankName, { forceRefetch: true }).unwrap();
+    }
+
+    // Invalidate tags
+    dispatch(
+      PaymentSlice.util.invalidateTags([
+        { type: 'BankBalance', id: bankName }
+      ])
+    );
+
+    // Success popup
+    await Swal.fire({
+      icon: "success",
+      title: "Success!",
+      text: "Reconciliation saved successfully!",
+      confirmButtonColor: "#10b981",
+      timer: 2200,
+      showConfirmButton: false,
+      position: "center",
+    });
+
+    // Auto close modal after success
+    handleModalClose();
+
+  } catch (error) {
+    console.error("Save failed:", error);
+
+    let errorMessage = "Something went wrong! Please try again.";
+
+    // Extract better error message if available
+    if (error?.data?.message) {
+      errorMessage = error.data.message;
+    } else if (error?.error) {
+      errorMessage = error.error;
+    }
+
+    // Error popup
+    Swal.fire({
+      icon: "error",
+      title: "Save Failed",
+      text: errorMessage,
+      confirmButtonColor: "#ef4444",
+      confirmButtonText: "OK",
+    });
+  }
+};
 
   if (isLoading) {
     return (
