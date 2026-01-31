@@ -16,6 +16,7 @@ const validateEnv = () => {
     "GOOGLE_UNIVERSE_DOMAIN",
     "SPREADSHEET_ID",
     "SPREADSHEET_ID_OFFICE_EXPENSES",
+    "SPREADSHEET_ID_Summary",
     "PORT",
     "GOOGLE_DRIVE_FOLDER_ID", // optional hai agar nahi use kar rahe, to remove kar sakte ho
   ];

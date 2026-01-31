@@ -25,8 +25,9 @@ router.get('/GET-Office-Expenses-Data-Approved1', async (req, res) => {
       return res.json({ success: true, message: 'No data found', data: [] });
     }
 
+
   const filteredData = rows
- .filter(row => row[20] && !row[21])  // at least up to Remark column
+ .filter(row => row[20] && !row[21])  
   .map(row => ({
     // timestamp:     (row[0]  || '').toString().trim(),
     OFFBILLUID:    (row[1]  || '').toString().trim(),

@@ -32,6 +32,10 @@ const dimension_Approvel2 = require('./DIMENSION_OFFICE_EXPENSES/DIM_Approvel_2'
 const DIMENSION_OFFICE_PAYMANT= require('./DIMENSION_OFFICE_EXPENSES/DIM_Payment_Office')
 
 
+//////////////// Summary
+
+const SummaryMain = require('./Summary/SummaryMain')
+
 const app = express();
 // 1. CORS (Pehle daalo)
 app.use(cors({
@@ -92,6 +96,12 @@ app.use('/api/vrn-Expenses',VRN_Payment)
 app.use('/api/Dim-Expenses',Dim_Approvel1)
 app.use('/api/Dim-Expenses',dimension_Approvel2)
 app.use('/api/Dim-Expenses',DIMENSION_OFFICE_PAYMANT)
+
+
+
+//////////////////////////// Summary /////
+
+app.use('/apiSummary',SummaryMain)
 
 // 8. Start Server
 const PORT = process.env.PORT || 5000;

@@ -23,6 +23,11 @@ import { Dim_Approvel1ApiSlice } from './features/Dimension_Office_Expenses/Dim_
 import { Dim_Approvel2ApiSlice } from './features/Dimension_Office_Expenses/Dim_Approvel2ApiSlice';
 import {dimPaymentApi} from './features/Dimension_Office_Expenses/DimPaymentSlice'
 
+
+////////// summary ///////
+
+import {mainSummaryApi} from './features/Summary/mainSummarySlice'
+
 // ────────────────────────────────────────────────
 // NEW: RCC Payment API (the one we just created)
 
@@ -51,6 +56,12 @@ export const store = configureStore({
 
     // ─── NEW ─── RCC Payment
     [rccPaymentApi.reducerPath]: rccPaymentApi.reducer,
+    
+    
+    ///// Summary //////
+    
+    [mainSummaryApi.reducerPath]: mainSummaryApi.reducer,
+
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -75,7 +86,13 @@ export const store = configureStore({
       .concat(Dim_Approvel2ApiSlice.middleware)
       .concat(dimPaymentApi.middleware)
 
+      ////// RCC payment
+      .concat(rccPaymentApi.middleware)
 
-      // ─── NEW ─── RCC Payment middleware
-      .concat(rccPaymentApi.middleware),
-});
+
+      ////////////// Payment middleware
+     
+      .concat(mainSummaryApi.middleware),
+
+      
+    });
