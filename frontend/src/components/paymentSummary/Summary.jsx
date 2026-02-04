@@ -259,11 +259,22 @@
 //     let data = processedTransactions;
 
 //     let startDate = new Date(currentDate);
-//     if (period === "1y") startDate.setFullYear(currentDate.getFullYear() - 1);
-//     else if (period === "6m") startDate.setMonth(currentDate.getMonth() - 6);
-//     else if (period === "3m") startDate.setMonth(currentDate.getMonth() - 3);
-//     else if (period === "1m") startDate.setMonth(currentDate.getMonth() - 1);
-//     else startDate = new Date(0);
+
+//     if (period === "1y") {
+//       startDate.setFullYear(currentDate.getFullYear() - 1);
+//     } else if (period === "6m") {
+//       startDate.setMonth(currentDate.getMonth() - 6);
+//     } else if (period === "3m") {
+//       startDate.setMonth(currentDate.getMonth() - 3);
+//     } else if (period === "1m") {
+//       startDate.setMonth(currentDate.getMonth() - 1);
+//     } else if (period === "2w") {
+//       startDate.setDate(currentDate.getDate() - 14);
+//     } else if (period === "1w") {
+//       startDate.setDate(currentDate.getDate() - 7);
+//     } else {
+//       startDate = new Date(0); // all time
+//     }
 
 //     data = data.filter((t) => t.date >= startDate);
 
@@ -446,7 +457,7 @@
 
 //       {/* Main content */}
 //       <div className="relative z-10 w-full space-y-8 lg:space-y-10">
-//         {/* Header - backdrop-blur हटा दिया */}
+//         {/* Header */}
 //         <div className={`rounded-2xl border shadow-2xl w-full p-6 sm:p-8 lg:p-10 xl:p-12 
 //           ${isDarkMode ? "bg-black/70 border-indigo-700/60" : "bg-white/90 border-indigo-200/80"}`}>
 //           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -469,7 +480,7 @@
 //               </button>
 
 //               <div className={`border p-1.5 rounded-xl shadow-lg flex flex-wrap ${isDarkMode ? "bg-black/50 border-indigo-600/50" : "bg-white/60 border-indigo-300/60"}`}>
-//                 {["all", "1y", "6m", "3m", "1m"].map((p) => (
+//                 {["all", "1y", "6m", "3m", "1m", "2w", "1w"].map((p) => (
 //                   <button
 //                     key={p}
 //                     onClick={() => setPeriod(p)}
@@ -481,7 +492,13 @@
 //                         : "text-gray-700 hover:bg-gray-100"
 //                     }`}
 //                   >
-//                     {p === "all" ? "All Time" : p.toUpperCase()}
+//                     {p === "all" ? "All Time" :
+//                      p === "1y" ? "1 Y" :
+//                      p === "6m" ? "6 M" :
+//                      p === "3m" ? "3 M" :
+//                      p === "1m" ? "1 M" :
+//                      p === "2w" ? "2 W" :
+//                      p === "1w" ? "1 W" : p.toUpperCase()}
 //                   </button>
 //                 ))}
 //               </div>
@@ -593,7 +610,13 @@
 //                   <Calendar className={`w-7 h-7 ${isDarkMode ? "text-indigo-400" : "text-indigo-600"}`} /> Transaction Trend
 //                 </h3>
 //                 <span className={`px-4 py-2 rounded-lg text-sm lg:text-base font-medium ${isDarkMode ? "bg-indigo-900/50 text-indigo-300" : "bg-indigo-100/70 text-indigo-700"}`}>
-//                   {period === "all" ? "All Time" : `Last ${period.toUpperCase()}`}
+//                   {period === "all" ? "All Time" :
+//                    period === "1y" ? "Last 1 Year" :
+//                    period === "6m" ? "Last 6 Months" :
+//                    period === "3m" ? "Last 3 Months" :
+//                    period === "1m" ? "Last 1 Month" :
+//                    period === "2w" ? "Last 2 Weeks" :
+//                    period === "1w" ? "Last 1 Week" : `Last ${period.toUpperCase()}`}
 //                 </span>
 //               </div>
 
@@ -840,7 +863,7 @@
 
 
 
-/////////// 
+//////// try code 
 
 
 
@@ -859,6 +882,7 @@ import {
   Filler,
 } from "chart.js";
 import { Pie, Bar } from "react-chartjs-2";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import {
   ArrowUpCircle,
   ArrowDownCircle,
@@ -868,9 +892,14 @@ import {
   RefreshCw,
   X,
   Search,
+  Building2,
+  AlertCircle,
 } from "lucide-react";
-import { useGetMainBankSummaryQuery } from "../../features/Summary/mainSummarySlice";
-
+// import { useGetMainBankSummaryQuery } from "../../features/Summary/mainSummarySlice";
+import {
+  useGetMainBankSummaryQuery,
+  useGetBankBalancesQuery,     // ← add this
+} from "../../features/Summary/mainSummarySlice";   // adjust path if needed
 // Register ChartJS components
 ChartJS.register(
   ArcElement,
@@ -1030,8 +1059,568 @@ const SearchableInputFilter = ({ label, value, onChange, options, placeholder, i
   );
 };
 
+// Bank Balance Component
+// const BankBalance = ({ isDarkMode }) => {
+//   const {
+//     data: bankApiData,
+//     isLoading,
+//     isError,
+//     error,
+//     refetch,           // optional: can add refresh button
+//   } = useGetBankBalancesQuery(undefined, {
+//     // pollingInterval: 300000, // optional: auto-refresh every 5 min
+//   });
+
+//   // ────────────────────────────────────────────────
+//   // Prepare clean data (handle missing / malformed response safely)
+//   // ────────────────────────────────────────────────
+//   const bankData = useMemo(() => {
+//     if (!bankApiData?.balances || !Array.isArray(bankApiData.balances)) {
+//       return [];
+//     }
+
+//     return bankApiData.balances
+//       .map(item => {
+//         // BankName and Balance are strings from your backend
+//         const balanceNum = parseFloat(
+//           (item.Balance || "0")
+//             .toString()
+//             .replace(/,/g, "")
+//             .replace(/₹/g, "")
+//             .trim()
+//         ) || 0;
+
+//         return {
+//           bankName: (item.BankName || "Unknown Bank").trim(),
+//           balance: balanceNum,
+//           balanceFormatted: balanceNum.toLocaleString("en-IN", {
+//             maximumFractionDigits: 2,
+//             minimumFractionDigits: 2,
+//           }),
+//         };
+//       })
+//       .filter(item => item.bankName && item.bankName !== "Unknown Bank"); // optional cleanup
+//   }, [bankApiData]);
+
+//   const totalBalance = useMemo(
+//     () => bankData.reduce((sum, b) => sum + b.balance, 0),
+//     [bankData]
+//   );
+
+//   // ────────────────────────────────────────────────
+//   // Pie chart data (dynamic colors if many banks)
+//   // ────────────────────────────────────────────────
+//   const colors = [
+//     "#10b981", // emerald
+//     "#3b82f6", // blue
+//     "#f59e0b", // amber
+//     "#8b5cf6", // violet
+//     "#ec4899", // pink
+//     "#14b8a6", // teal
+//     "#f97316", // orange
+//     "#a78bfa", // purple
+//   ];
+
+//   const pieChartData = {
+//     labels: bankData.map(b => b.bankName),
+//     datasets: [{
+//       data: bankData.map(b => b.balance),
+//       backgroundColor: bankData.map((_, i) => colors[i % colors.length]),
+//       borderColor: isDarkMode ? "#1f2937" : "#ffffff",
+//       borderWidth: 2,
+//       hoverOffset: 20,
+//     }],
+//   };
+
+//   const pieChartOptions = {
+//     maintainAspectRatio: false,
+//     responsive: true,
+//     cutout: "65%",
+//     plugins: {
+//       legend: {
+//         position: "bottom",
+//         labels: {
+//           color: isDarkMode ? "#e5e7eb" : "#374151",
+//           font: { size: 14, weight: "600" },
+//           padding: 20,
+//           usePointStyle: true,
+//           boxWidth: 14,
+//           generateLabels: (chart) => {
+//             const { data } = chart;
+//             return data.labels.map((label, i) => {
+//               const value = data.datasets[0].data[i];
+//               const percentage = totalBalance > 0 ? ((value / totalBalance) * 100).toFixed(1) : 0;
+//               return {
+//                 text: `${label} (${percentage}%)`,
+//                 fillStyle: data.datasets[0].backgroundColor[i],
+//                 strokeStyle: data.datasets[0].backgroundColor[i],
+//                 hidden: false,
+//                 index: i,
+//               };
+//             });
+//           },
+//         },
+//       },
+//       tooltip: {
+//         backgroundColor: isDarkMode ? "rgba(17,24,39,0.95)" : "rgba(255,255,255,0.98)",
+//         titleColor: isDarkMode ? "#f3f4f6" : "#111827",
+//         bodyColor: isDarkMode ? "#f3f4f6" : "#111827",
+//         padding: 12,
+//         cornerRadius: 10,
+//         callbacks: {
+//           label: (context) => {
+//             const value = context.parsed;
+//             const percentage = totalBalance > 0 ? ((value / totalBalance) * 100).toFixed(1) : 0;
+//             return ` ₹${value.toLocaleString("en-IN")} (${percentage}%)`;
+//           },
+//         },
+//       },
+//     },
+//   };
+
+//   // ────────────────────────────────────────────────
+//   // Loading / Error states
+//   // ────────────────────────────────────────────────
+//   if (isLoading) {
+//     return (
+//       <div className="flex flex-col items-center justify-center py-20">
+//         <div className="w-14 h-14 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+//         <p className={`text-lg ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+//           Loading bank balances...
+//         </p>
+//       </div>
+//     );
+//   }
+
+//   if (isError || !bankData.length) {
+//     return (
+//       <div className={`rounded-2xl p-10 text-center border shadow-xl max-w-lg mx-auto
+//         ${isDarkMode ? "bg-red-950/30 border-red-800/50" : "bg-red-50 border-red-200"}`}>
+//         <AlertCircle className={`w-12 h-12 mx-auto mb-4 ${isDarkMode ? "text-red-400" : "text-red-600"}`} />
+//         <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? "text-red-300" : "text-red-800"}`}>
+//           {isError ? "Failed to load bank balances" : "No bank data available"}
+//         </h3>
+//         <button
+//           onClick={() => refetch()}
+//           className="mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors flex items-center gap-2 mx-auto"
+//         >
+//           <RefreshCw className="w-5 h-5" /> Retry
+//         </button>
+//       </div>
+//     );
+//   }
+
+//   // ────────────────────────────────────────────────
+//   // Main render (same structure, now with real data)
+//   // ────────────────────────────────────────────────
+//   return (
+//     <div className="space-y-8">
+//       {/* Total Balance Card */}
+//       <div className={`rounded-2xl border shadow-2xl p-8 text-center
+//         ${isDarkMode 
+//           ? "bg-gradient-to-br from-emerald-950/50 to-teal-950/50 border-emerald-800/60" 
+//           : "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200"}`}
+//       >
+//         <p className={`text-sm font-semibold uppercase tracking-wider mb-3
+//           ${isDarkMode ? "text-emerald-300/90" : "text-emerald-700"}`}>
+//           Total Bank Balance
+//         </p>
+//         <p className={`text-5xl lg:text-6xl font-black tracking-tight
+//           ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+//           ₹{totalBalance.toLocaleString("en-IN")}
+//         </p>
+//       </div>
+
+//       {/* Pie Chart Section */}
+//       <div className={`rounded-2xl border shadow-2xl p-6 lg:p-10
+//         ${isDarkMode 
+//           ? "bg-black/40 border-indigo-800/50" 
+//           : "bg-white/90 border-indigo-200/60"}`}
+//       >
+//         <h3 className={`text-2xl lg:text-3xl font-bold text-center mb-6 lg:mb-8
+//           ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+//           Bank-wise Balance Distribution
+//         </h3>
+
+//         {bankData.length > 0 ? (
+//           <div className="h-[340px] sm:h-[420px] lg:h-[480px] w-full max-w-4xl mx-auto">
+//             <Pie data={pieChartData} options={pieChartOptions} />
+//           </div>
+//         ) : (
+//           <p className="text-center py-12 text-gray-500">No balance data to display</p>
+//         )}
+//       </div>
+
+//       {/* Bank List */}
+//       <div className={`rounded-2xl border shadow-xl overflow-hidden
+//         ${isDarkMode 
+//           ? "bg-black/30 border-indigo-800/50" 
+//           : "bg-white/90 border-indigo-200/60"}`}
+//       >
+//         <div className={`px-6 py-4 border-b font-semibold text-lg
+//           ${isDarkMode ? "bg-indigo-950/40 text-indigo-300 border-indigo-800/50" : "bg-indigo-50 text-indigo-800 border-indigo-200"}`}>
+//           Bank Details
+//         </div>
+//         <div className="divide-y divide-gray-700/30 dark:divide-gray-700/50">
+//           {bankData.map((bank, index) => (
+//             <div
+//               key={index}
+//               className={`px-6 py-5 flex justify-between items-center
+//                 ${isDarkMode ? "hover:bg-gray-800/30" : "hover:bg-gray-50"}`}
+//             >
+//               <span className={`font-medium text-base ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}>
+//                 {bank.bankName}
+//               </span>
+//               <span className={`text-xl font-bold ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
+//                 ₹{bank.balanceFormatted}
+//               </span>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+////////////////////////////////  
+
+const BankBalance = ({ isDarkMode }) => {
+  const {
+    data: bankApiData,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetBankBalancesQuery();
+
+  // ────────────────────────────────────────────────
+  // Parse & sort data
+  // ────────────────────────────────────────────────
+  const bankData = useMemo(() => {
+    if (!bankApiData?.balances || !Array.isArray(bankApiData.balances)) return [];
+
+    return bankApiData.balances
+      .map(item => {
+        let balanceStr = (item.Balance || "0").toString().trim();
+        const balanceNum = parseFloat(balanceStr.replace(/,/g, "").replace(/₹/g, "")) || 0;
+
+        return {
+          bankName: (item.BankName || "Unknown").trim(),
+          balance: balanceNum,
+          balanceFormatted: balanceNum.toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+        };
+      })
+      .filter(b => b.bankName !== "Unknown" && b.balance > 0)   // optional filter
+      .sort((a, b) => b.balance - a.balance);                   // highest balance first
+  }, [bankApiData]);
+
+  const totalBalance = useMemo(
+    () => bankData.reduce((sum, b) => sum + b.balance, 0),
+    [bankData]
+  );
+
+  // ────────────────────────────────────────────────
+  // Bar Chart Config
+  // ────────────────────────────────────────────────
+  const barChartData = {
+    labels: bankData.map(b => b.bankName),
+    datasets: [{
+      label: 'Balance',
+      data: bankData.map(b => b.balance),
+      backgroundColor: 'rgba(16, 185, 129, 0.78)',     // emerald-500 with opacity
+      borderColor: '#10b981',
+      borderWidth: 1,
+      borderRadius: 10,
+      hoverBackgroundColor: 'rgba(16, 185, 129, 1)',
+    }],
+  };
+
+  const barChartOptions = {
+    indexAxis: bankData.length > 8 ? 'y' : 'x',          // horizontal bars if many banks
+    maintainAspectRatio: false,
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: 'Bank Balance Overview',
+        color: isDarkMode ? '#ffffff' : '#111827',
+        font: { size: 22, weight: 'bold' },
+        padding: { top: 10, bottom: 20 },
+      },
+      tooltip: {
+        backgroundColor: isDarkMode ? 'rgba(17,24,39,0.96)' : 'rgba(255,255,255,0.98)',
+        titleColor: isDarkMode ? '#f3f4f6' : '#111827',
+        bodyColor: isDarkMode ? '#f3f4f6' : '#111827',
+        padding: 12,
+        cornerRadius: 10,
+        callbacks: {
+          label: (context) => {
+            const value = context.parsed[context.chart.options.indexAxis === 'y' ? 'x' : 'y'];
+            const percentage = totalBalance > 0 ? ((value / totalBalance) * 100).toFixed(1) : '0.0';
+            return ` ₹${value.toLocaleString('en-IN')}  (${percentage}%)`;
+          },
+        },
+      },
+      // Optional: show value on top of bars (requires chartjs-plugin-datalabels)
+      // datalabels: { ... }  ← add if you install & register the plugin
+    },
+    scales: {
+      [bankData.length > 8 ? 'x' : 'y']: {
+        beginAtZero: true,
+        grid: { color: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' },
+        ticks: {
+          color: isDarkMode ? '#9ca3af' : '#6b7280',
+          font: { weight: '500' },
+          callback: (value) => '₹' + value.toLocaleString('en-IN', { notation: 'compact' }),
+        },
+      },
+      [bankData.length > 8 ? 'y' : 'x']: {
+        grid: { display: false },
+        ticks: {
+          color: isDarkMode ? '#d1d5db' : '#374151',
+          font: {
+            size: bankData.length > 12 ? 11 : 13,
+            weight: '500',
+          },
+          maxRotation: 45,
+          minRotation: 0,
+          autoSkip: true,
+        },
+      },
+    },
+  };
+
+  // ────────────────────────────────────────────────
+  // Loading / Error UI
+  // ────────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <div className="py-20 flex flex-col items-center justify-center">
+        <div className="w-14 h-14 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-5"></div>
+        <p className={`text-lg ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+          Loading bank balances...
+        </p>
+      </div>
+    );
+  }
+
+  if (isError || bankData.length === 0) {
+    return (
+      <div className={`rounded-2xl p-10 text-center border max-w-lg mx-auto
+        ${isDarkMode ? "bg-rose-950/20 border-rose-800/40" : "bg-rose-50 border-rose-200"}`}>
+        <AlertCircle className={`w-12 h-12 mx-auto mb-4 ${isDarkMode ? "text-rose-400" : "text-rose-600"}`} />
+        <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? "text-rose-300" : "text-rose-800"}`}>
+          {isError ? "Failed to load balances" : "No bank data found"}
+        </h3>
+        <button
+          onClick={refetch}
+          className="mt-5 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-2 mx-auto transition-colors"
+        >
+          <RefreshCw size={18} /> Retry
+        </button>
+      </div>
+    );
+  }
+
+  // ────────────────────────────────────────────────
+  // Main Render
+  // ────────────────────────────────────────────────
+  return (
+    <div className="space-y-8">
+      {/* Total Balance Card */}
+      <div className={`rounded-2xl border shadow-2xl p-8 text-center
+        ${isDarkMode 
+          ? "bg-gradient-to-br from-emerald-950/60 to-teal-950/50 border-emerald-800/50" 
+          : "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200"}`}
+      >
+        <p className={`text-sm font-semibold uppercase tracking-wider mb-3
+          ${isDarkMode ? "text-emerald-300/90" : "text-emerald-700"}`}>
+          Current Total Balance
+        </p>
+        <p className={`text-5xl lg:text-6xl font-black tracking-tight
+          ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+          ₹{totalBalance.toLocaleString("en-IN")}
+        </p>
+      </div>
+
+      {/* Bar Chart Section */}
+      <div className={`rounded-2xl border shadow-2xl p-6 lg:p-10
+        ${isDarkMode 
+          ? "bg-black/40 border-indigo-800/50" 
+          : "bg-white/90 border-indigo-200/60"}`}
+      >
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <h3 className={`text-2xl lg:text-3xl font-bold flex items-center gap-3
+            ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+            <Calendar className={`w-7 h-7 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`} />
+            Bank Balance Overview
+          </h3>
+          <span className={`px-4 py-2 rounded-lg text-sm font-medium
+            ${isDarkMode ? "bg-emerald-900/40 text-emerald-300" : "bg-emerald-100 text-emerald-800"}`}>
+            As of {new Date().toLocaleDateString("en-IN")}
+          </span>
+        </div>
+
+        <div className={`h-[${bankData.length > 8 ? '480' : '420'}px] sm:h-[${bankData.length > 8 ? '520' : '440'}px] lg:h-[${bankData.length > 8 ? '580' : '480'}px] w-full`}>
+          <Bar data={barChartData} options={barChartOptions} />
+        </div>
+      </div>
+
+      {/* Bank List – always visible, good for reference */}
+      <div className={`rounded-2xl border shadow-xl overflow-hidden
+        ${isDarkMode 
+          ? "bg-black/30 border-indigo-800/50" 
+          : "bg-white/90 border-indigo-200/60"}`}
+      >
+        <div className={`px-6 py-4 border-b font-semibold text-lg
+          ${isDarkMode ? "bg-emerald-950/30 text-emerald-300 border-emerald-800/50" : "bg-emerald-50 text-emerald-800 border-emerald-200"}`}>
+          All Banks
+        </div>
+        <div className="divide-y divide-gray-700/30 dark:divide-gray-700/40 max-h-[420px] overflow-y-auto">
+          {bankData.map((bank, idx) => (
+            <div
+              key={idx}
+              className={`px-6 py-4.5 flex justify-between items-center hover:bg-opacity-40 transition-colors
+                ${isDarkMode ? "hover:bg-emerald-950/20" : "hover:bg-emerald-50/60"}`}
+            >
+              <div className="flex items-center gap-3">
+                <span className={`font-medium text-base ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}>
+                  {bank.bankName}
+                </span>
+              </div>
+              <span className={`text-xl font-bold tracking-tight
+                ${isDarkMode ? "text-emerald-400" : "text-emerald-700"}`}>
+                ₹{bank.balanceFormatted}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+// Outstanding Component
+const Outstanding = ({ isDarkMode }) => {
+  // Dummy data - Replace with your actual API call
+  const outstandingData = [
+    { party: "ABC Suppliers", amount: 45000, dueDate: "2026-02-15", days: 12, type: "Payable" },
+    { party: "XYZ Vendors", amount: 78000, dueDate: "2026-02-10", days: 7, type: "Payable" },
+    { party: "Customer A", amount: 125000, dueDate: "2026-02-20", days: 17, type: "Receivable" },
+    { party: "Customer B", amount: 95000, dueDate: "2026-02-08", days: 5, type: "Receivable" },
+    { party: "PQR Industries", amount: 62000, dueDate: "2026-01-30", days: -4, type: "Payable" },
+  ];
+
+  const totalPayable = outstandingData.filter(item => item.type === "Payable").reduce((sum, item) => sum + item.amount, 0);
+  const totalReceivable = outstandingData.filter(item => item.type === "Receivable").reduce((sum, item) => sum + item.amount, 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={`rounded-2xl border shadow-xl p-6 ${isDarkMode ? "bg-gradient-to-br from-rose-900/40 to-pink-900/40 border-rose-700/40" : "bg-gradient-to-br from-rose-50 to-pink-50 border-rose-200"}`}>
+          <p className={`text-sm font-semibold uppercase tracking-wider mb-2 ${isDarkMode ? "text-rose-300" : "text-rose-700"}`}>
+            Total Payable
+          </p>
+          <p className={`text-4xl font-black ${isDarkMode ? "text-rose-400" : "text-rose-600"}`}>
+            ₹{totalPayable.toLocaleString("en-IN")}
+          </p>
+        </div>
+
+        <div className={`rounded-2xl border shadow-xl p-6 ${isDarkMode ? "bg-gradient-to-br from-emerald-900/40 to-teal-900/40 border-emerald-700/40" : "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200"}`}>
+          <p className={`text-sm font-semibold uppercase tracking-wider mb-2 ${isDarkMode ? "text-emerald-300" : "text-emerald-700"}`}>
+            Total Receivable
+          </p>
+          <p className={`text-4xl font-black ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
+            ₹{totalReceivable.toLocaleString("en-IN")}
+          </p>
+        </div>
+
+        <div className={`rounded-2xl border shadow-xl p-6 ${isDarkMode ? "bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border-indigo-700/40" : "bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200"}`}>
+          <p className={`text-sm font-semibold uppercase tracking-wider mb-2 ${isDarkMode ? "text-indigo-300" : "text-indigo-700"}`}>
+            Net Outstanding
+          </p>
+          <p className={`text-4xl font-black ${totalReceivable - totalPayable >= 0 ? (isDarkMode ? "text-emerald-400" : "text-emerald-600") : (isDarkMode ? "text-rose-400" : "text-rose-600")}`}>
+            ₹{Math.abs(totalReceivable - totalPayable).toLocaleString("en-IN")}
+          </p>
+        </div>
+      </div>
+
+      {/* Outstanding Table */}
+      <div className={`rounded-2xl border overflow-hidden shadow-2xl ${isDarkMode ? "bg-black/30 border-gray-700/40" : "bg-white/80 border-gray-200"}`}>
+        <div className={`p-6 border-b ${isDarkMode ? "bg-gradient-to-r from-indigo-950/80 to-purple-950/80 border-gray-700/40" : "bg-gradient-to-r from-indigo-100/70 to-purple-100/70 border-indigo-200/40"}`}>
+          <h3 className={`text-2xl font-bold flex items-center gap-3 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+            <AlertCircle className={`w-7 h-7 ${isDarkMode ? "text-indigo-400" : "text-indigo-600"}`} /> Outstanding Details
+          </h3>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[800px]">
+            <thead className={`${isDarkMode ? "bg-black/50" : "bg-gray-100/80"}`}>
+              <tr>
+                <th className={`px-6 py-4 text-sm font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Party Name</th>
+                <th className={`px-6 py-4 text-sm font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Type</th>
+                <th className={`px-6 py-4 text-sm font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Due Date</th>
+                <th className={`px-6 py-4 text-sm font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Days</th>
+                <th className={`px-6 py-4 text-sm font-semibold uppercase tracking-wider text-right ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Amount</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${isDarkMode ? "divide-gray-800/50" : "divide-gray-200/50"}`}>
+              {outstandingData.map((item, index) => (
+                <tr
+                  key={index}
+                  className={`hover:bg-opacity-30 transition-colors ${isDarkMode ? "hover:bg-indigo-950/30" : "hover:bg-indigo-50/30"}`}
+                >
+                  <td className={`px-6 py-5 font-medium ${isDarkMode ? "text-gray-200" : "text-gray-900"}`}>
+                    {item.party}
+                  </td>
+                  <td className="px-6 py-5">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                      item.type === "Payable"
+                        ? isDarkMode ? "bg-rose-900/50 text-rose-300" : "bg-rose-100 text-rose-700"
+                        : isDarkMode ? "bg-emerald-900/50 text-emerald-300" : "bg-emerald-100 text-emerald-700"
+                    }`}>
+                      {item.type}
+                    </span>
+                  </td>
+                  <td className={`px-6 py-5 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                    {new Date(item.dueDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                  </td>
+                  <td className="px-6 py-5">
+                    <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${
+                      item.days < 0
+                        ? isDarkMode ? "bg-red-900/50 text-red-300" : "bg-red-100 text-red-700"
+                        : item.days <= 7
+                        ? isDarkMode ? "bg-yellow-900/50 text-yellow-300" : "bg-yellow-100 text-yellow-700"
+                        : isDarkMode ? "bg-green-900/50 text-green-300" : "bg-green-100 text-green-700"
+                    }`}>
+                      {item.days < 0 ? `${Math.abs(item.days)} overdue` : `${item.days} days`}
+                    </span>
+                  </td>
+                  <td className={`px-6 py-5 text-right text-xl font-bold ${
+                    item.type === "Receivable"
+                      ? "text-emerald-500"
+                      : "text-rose-500"
+                  }`}>
+                    ₹{item.amount.toLocaleString("en-IN")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Summary = () => {
   const isDarkMode = localStorage.getItem("isDarkMode") === "true";
+  const [activeTab, setActiveTab] = useState("summary");
   const [period, setPeriod] = useState("all");
   const [filters, setFilters] = useState({
     siteName: "",
@@ -1118,7 +1707,7 @@ const Summary = () => {
     } else if (period === "1w") {
       startDate.setDate(currentDate.getDate() - 7);
     } else {
-      startDate = new Date(0); // all time
+      startDate = new Date(0);
     }
 
     data = data.filter((t) => t.date >= startDate);
@@ -1308,10 +1897,10 @@ const Summary = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
               <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r bg-clip-text text-transparent flex items-center gap-3 ${isDarkMode ? "from-indigo-200 via-purple-200 to-indigo-200" : "from-indigo-700 via-purple-700 to-indigo-700"}`}>
-                <Wallet className={`w-10 h-10 ${isDarkMode ? "text-indigo-400" : "text-indigo-600"}`} /> Financial Summary
+                <Wallet className={`w-10 h-10 ${isDarkMode ? "text-indigo-400" : "text-indigo-600"}`} /> Financial Dashboard
               </h1>
               <p className={`mt-2 text-lg ${isDarkMode ? "text-indigo-300/80" : "text-indigo-700/80"}`}>
-                Overview of income, expenses & balance
+                Complete overview of your finances
               </p>
             </div>
 
@@ -1323,301 +1912,363 @@ const Summary = () => {
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
-
-              <div className={`border p-1.5 rounded-xl shadow-lg flex flex-wrap ${isDarkMode ? "bg-black/50 border-indigo-600/50" : "bg-white/60 border-indigo-300/60"}`}>
-                {["all", "1y", "6m", "3m", "1m", "2w", "1w"].map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPeriod(p)}
-                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      period === p
-                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
-                        : isDarkMode
-                        ? "text-gray-300 hover:bg-white/10"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {p === "all" ? "All Time" :
-                     p === "1y" ? "1 Y" :
-                     p === "6m" ? "6 M" :
-                     p === "3m" ? "3 M" :
-                     p === "1m" ? "1 M" :
-                     p === "2w" ? "2 W" :
-                     p === "1w" ? "1 W" : p.toUpperCase()}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="mt-8 space-y-6 relative z-[100]">
-            <div className="flex items-center justify-between">
-              <h3 className={`text-lg font-bold flex items-center gap-2 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                <Search className="w-5 h-5" />
-                Filter Data
-                {activeFiltersCount > 0 && (
-                  <span className={`ml-2 px-2.5 py-0.5 rounded-full text-xs font-bold ${isDarkMode ? "bg-indigo-900/60 text-indigo-300" : "bg-indigo-100 text-indigo-700"}`}>
-                    {activeFiltersCount} active
-                  </span>
-                )}
-              </h3>
-
-              {activeFiltersCount > 0 && (
-                <button
-                  onClick={() => setFilters({ siteName: "", bankName: "", expHead: "" })}
-                  className={`px-4 py-2 rounded-lg border-2 transition-all flex items-center gap-2 text-sm font-semibold ${isDarkMode ? "bg-gray-900/60 border-gray-700 hover:border-red-500 text-red-400 hover:bg-red-900/20" : "bg-white border-gray-300 hover:border-red-400 text-red-600 hover:bg-red-50"}`}
-                >
-                  <X className="w-4 h-4" /> Clear All
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <SearchableInputFilter
-                label="Site Name"
-                value={filters.siteName}
-                onChange={(val) => setFilters((prev) => ({ ...prev, siteName: val, bankName: "", expHead: "" }))}
-                options={cascadingOptions.siteNames}
-                placeholder="Type or select site..."
-                isDarkMode={isDarkMode}
-              />
-              <SearchableInputFilter
-                label="Bank Name"
-                value={filters.bankName}
-                onChange={(val) => setFilters((prev) => ({ ...prev, bankName: val, expHead: "" }))}
-                options={cascadingOptions.bankNames}
-                placeholder="Type or select bank..."
-                isDarkMode={isDarkMode}
-              />
-              <SearchableInputFilter
-                label="Expense Head"
-                value={filters.expHead}
-                onChange={(val) => setFilters((prev) => ({ ...prev, expHead: val }))}
-                options={cascadingOptions.expHeads}
-                placeholder="Type or select head..."
-                isDarkMode={isDarkMode}
-              />
+          {/* Tab Navigation */}
+          <div className="mt-8">
+            <div className={`border-2 p-1.5 rounded-xl shadow-lg inline-flex flex-wrap gap-1 ${isDarkMode ? "bg-black/50 border-indigo-600/50" : "bg-white/60 border-indigo-300/60"}`}>
+              <button
+                onClick={() => setActiveTab("summary")}
+                className={`px-6 py-3 rounded-lg text-base font-semibold transition-all flex items-center gap-2 ${
+                  activeTab === "summary"
+                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
+                    : isDarkMode
+                    ? "text-gray-300 hover:bg-white/10"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <ListOrdered className="w-5 h-5" />
+                Summary
+              </button>
+              
+              <button
+                onClick={() => setActiveTab("bankBalance")}
+                className={`px-6 py-3 rounded-lg text-base font-semibold transition-all flex items-center gap-2 ${
+                  activeTab === "bankBalance"
+                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
+                    : isDarkMode
+                    ? "text-gray-300 hover:bg-white/10"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <Building2 className="w-5 h-5" />
+                Bank Balance
+              </button>
+              
+              <button
+                onClick={() => setActiveTab("outstanding")}
+                className={`px-6 py-3 rounded-lg text-base font-semibold transition-all flex items-center gap-2 ${
+                  activeTab === "outstanding"
+                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
+                    : isDarkMode
+                    ? "text-gray-300 hover:bg-white/10"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <AlertCircle className="w-5 h-5" />
+                Outstanding
+              </button>
             </div>
           </div>
-        </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 w-full z-10">
-          <StatCard
-            title="Total Income"
-            amount={totalIn}
-            color="emerald"
-            icon={<ArrowDownCircle />}
-            isDarkMode={isDarkMode}
-          />
-          <StatCard
-            title="Total Expenses"
-            amount={Math.abs(totalOut)}
-            color="rose"
-            icon={<ArrowUpCircle />}
-            isDarkMode={isDarkMode}
-          />
-          <StatCard
-            title="Net Balance"
-            amount={balance}
-            color={balance >= 0 ? "emerald" : "rose"}
-            icon={<Wallet />}
-            isBalance
-            isDarkMode={isDarkMode}
-            balanceValue={balance}
-          />
-        </div>
-
-        {hasNoTransactionsInPeriod && (
-          <div className={`rounded-2xl border p-6 text-center ${isDarkMode ? "bg-yellow-900/30 border-yellow-700/40" : "bg-yellow-50/70 border-yellow-300/60"}`}>
-            <p className={`text-lg ${isDarkMode ? "text-yellow-300" : "text-yellow-800"}`}>
-              No transactions found for the selected period and filters
-            </p>
-            <button
-              onClick={() => {
-                setPeriod("all");
-                setFilters({ siteName: "", bankName: "", expHead: "" });
-              }}
-              className="mt-4 px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
-            >
-              Reset All
-            </button>
-          </div>
-        )}
-
-        {finalFilteredData.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 w-full">
-            {/* Bar Chart */}
-            <div className={`lg:col-span-2 rounded-2xl border shadow-2xl p-6 md:p-8 lg:p-10 w-full ${isDarkMode ? "bg-black/30 border-indigo-700/40" : "bg-white/70 border-indigo-200/60"}`}>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h3 className={`text-2xl lg:text-3xl font-bold flex items-center gap-3 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                  <Calendar className={`w-7 h-7 ${isDarkMode ? "text-indigo-400" : "text-indigo-600"}`} /> Transaction Trend
-                </h3>
-                <span className={`px-4 py-2 rounded-lg text-sm lg:text-base font-medium ${isDarkMode ? "bg-indigo-900/50 text-indigo-300" : "bg-indigo-100/70 text-indigo-700"}`}>
-                  {period === "all" ? "All Time" :
-                   period === "1y" ? "Last 1 Year" :
-                   period === "6m" ? "Last 6 Months" :
-                   period === "3m" ? "Last 3 Months" :
-                   period === "1m" ? "Last 1 Month" :
-                   period === "2w" ? "Last 2 Weeks" :
-                   period === "1w" ? "Last 1 Week" : `Last ${period.toUpperCase()}`}
-                </span>
-              </div>
-
-              <div className="h-[420px] lg:h-[480px] w-full">
-                <Bar
-                  data={barChartData}
-                  options={{
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    plugins: {
-                      legend: { position: "top", labels: { color: isDarkMode ? "#e5e7eb" : "#374151", font: { size: 14, weight: "bold" }, padding: 20, usePointStyle: true } },
-                      tooltip: {
-                        backgroundColor: isDarkMode ? "rgba(30,41,59,0.95)" : "rgba(255,255,255,0.95)",
-                        titleColor: isDarkMode ? "#e5e7eb" : "#111827",
-                        bodyColor: isDarkMode ? "#e5e7eb" : "#111827",
-                        cornerRadius: 10,
-                        padding: 12,
-                        callbacks: {
-                          label: (context) => {
-                            let label = context.dataset.label || "";
-                            if (label) label += ": ";
-                            if (context.parsed.y !== null) label += "₹" + context.parsed.y.toLocaleString("en-IN");
-                            return label;
-                          },
-                        },
-                      },
-                    },
-                    scales: {
-                      y: { beginAtZero: true, grid: { color: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }, ticks: { color: isDarkMode ? "#9ca3af" : "#6b7280", font: { weight: "600" }, callback: (v) => "₹" + v.toLocaleString("en-IN") } },
-                      x: { grid: { display: false }, ticks: { color: isDarkMode ? "#9ca3af" : "#6b7280", font: { weight: "600" } } },
-                    },
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Pie Chart */}
-            <div className={`rounded-2xl border shadow-2xl p-6 md:p-8 lg:p-10 w-full ${isDarkMode ? "bg-black/30 border-indigo-700/40" : "bg-white/70 border-indigo-200/60"}`}>
-              <h3 className={`text-2xl lg:text-3xl font-bold mb-6 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                Income vs Expenses
-              </h3>
-              <div className="h-72 lg:h-80 flex items-center justify-center w-full">
-                <Pie
-                  data={pieData}
-                  options={{
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    plugins: {
-                      legend: { position: "bottom", labels: { color: isDarkMode ? "#e5e7eb" : "#374151", font: { weight: "bold", size: 14 }, padding: 20, usePointStyle: true } },
-                      tooltip: {
-                        backgroundColor: isDarkMode ? "rgba(30,41,59,0.95)" : "rgba(255,255,255,0.95)",
-                        titleColor: isDarkMode ? "#e5e7eb" : "#111827",
-                        bodyColor: isDarkMode ? "#e5e7eb" : "#111827",
-                        padding: 12,
-                        cornerRadius: 10,
-                        callbacks: {
-                          label: (context) => {
-                            let label = context.label || "";
-                            if (label) label += ": ";
-                            if (context.parsed !== null) label += "₹" + context.parsed.toLocaleString("en-IN");
-                            return label;
-                          },
-                        },
-                      },
-                    },
-                  }}
-                />
-              </div>
-
-              <div className={`mt-6 pt-6 border-t text-center ${isDarkMode ? "border-indigo-700/30" : "border-indigo-200/30"}`}>
-                <p className={`text-sm uppercase tracking-wider mb-2 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                  Savings Rate
-                </p>
-                <p className={`text-3xl lg:text-4xl font-bold ${balance >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
-                  {totalIn > 0 ? ((balance / totalIn) * 100).toFixed(1) : 0}%
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {finalFilteredData.length > 0 && (
-          <div className={`rounded-2xl border overflow-hidden shadow-2xl w-full ${isDarkMode ? "bg-black/30 border-indigo-700/40" : "bg-white/70 border-indigo-200/60"}`}>
-            <div className={`p-6 md:p-8 lg:p-10 border-b ${isDarkMode ? "bg-gradient-to-r from-indigo-950/80 to-purple-950/80 border-indigo-700/40" : "bg-gradient-to-r from-indigo-100/70 to-purple-100/70 border-indigo-200/40"}`}>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h3 className={`text-2xl lg:text-3xl font-bold flex items-center gap-3 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-                  <ListOrdered className={`w-7 h-7 ${isDarkMode ? "text-indigo-400" : "text-indigo-600"}`} /> Recent Transactions
-                </h3>
-                <span className={`px-5 py-2 rounded-lg text-sm lg:text-base font-medium ${isDarkMode ? "bg-indigo-900/50 text-indigo-300" : "bg-indigo-100/70 text-indigo-700"}`}>
-                  {finalFilteredData.length} Records
-                </span>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto w-full">
-              <table className="w-full text-left min-w-[900px]">
-                <thead className={`bg-opacity-50 ${isDarkMode ? "bg-black/50" : "bg-gray-100/80"}`}>
-                  <tr>
-                    <th className={`px-6 py-4 text-sm lg:text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Date</th>
-                    <th className={`px-6 py-4 text-sm lg:text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Site Name</th>
-                    <th className={`px-6 py-4 text-sm lg:text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Category</th>
-                    <th className={`px-6 py-4 text-sm lg:text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Type</th>
-                    <th className={`px-6 py-4 text-sm lg:text-base font-semibold uppercase tracking-wider text-right ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Amount</th>
-                  </tr>
-                </thead>
-                <tbody className={`divide-y ${isDarkMode ? "divide-gray-800/50" : "divide-gray-200/50"}`}>
-                  {finalFilteredData.slice(0, 10).map((t, i) => (
-                    <tr
-                      key={`transaction-${i}`}
-                      className={`hover:bg-opacity-30 transition-colors duration-150 ${isDarkMode ? "hover:bg-indigo-950/30" : "hover:bg-indigo-50/30"}`}
+          {/* Filters - Only show in Summary tab */}
+          {activeTab === "summary" && (
+            <>
+              <div className="mt-8">
+                <div className={`border p-1.5 rounded-xl shadow-lg flex flex-wrap ${isDarkMode ? "bg-black/50 border-indigo-600/50" : "bg-white/60 border-indigo-300/60"}`}>
+                  {["all", "1y", "6m", "3m", "1m", "2w", "1w"].map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPeriod(p)}
+                      className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        period === p
+                          ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
+                          : isDarkMode
+                          ? "text-gray-300 hover:bg-white/10"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
                     >
-                      <td className={`px-6 py-5 text-base ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
-                        {t.date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
-                      </td>
-                      <td className={`px-6 py-5 text-sm ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
-                        {t.siteName || "-"}
-                      </td>
-                      <td className="px-6 py-5">
-                        <span className={`px-3 py-1.5 rounded-lg text-sm lg:text-base font-medium ${isDarkMode ? "bg-gray-800/70 text-gray-200" : "bg-gray-200/70 text-gray-800"}`}>
-                          {t.category}
-                        </span>
-                      </td>
-                      <td className="px-6 py-5">
-                        <span
-                          className={`px-4 py-1.5 rounded-full text-xs lg:text-sm font-bold uppercase border 
-                            ${t.type === "in"
-                              ? isDarkMode
-                                ? "bg-emerald-900/50 text-emerald-300 border-emerald-700/40"
-                                : "bg-emerald-100/70 text-emerald-800 border-emerald-300/60"
-                              : isDarkMode
-                              ? "bg-rose-900/50 text-rose-300 border-rose-700/40"
-                              : "bg-rose-100/70 text-rose-800 border-rose-300/60"}`}
-                        >
-                          {t.type === "in" ? "↓ Income" : "↑ Expense"}
-                        </span>
-                      </td>
-                      <td
-                        className={`px-6 py-5 text-right text-lg lg:text-xl font-bold ${t.type === "in" ? "text-emerald-500" : "text-rose-500"}`}
-                      >
-                        {t.type === "in" ? "+" : "-"} ₹{t.amount.toLocaleString("en-IN")}
-                      </td>
-                    </tr>
+                      {p === "all" ? "All Time" :
+                       p === "1y" ? "1 Y" :
+                       p === "6m" ? "6 M" :
+                       p === "3m" ? "3 M" :
+                       p === "1m" ? "1 M" :
+                       p === "2w" ? "2 W" :
+                       p === "1w" ? "1 W" : p.toUpperCase()}
+                    </button>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </div>
+
+              <div className="mt-8 space-y-6 relative z-[100]">
+                <div className="flex items-center justify-between">
+                  <h3 className={`text-lg font-bold flex items-center gap-2 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                    <Search className="w-5 h-5" />
+                    Filter Data
+                    {activeFiltersCount > 0 && (
+                      <span className={`ml-2 px-2.5 py-0.5 rounded-full text-xs font-bold ${isDarkMode ? "bg-indigo-900/60 text-indigo-300" : "bg-indigo-100 text-indigo-700"}`}>
+                        {activeFiltersCount} active
+                      </span>
+                    )}
+                  </h3>
+
+                  {activeFiltersCount > 0 && (
+                    <button
+                      onClick={() => setFilters({ siteName: "", bankName: "", expHead: "" })}
+                      className={`px-4 py-2 rounded-lg border-2 transition-all flex items-center gap-2 text-sm font-semibold ${isDarkMode ? "bg-gray-900/60 border-gray-700 hover:border-red-500 text-red-400 hover:bg-red-900/20" : "bg-white border-gray-300 hover:border-red-400 text-red-600 hover:bg-red-50"}`}
+                    >
+                      <X className="w-4 h-4" /> Clear All
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <SearchableInputFilter
+                    label="Site Name"
+                    value={filters.siteName}
+                    onChange={(val) => setFilters((prev) => ({ ...prev, siteName: val, bankName: "", expHead: "" }))}
+                    options={cascadingOptions.siteNames}
+                    placeholder="Type or select site..."
+                    isDarkMode={isDarkMode}
+                  />
+                  <SearchableInputFilter
+                    label="Bank Name"
+                    value={filters.bankName}
+                    onChange={(val) => setFilters((prev) => ({ ...prev, bankName: val, expHead: "" }))}
+                    options={cascadingOptions.bankNames}
+                    placeholder="Type or select bank..."
+                    isDarkMode={isDarkMode}
+                  />
+                  <SearchableInputFilter
+                    label="Expense Head"
+                    value={filters.expHead}
+                    onChange={(val) => setFilters((prev) => ({ ...prev, expHead: val }))}
+                    options={cascadingOptions.expHeads}
+                    placeholder="Type or select head..."
+                    isDarkMode={isDarkMode}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === "summary" && (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 w-full z-10">
+              <StatCard
+                title="Total Income"
+                amount={totalIn}
+                color="emerald"
+                icon={<ArrowDownCircle />}
+                isDarkMode={isDarkMode}
+              />
+              <StatCard
+                title="Total Expenses"
+                amount={Math.abs(totalOut)}
+                color="rose"
+                icon={<ArrowUpCircle />}
+                isDarkMode={isDarkMode}
+              />
+              <StatCard
+                title="Net Balance"
+                amount={balance}
+                color={balance >= 0 ? "emerald" : "rose"}
+                icon={<Wallet />}
+                isBalance
+                isDarkMode={isDarkMode}
+                balanceValue={balance}
+              />
             </div>
 
-            {finalFilteredData.length > 10 && (
-              <div className={`p-6 lg:p-8 border-t text-center ${isDarkMode ? "bg-black/40 border-indigo-700/30" : "bg-gray-50/70 border-indigo-200/30"}`}>
-                <button className="px-8 py-3 lg:py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium rounded-xl transition-all shadow-lg text-base lg:text-lg">
-                  View All Transactions
+            {hasNoTransactionsInPeriod && (
+              <div className={`rounded-2xl border p-6 text-center ${isDarkMode ? "bg-yellow-900/30 border-yellow-700/40" : "bg-yellow-50/70 border-yellow-300/60"}`}>
+                <p className={`text-lg ${isDarkMode ? "text-yellow-300" : "text-yellow-800"}`}>
+                  No transactions found for the selected period and filters
+                </p>
+                <button
+                  onClick={() => {
+                    setPeriod("all");
+                    setFilters({ siteName: "", bankName: "", expHead: "" });
+                  }}
+                  className="mt-4 px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+                >
+                  Reset All
                 </button>
               </div>
             )}
-          </div>
+
+            {finalFilteredData.length > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 w-full">
+                {/* Bar Chart */}
+                <div className={`lg:col-span-2 rounded-2xl border shadow-2xl p-6 md:p-8 lg:p-10 w-full ${isDarkMode ? "bg-black/30 border-indigo-700/40" : "bg-white/70 border-indigo-200/60"}`}>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <h3 className={`text-2xl lg:text-3xl font-bold flex items-center gap-3 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                      <Calendar className={`w-7 h-7 ${isDarkMode ? "text-indigo-400" : "text-indigo-600"}`} /> Transaction Trend
+                    </h3>
+                    <span className={`px-4 py-2 rounded-lg text-sm lg:text-base font-medium ${isDarkMode ? "bg-indigo-900/50 text-indigo-300" : "bg-indigo-100/70 text-indigo-700"}`}>
+                      {period === "all" ? "All Time" :
+                       period === "1y" ? "Last 1 Year" :
+                       period === "6m" ? "Last 6 Months" :
+                       period === "3m" ? "Last 3 Months" :
+                       period === "1m" ? "Last 1 Month" :
+                       period === "2w" ? "Last 2 Weeks" :
+                       period === "1w" ? "Last 1 Week" : `Last ${period.toUpperCase()}`}
+                    </span>
+                  </div>
+
+                  <div className="h-[420px] lg:h-[480px] w-full">
+                    <Bar
+                      data={barChartData}
+                      options={{
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        plugins: {
+                          legend: { position: "top", labels: { color: isDarkMode ? "#e5e7eb" : "#374151", font: { size: 14, weight: "bold" }, padding: 20, usePointStyle: true } },
+                          tooltip: {
+                            backgroundColor: isDarkMode ? "rgba(30,41,59,0.95)" : "rgba(255,255,255,0.95)",
+                            titleColor: isDarkMode ? "#e5e7eb" : "#111827",
+                            bodyColor: isDarkMode ? "#e5e7eb" : "#111827",
+                            cornerRadius: 10,
+                            padding: 12,
+                            callbacks: {
+                              label: (context) => {
+                                let label = context.dataset.label || "";
+                                if (label) label += ": ";
+                                if (context.parsed.y !== null) label += "₹" + context.parsed.y.toLocaleString("en-IN");
+                                return label;
+                              },
+                            },
+                          },
+                        },
+                        scales: {
+                          y: { beginAtZero: true, grid: { color: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }, ticks: { color: isDarkMode ? "#9ca3af" : "#6b7280", font: { weight: "600" }, callback: (v) => "₹" + v.toLocaleString("en-IN") } },
+                          x: { grid: { display: false }, ticks: { color: isDarkMode ? "#9ca3af" : "#6b7280", font: { weight: "600" } } },
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Pie Chart */}
+                <div className={`rounded-2xl border shadow-2xl p-6 md:p-8 lg:p-10 w-full ${isDarkMode ? "bg-black/30 border-indigo-700/40" : "bg-white/70 border-indigo-200/60"}`}>
+                  <h3 className={`text-2xl lg:text-3xl font-bold mb-6 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                    Income vs Expenses
+                  </h3>
+                  <div className="h-72 lg:h-80 flex items-center justify-center w-full">
+                    <Pie
+                      data={pieData}
+                      options={{
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        plugins: {
+                          legend: { position: "bottom", labels: { color: isDarkMode ? "#e5e7eb" : "#374151", font: { weight: "bold", size: 14 }, padding: 20, usePointStyle: true } },
+                          tooltip: {
+                            backgroundColor: isDarkMode ? "rgba(30,41,59,0.95)" : "rgba(255,255,255,0.95)",
+                            titleColor: isDarkMode ? "#e5e7eb" : "#111827",
+                            bodyColor: isDarkMode ? "#e5e7eb" : "#111827",
+                            padding: 12,
+                            cornerRadius: 10,
+                            callbacks: {
+                              label: (context) => {
+                                let label = context.label || "";
+                                if (label) label += ": ";
+                                if (context.parsed !== null) label += "₹" + context.parsed.toLocaleString("en-IN");
+                                return label;
+                              },
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+
+                  <div className={`mt-6 pt-6 border-t text-center ${isDarkMode ? "border-indigo-700/30" : "border-indigo-200/30"}`}>
+                    <p className={`text-sm uppercase tracking-wider mb-2 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                      Savings Rate
+                    </p>
+                    <p className={`text-3xl lg:text-4xl font-bold ${balance >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                      {totalIn > 0 ? ((balance / totalIn) * 100).toFixed(1) : 0}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {finalFilteredData.length > 0 && (
+              <div className={`rounded-2xl border overflow-hidden shadow-2xl w-full ${isDarkMode ? "bg-black/30 border-indigo-700/40" : "bg-white/70 border-indigo-200/60"}`}>
+                <div className={`p-6 md:p-8 lg:p-10 border-b ${isDarkMode ? "bg-gradient-to-r from-indigo-950/80 to-purple-950/80 border-indigo-700/40" : "bg-gradient-to-r from-indigo-100/70 to-purple-100/70 border-indigo-200/40"}`}>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h3 className={`text-2xl lg:text-3xl font-bold flex items-center gap-3 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                      <ListOrdered className={`w-7 h-7 ${isDarkMode ? "text-indigo-400" : "text-indigo-600"}`} /> Recent Transactions
+                    </h3>
+                    <span className={`px-5 py-2 rounded-lg text-sm lg:text-base font-medium ${isDarkMode ? "bg-indigo-900/50 text-indigo-300" : "bg-indigo-100/70 text-indigo-700"}`}>
+                      {finalFilteredData.length} Records
+                    </span>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-left min-w-[900px]">
+                    <thead className={`bg-opacity-50 ${isDarkMode ? "bg-black/50" : "bg-gray-100/80"}`}>
+                      <tr>
+                        <th className={`px-6 py-4 text-sm lg:text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Date</th>
+                        <th className={`px-6 py-4 text-sm lg:text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Site Name</th>
+                        <th className={`px-6 py-4 text-sm lg:text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Category</th>
+                        <th className={`px-6 py-4 text-sm lg:text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Type</th>
+                        <th className={`px-6 py-4 text-sm lg:text-base font-semibold uppercase tracking-wider text-right ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${isDarkMode ? "divide-gray-800/50" : "divide-gray-200/50"}`}>
+                      {finalFilteredData.slice(0, 10).map((t, i) => (
+                        <tr
+                          key={`transaction-${i}`}
+                          className={`hover:bg-opacity-30 transition-colors duration-150 ${isDarkMode ? "hover:bg-indigo-950/30" : "hover:bg-indigo-50/30"}`}
+                        >
+                          <td className={`px-6 py-5 text-base ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                            {t.date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                          </td>
+                          <td className={`px-6 py-5 text-sm ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                            {t.siteName || "-"}
+                          </td>
+                          <td className="px-6 py-5">
+                            <span className={`px-3 py-1.5 rounded-lg text-sm lg:text-base font-medium ${isDarkMode ? "bg-gray-800/70 text-gray-200" : "bg-gray-200/70 text-gray-800"}`}>
+                              {t.category}
+                            </span>
+                          </td>
+                          <td className="px-6 py-5">
+                            <span
+                              className={`px-4 py-1.5 rounded-full text-xs lg:text-sm font-bold uppercase border 
+                                ${t.type === "in"
+                                  ? isDarkMode
+                                    ? "bg-emerald-900/50 text-emerald-300 border-emerald-700/40"
+                                    : "bg-emerald-100/70 text-emerald-800 border-emerald-300/60"
+                                  : isDarkMode
+                                  ? "bg-rose-900/50 text-rose-300 border-rose-700/40"
+                                  : "bg-rose-100/70 text-rose-800 border-rose-300/60"}`}
+                            >
+                              {t.type === "in" ? "↓ Income" : "↑ Expense"}
+                            </span>
+                          </td>
+                          <td
+                            className={`px-6 py-5 text-right text-lg lg:text-xl font-bold ${t.type === "in" ? "text-emerald-500" : "text-rose-500"}`}
+                          >
+                            {t.type === "in" ? "+" : "-"} ₹{t.amount.toLocaleString("en-IN")}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {finalFilteredData.length > 10 && (
+                  <div className={`p-6 lg:p-8 border-t text-center ${isDarkMode ? "bg-black/40 border-indigo-700/30" : "bg-gray-50/70 border-indigo-200/30"}`}>
+                    <button className="px-8 py-3 lg:py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium rounded-xl transition-all shadow-lg text-base lg:text-lg">
+                      View All Transactions
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
+
+        {activeTab === "bankBalance" && <BankBalance isDarkMode={isDarkMode} />}
+        
+        {activeTab === "outstanding" && <Outstanding isDarkMode={isDarkMode} />}
       </div>
 
       <style jsx global>{`
@@ -1704,3 +2355,10 @@ const StatCard = ({ title, amount, color, icon, isBalance = false, isDarkMode, b
 };
 
 export default Summary;
+
+
+
+///// check sahi ha yeh nhi 
+
+
+

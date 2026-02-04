@@ -152,51 +152,7 @@ router.post('/add-payment', async (req, res) => {
 });
 
 
-router.get('/Dropdown-Data', async (req, res) => {
-  try {
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: 'Project_Data!A2:B',  // A2 se end tak (B column tak)
-    });
 
-    let rows = response.data.values || [];
-
-    if (rows.length === 0) {
-      return res.json({ success: true, projects: [], accounts: [] });
-    }
-
-    // Column A: Project Names (saare, blank nahi hone chahiye normally)
-    const projects = rows
-      .map(row => row[0]?.trim())          // A column
-      .filter(name => name);               // blank remove kar do agar ho
-
-    // Column B: Account Names (unique aur blank remove)
-    const accountsSet = new Set();
-    rows.forEach(row => {
-      if (row[1]?.trim()) {
-        accountsSet.add(row[1].trim());
-      }
-    });
-    const accounts = Array.from(accountsSet);
-
-    // Optional: alphabetically sort kar sakte ho
-    projects.sort();
-    accounts.sort();
-
-    res.json({
-      success: true,
-      projects: projects,
-      accounts: accounts
-    });
-
-  } catch (error) {
-    console.error('Error fetching dropdown data:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch data' });
-  }
-});
-
-
-//////// transfer form Api 
 async function generateUniqueUID() {
   try {
     const response = await sheets.spreadsheets.values.get({
@@ -305,5 +261,192 @@ router.post('/Bank_Transfer_form', async (req, res) => {
     });
   }
 });
+
+
+
+router.get('/Dropdown-Data', async (req, res) => {
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Project_Data!A2:C',  // A, B, C columns from row 2 onwards
+    });
+
+    const rows = response.data.values || [];
+
+    if (rows.length === 0) {
+      return res.json({
+        success: true,
+        projects: [],
+        accounts: [],
+        capitalMovements: []
+      });
+    }
+
+    // ───────────────────────────────────────────────
+    // 1. Projects → Column A (unique, non-empty)
+    // ───────────────────────────────────────────────
+    const projectSet = new Set();
+    rows.forEach(row => {
+      const val = row[0]?.toString().trim();
+      if (val) projectSet.add(val);
+    });
+    const projects = [...projectSet].sort();
+
+    // ───────────────────────────────────────────────
+    // 2. Accounts → Column B (unique, non-empty)
+    // ───────────────────────────────────────────────
+    const accountSet = new Set();
+    rows.forEach(row => {
+      const val = row[1]?.toString().trim();
+      if (val) accountSet.add(val);
+    });
+    const accounts = [...accountSet].sort();
+
+    // ───────────────────────────────────────────────
+    // 3. Capital Movement Options → Column C (unique, non-empty)
+    //    (these are like: "Capital Invest By ...", "Capital Withdraw...")
+    // ───────────────────────────────────────────────
+    const movementSet = new Set();
+    rows.forEach(row => {
+      const val = row[2]?.toString().trim();
+      if (val) movementSet.add(val);
+    });
+    const capitalMovements = [...movementSet].sort();
+
+    // ───────────────────────────────────────────────
+    // Final response
+    // ───────────────────────────────────────────────
+    res.json({
+      success: true,
+      projects,
+      accounts,
+      capitalMovements
+      // You can also add counts if frontend wants:
+      // projectCount: projects.length,
+      // accountCount: accounts.length,
+      // movementCount: capitalMovements.length
+    });
+
+  } catch (error) {
+    console.error('Error fetching dropdown data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch dropdown data',
+      error: error.message
+    });
+  }
+});
+
+
+
+async function generateUniqueCapitalUID() {
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Capital_Movement_Form!B7:B',
+    });
+
+    const values = response.data.values;
+
+    if (!values || values.length === 0) {
+      return 'CAP001';
+    }
+
+    const lastUID = values[values.length - 1][0];
+
+    if (!lastUID || !lastUID.startsWith('CAP')) {
+      return 'CAP001';
+    }
+
+    const lastNumber = parseInt(lastUID.replace('CAP', ''), 10);
+    const nextNumber = lastNumber + 1;
+    return `CAP${String(nextNumber).padStart(3, '0')}`;
+  } catch (error) {
+    console.error('Error generating UID:', error);
+    return 'CAP001';
+  }
+}
+
+
+
+router.post('/Captial-A/C', async (req, res) => {
+  try {
+    const {
+      Capital_Movment,
+      Received_Account,
+      Amount,
+      PAYMENT_MODE,
+      PAYMENT_DETAILS,
+      PAYMENT_DATE,
+      Remark
+    } = req.body;
+
+    if (
+      !Capital_Movment ||
+      !Received_Account ||
+      !Amount ||
+      !PAYMENT_MODE ||
+      !PAYMENT_DATE
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'All required fields must be provided'
+      });
+    }
+
+    // Generate UID
+    const UID = await generateUniqueCapitalUID();
+
+    // Exact timestamp format: 29/12/2025 11:31:54
+    const now = new Date();
+    const Timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    // Force as plain string to prevent Google Sheets from adding '
+    const cleanTimestamp = Timestamp.toString().trim();
+
+    const rowData = [
+      cleanTimestamp,             // A - Timestamp → 29/12/2025 11:31:54 (clean)
+      UID,                        // B - UID
+      Capital_Movment,          // C
+      Received_Account, // D
+      Amount,                     // E
+      PAYMENT_MODE,               // F
+      PAYMENT_DETAILS || '',      // G
+      PAYMENT_DATE,               // H
+      Remark || ''                // I
+    ];
+
+    // Yeh line sabse important hai → USER_ENTERED mode use karo
+  await sheets.spreadsheets.values.append({
+  spreadsheetId,
+  range: 'Capital_Movement_Form!A7:I',
+  valueInputOption: 'USER_ENTERED',
+  requestBody: {
+    values: [rowData]
+  }
+});
+
+    res.status(200).json({
+      success: true,
+      message: 'Bank transfer data saved successfully',
+      data: {
+        UID,
+        Timestamp: cleanTimestamp,
+        ...req.body
+      }
+    });
+
+  } catch (error) {
+    console.error('Error saving to Google Sheet:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save data',
+      error: error.message
+    });
+  }
+});
+
+
+
 
 module.exports = router;
