@@ -37,7 +37,7 @@ export const loginUser = createAsyncThunk(
       return {
         token,
         userType,
-        name,                    // ← state में भी रखेंगे
+        name,                    
         email: emailFromResponse,
       };
     } catch (error) {

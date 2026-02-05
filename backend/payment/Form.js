@@ -212,11 +212,32 @@ router.post('/Bank_Transfer_form', async (req, res) => {
     const UID = await generateUniqueUID();
 
     // Exact timestamp format: 29/12/2025 11:31:54
-    const now = new Date();
-    const Timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    // const now = new Date();
+    // const Timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
-    // Force as plain string to prevent Google Sheets from adding '
-    const cleanTimestamp = Timestamp.toString().trim();
+    // // Force as plain string to prevent Google Sheets from adding '
+    // const cleanTimestamp = Timestamp.toString().trim();
+
+
+    function getISTTimestamp() {
+  const now = new Date();
+  return now
+    .toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    })
+    .replace(/(\d+)\/(\d+)\/(\d+),/, "$1/$2/$3 "); // clean comma
+}
+
+// Usage:
+const cleanTimestamp = getISTTimestamp();
+
 
     const rowData = [
       cleanTimestamp,             // A - Timestamp → 29/12/2025 11:31:54 (clean)
@@ -376,59 +397,67 @@ router.post('/Captial-A/C', async (req, res) => {
       Received_Account,
       Amount,
       PAYMENT_MODE,
-      PAYMENT_DETAILS,
-      PAYMENT_DATE,
-      Remark
+      PAYMENT_DETAILS = '',      // default empty string
+      PAYMENT_DATE = '',         // default empty string
+      Remark = ''
     } = req.body;
 
-    if (
-      !Capital_Movment ||
-      !Received_Account ||
-      !Amount ||
-      !PAYMENT_MODE ||
-      !PAYMENT_DATE
-    ) {
+    // Required fields jo hamesha chahiye
+    if (!Capital_Movment || !Received_Account || !Amount || !PAYMENT_MODE) {
       return res.status(400).json({
         success: false,
-        message: 'All required fields must be provided'
+        message: 'Capital Movement, Received Account, Amount aur Payment Mode dena zaroori hai'
       });
+    }
+
+    // Payment mode Cash nahi hai to PAYMENT_DATE aur PAYMENT_DETAILS check karo
+    const needsTransactionDetails = ['Cheque', 'NEFT', 'RTGS', 'UPI'].includes(PAYMENT_MODE);
+
+    if (needsTransactionDetails) {
+      if (!PAYMENT_DATE.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Payment Date dena zaroori hai jab mode Cash nahi hai'
+        });
+      }
+      // PAYMENT_DETAILS ko bhi check kar sakte ho agar tumhe zaroorat ho
+      // (kai baar Cash ke alawa bhi optional rakh sakte ho)
+      // if (!PAYMENT_DETAILS.trim()) { ... }
     }
 
     // Generate UID
     const UID = await generateUniqueCapitalUID();
 
-    // Exact timestamp format: 29/12/2025 11:31:54
+    // Timestamp (tumhara format sahi hai)
     const now = new Date();
     const Timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
-    // Force as plain string to prevent Google Sheets from adding '
-    const cleanTimestamp = Timestamp.toString().trim();
+    const cleanTimestamp = Timestamp; // .toString().trim() ki zaroorat nahi
 
     const rowData = [
-      cleanTimestamp,             // A - Timestamp → 29/12/2025 11:31:54 (clean)
-      UID,                        // B - UID
-      Capital_Movment,          // C
-      Received_Account, // D
+      cleanTimestamp,             // A
+      UID,                        // B
+      Capital_Movment,            // C
+      Received_Account,           // D
       Amount,                     // E
       PAYMENT_MODE,               // F
-      PAYMENT_DETAILS || '',      // G
+      PAYMENT_DETAILS,            // G
       PAYMENT_DATE,               // H
-      Remark || ''                // I
+      Remark                      // I
     ];
 
-    // Yeh line sabse important hai → USER_ENTERED mode use karo
-  await sheets.spreadsheets.values.append({
-  spreadsheetId,
-  range: 'Capital_Movement_Form!A7:I',
-  valueInputOption: 'USER_ENTERED',
-  requestBody: {
-    values: [rowData]
-  }
-});
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Capital_Movement_Form!A7:I',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [rowData]
+      }
+    });
 
     res.status(200).json({
       success: true,
-      message: 'Bank transfer data saved successfully',
+      message: 'Capital movement saved successfully',
       data: {
         UID,
         Timestamp: cleanTimestamp,
@@ -445,8 +474,6 @@ router.post('/Captial-A/C', async (req, res) => {
     });
   }
 });
-
-
 
 
 module.exports = router;

@@ -1,3 +1,4 @@
+
 // import React, { useState } from "react";
 // import {
 //   useGetPendingOfficeExpensesLevel2Query,
@@ -11,6 +12,7 @@
 //     isLoading,
 //     isError,
 //     error,
+//     refetch,
 //   } = useGetPendingOfficeExpensesLevel2Query();
 
 //   const [updateFinalApproval, { isLoading: isUpdating }] = useUpdateOfficeExpenseFinalApprovalMutation();
@@ -18,7 +20,6 @@
 //   const expenses = response?.data || [];
 //   const totalRecords = response?.totalRecords || expenses.length;
 
-//   // Modal state
 //   const [isModalOpen, setIsModalOpen] = useState(false);
 //   const [selectedExpense, setSelectedExpense] = useState(null);
 //   const [formData, setFormData] = useState({
@@ -29,11 +30,11 @@
 //   });
 
 //   const openModal = (expense) => {
-//     console.log("Selected expense:", expense); // Debug ke liye - console me check karo
+//     console.log("Opening modal with expense:", expense);
 //     setSelectedExpense(expense);
 //     setFormData({
 //       STATUS_3: '',
-//       FINAL_AMOUNT_3: expense.Total_Amount || expense.REVISED_AMOUNT_2 || '',
+//       FINAL_AMOUNT_3: expense.Total_Amount || expense.REVISED_AMOUNT_2 || expense.Amount || '',
 //       PAYMENT_MODE_3: '',
 //       REMARK_3: '',
 //     });
@@ -52,14 +53,13 @@
 //   };
 
 //   const handleSubmit = async () => {
-//     // Required fields validation
 //     if (!formData.STATUS_3) {
 //       alert('Status select karo (Done) ❌');
 //       return;
 //     }
 
 //     if (!selectedExpense?.Office_Bill_No?.trim()) {
-//       alert('Bill No nahi mila! ❌\nConsole me check karo selected expense');
+//       alert('Bill No nahi mila! ❌');
 //       console.log("selectedExpense:", selectedExpense);
 //       return;
 //     }
@@ -69,28 +69,33 @@
 //       return;
 //     }
 
-//     // 🔥 MAIN FIX: uid = Office_Bill_No bhej rahe hai
+//     // Debug: show what is actually in state
+//     console.log("Form data BEFORE payload:", formData);
+
 //     const payload = {
-//       uid: selectedExpense.Office_Bill_No.trim(), // Bill No ko uid bhej rahe hai
+//       uid: selectedExpense.Office_Bill_No.trim(),
 //       STATUS_3: formData.STATUS_3,
 //       FINAL_AMOUNT_3: formData.FINAL_AMOUNT_3 ? Number(formData.FINAL_AMOUNT_3) : null,
-//       PAYMENT_MODE_3: formData.PAYMENT_MODE_3.trim() || null,
+//       PAYMENT_MODE_3: formData.PAYMENT_MODE_3 || null,   // will send null if empty
 //       REMARK_3: formData.REMARK_3.trim() || null,
 //     };
 
-//     console.log("API Payload:", payload); // Debug ke liye check karo
+//     console.log("Sending this payload to backend:", payload);
 
 //     try {
 //       await updateFinalApproval(payload).unwrap();
 //       alert('✅ Final approval submit ho gaya!');
 //       closeModal();
-//       // Optional: page refresh/refetch
-//       window.location.reload();
+//       refetch();
 //     } catch (err) {
-//       console.error('Final approval error:', err);
-//       alert('❌ Submit failed: ' + (err?.data?.message || err.message || 'Unknown error'));
+//       console.error('API error:', err);
+//       alert('❌ Submit failed: ' + (err?.data?.message || err?.message || 'Unknown error'));
 //     }
 //   };
+
+//   // ────────────────────────────────────────────────
+//   // Loading / Error / Empty states
+//   // ────────────────────────────────────────────────
 
 //   if (isLoading) {
 //     return (
@@ -133,6 +138,10 @@
 //     );
 //   }
 
+//   // ────────────────────────────────────────────────
+//   // Main UI
+//   // ────────────────────────────────────────────────
+
 //   return (
 //     <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 relative overflow-hidden py-8 px-4 sm:px-6 lg:px-8 xl:px-10 w-full">
 
@@ -142,7 +151,6 @@
 //         <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-blue-700 rounded-full mix-blend-multiply blur-3xl opacity-25 animate-pulse" style={{ animationDelay: '4s' }}></div>
 //       </div>
 
-//       {/* Main content – full width */}
 //       <div className="relative z-10 w-full space-y-8 lg:space-y-10">
 
 //         {/* Header */}
@@ -235,140 +243,153 @@
 //         </div>
 //       </div>
 
-//       {/* Modal – wider on large screens */}
-//       {isModalOpen && selectedExpense && (
-//         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-//           <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl shadow-2xl w-full max-w-3xl lg:max-w-5xl border border-indigo-700/50 overflow-hidden">
-//             <div className="bg-gradient-to-r from-indigo-950 to-purple-950 p-6 lg:p-8 flex justify-between items-center border-b border-indigo-700/60">
-//               <h3 className="text-2xl lg:text-3xl font-bold text-white">
-//                 Final Approval – {selectedExpense.Office_Bill_No}
-//               </h3>
-//               <button 
-//                 onClick={closeModal} 
-//                 className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition"
-//               >
-//                 <X className="w-8 h-8" />
-//               </button>
-//             </div>
+//       {/* ────────────────────────────────────────────────
+//            MODAL
+//       ──────────────────────────────────────────────── */}
+//      {isModalOpen && selectedExpense && (
+//   <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 lg:p-8 overflow-hidden">
+//     {/* Modal Container – full width on mobile, limited on larger screens */}
+//     <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl shadow-2xl 
+//       w-full max-w-full sm:max-w-3xl lg:max-w-5xl 
+//       border border-indigo-700/50 
+//       max-h-[96vh] flex flex-col overflow-hidden">
 
-//             <div className="p-6 lg:p-10 space-y-8">
-//               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
-//                 <div className="bg-gray-900/60 p-5 lg:p-6 rounded-xl border border-gray-800/50">
-//                   <p className="text-sm lg:text-base text-gray-400 uppercase mb-2">Bill No</p>
-//                   <p className="text-xl lg:text-2xl font-bold text-indigo-300 break-all">
-//                     {selectedExpense.Office_Bill_No || '—'}
-//                   </p>
-//                 </div>
-//                 <div className="bg-gray-900/60 p-5 lg:p-6 rounded-xl border border-gray-800/50">
-//                   <p className="text-sm lg:text-base text-gray-400 uppercase mb-2">Original Amount</p>
-//                   <p className="text-2xl lg:text-3xl font-bold text-emerald-400">
-//                     ₹{(selectedExpense.Total_Amount || selectedExpense.Amount || '0').toLocaleString('en-IN')}
-//                   </p>
-//                 </div>
-//               </div>
+//       {/* Header – fixed, no scroll */}
+//       <div className="bg-gradient-to-r from-indigo-950 to-purple-950 p-5 sm:p-6 lg:p-8 
+//         flex justify-between items-center border-b border-indigo-700/60 shrink-0">
+//         <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">
+//           Final Approval – {selectedExpense.Office_Bill_No}
+//         </h3>
+//         <button
+//           onClick={closeModal}
+//           className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800/80 transition shrink-0"
+//         >
+//           <X className="w-7 h-7 sm:w-8 sm:h-8" />
+//         </button>
+//       </div>
 
-//               {/* Status - REQUIRED */}
-//               <div className="space-y-3">
-//                 <label className="block text-base lg:text-lg font-medium text-gray-200">
-//                   Final Status <span className="text-red-400">*</span>
-//                 </label>
-//                 <select
-//                   value={formData.STATUS_3}
-//                   onChange={(e) => setFormData({ ...formData, STATUS_3: e.target.value })}
-//                   className={`w-full px-5 py-4 rounded-lg text-white focus:outline-none focus:ring-2 transition-all text-base lg:text-lg ${
-//                     formData.STATUS_3
-//                       ? 'bg-gray-800 border border-gray-700 focus:ring-emerald-500 border-emerald-500/50'
-//                       : 'bg-gray-800/70 border border-red-500/50 focus:ring-red-500'
-//                   }`}
-//                 >
-//                   <option value="">----- Select ----- *</option>
-//                   <option value="Done">✅ Done</option>
-//                 </select>
-//               </div>
-
-//               {/* Final Amount */}
-//               <div className="space-y-3">
-//                 <label className="block text-base lg:text-lg font-medium text-gray-200">Final Amount (Optional)</label>
-//                 <input
-//                   type="number"
-//                   step="0.01"
-//                   min="0"
-//                   value={formData.FINAL_AMOUNT_3}
-//                   onChange={(e) => setFormData({ ...formData, FINAL_AMOUNT_3: e.target.value })}
-//                   className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base lg:text-lg"
-//                   placeholder="Original amount ya revised daalo"
-//                 />
-//               </div>
-
-//               {/* ← Add this new block */}
-// <div className="space-y-3">
-//   <label className="block text-base lg:text-lg font-medium text-gray-200">
-//     Payment Mode <span className="text-yellow-400 text-sm">(preferred)</span>
-//   </label>
-//   <select
-//     value={formData.PAYMENT_MODE_3}
-//     onChange={(e) => setFormData({ ...formData, PAYMENT_MODE_3: e.target.value })}
-//     className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base lg:text-lg"
-//   >
-//     <option value="">Select Payment Mode</option>
-//     <option value="Cash">Cash</option>
-//     <option value="Bank Transfer">Bank Transfer</option>
-//     <option value="UPI">UPI</option>
-//     <option value="Cheque">Cheque</option>
-//     <option value="NEFT">NEFT</option>
-//     <option value="RTGS">RTGS</option>
-//     <option value="IMPS">IMPS</option>
-//     {/* Add more modes if needed */}
-//   </select>
-// </div>
-
-//               {/* Remark */}
-//               <div className="space-y-3">
-//                 <label className="block text-base lg:text-lg font-medium text-gray-200">Final Remark (Optional)</label>
-//                 <textarea
-//                   value={formData.REMARK_3}
-//                   onChange={(e) => setFormData({ ...formData, REMARK_3: e.target.value })}
-//                   rows={4}
-//                   className="w-full px-5 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y text-base lg:text-lg"
-//                   placeholder="Approval reason / rejection note / comments..."
-//                 />
-//               </div>
-
-//               {/* Buttons */}
-//               <div className="flex flex-col sm:flex-row justify-end gap-5 pt-6 border-t border-gray-800">
-//                 <button
-//                   onClick={closeModal}
-//                   className="px-8 py-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition text-base lg:text-lg"
-//                   disabled={isUpdating}
-//                 >
-//                   Cancel
-//                 </button>
-//                 <button
-//                   onClick={handleSubmit}
-//                   disabled={isUpdating || !formData.STATUS_3 || !selectedExpense?.Office_Bill_No}
-//                   className={`px-10 py-4 rounded-lg font-medium flex items-center justify-center gap-3 min-w-[220px] transition-all text-base lg:text-lg ${
-//                     isUpdating || !formData.STATUS_3 || !selectedExpense?.Office_Bill_No
-//                       ? 'bg-gray-700 text-gray-500 cursor-not-allowed border border-gray-600'
-//                       : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl border border-emerald-500/50 hover:scale-[1.02]'
-//                   }`}
-//                 >
-//                   {isUpdating ? (
-//                     <>
-//                       <Loader2 className="w-6 h-6 animate-spin" />
-//                       Submit kar raha...
-//                     </>
-//                   ) : (
-//                     <>
-//                       <CheckCircle className="w-6 h-6" />
-//                       Submit Final Approval
-//                     </>
-//                   )}
-//                 </button>
-//               </div>
-//             </div>
+//       {/* Scrollable Content Area */}
+//       <div className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 
+//         scrollbar-thin scrollbar-thumb-indigo-600 scrollbar-track-gray-900/40">
+        
+//         {/* Bill Info Grid */}
+//         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 lg:gap-8">
+//           <div className="bg-gray-900/60 p-4 sm:p-5 lg:p-6 rounded-xl border border-gray-800/50">
+//             <p className="text-xs sm:text-sm lg:text-base text-gray-400 uppercase mb-1 sm:mb-2">Bill No</p>
+//             <p className="text-lg sm:text-xl lg:text-2xl font-bold text-indigo-300 break-all">
+//               {selectedExpense.Office_Bill_No || '—'}
+//             </p>
+//           </div>
+//           <div className="bg-gray-900/60 p-4 sm:p-5 lg:p-6 rounded-xl border border-gray-800/50">
+//             <p className="text-xs sm:text-sm lg:text-base text-gray-400 uppercase mb-1 sm:mb-2">Original Amount</p>
+//             <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-emerald-400">
+//               ₹{(selectedExpense.Total_Amount || selectedExpense.Amount || '0').toLocaleString('en-IN')}
+//             </p>
 //           </div>
 //         </div>
-//       )}
+
+//         {/* Final Status */}
+//         <div className="space-y-3">
+//           <label className="block text-base sm:text-lg font-medium text-gray-200">
+//             Final Status <span className="text-red-400">*</span>
+//           </label>
+//           <select
+//             value={formData.STATUS_3}
+//             onChange={(e) => setFormData({ ...formData, STATUS_3: e.target.value })}
+//             className={`w-full px-4 sm:px-5 py-3 sm:py-4 rounded-lg text-white focus:outline-none focus:ring-2 transition-all text-base sm:text-lg ${
+//               formData.STATUS_3 
+//                 ? 'bg-gray-800 border border-gray-700 focus:ring-emerald-500 border-emerald-500/50' 
+//                 : 'bg-gray-800/70 border border-red-500/50 focus:ring-red-500'
+//             }`}
+//           >
+//             <option value="">----- Select ----- *</option>
+//             <option value="Done">✅ Done</option>
+//           </select>
+//         </div>
+
+//         {/* Final Amount */}
+//         <div className="space-y-3">
+//           <label className="block text-base sm:text-lg font-medium text-gray-200">Final Amount (Optional)</label>
+//           <input
+//             type="number"
+//             step="0.01"
+//             min="0"
+//             value={formData.FINAL_AMOUNT_3}
+//             onChange={(e) => setFormData({ ...formData, FINAL_AMOUNT_3: e.target.value })}
+//             className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base sm:text-lg"
+//             placeholder="Original amount ya revised daalo"
+//           />
+//         </div>
+
+//         {/* Payment Mode */}
+//         <div className="space-y-3">
+//           <label className="block text-base sm:text-lg font-medium text-gray-200">
+//             Payment Mode <span className="text-yellow-400 text-xs sm:text-sm">(preferred)</span>
+//           </label>
+//           <select
+//             value={formData.PAYMENT_MODE_3 || ''}
+//             onChange={(e) => setFormData((prev) => ({ ...prev, PAYMENT_MODE_3: e.target.value }))}
+//             className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base sm:text-lg"
+//           >
+//             <option value="">Select Payment Mode</option>
+//             <option value="Cash">Cash</option>
+//             <option value="Bank">Bank</option>
+//           </select>
+//         </div>
+
+//         {/* Remark */}
+//         <div className="space-y-3">
+//           <label className="block text-base sm:text-lg font-medium text-gray-200">Final Remark (Optional)</label>
+//           <textarea
+//             value={formData.REMARK_3}
+//             onChange={(e) => setFormData({ ...formData, REMARK_3: e.target.value })}
+//             rows={4}
+//             className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y text-base sm:text-lg"
+//             placeholder="Approval reason / rejection note / comments..."
+//           />
+//         </div>
+
+//         {/* Extra space so buttons don't feel cramped */}
+//         <div className="h-6 sm:h-8 lg:h-10"></div>
+//       </div>
+
+//       {/* Buttons – sticky bottom on mobile */}
+//       <div className="shrink-0 border-t border-gray-800 p-5 sm:p-6 lg:p-8 
+//         bg-gradient-to-t from-black via-black/95 to-transparent sticky bottom-0 z-10">
+//         <div className="flex flex-col sm:flex-row justify-end gap-4 sm:gap-5">
+//           <button
+//             onClick={closeModal}
+//             disabled={isUpdating}
+//             className="px-8 py-3 sm:py-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition text-base sm:text-lg w-full sm:w-auto"
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             onClick={handleSubmit}
+//             disabled={isUpdating || !formData.STATUS_3}
+//             className={`px-8 sm:px-10 py-3 sm:py-4 rounded-lg font-medium flex items-center justify-center gap-3 w-full sm:w-auto min-w-[200px] transition-all text-base sm:text-lg ${
+//               isUpdating || !formData.STATUS_3
+//                 ? 'bg-gray-700 text-gray-500 cursor-not-allowed border border-gray-600'
+//                 : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl border border-emerald-500/50 hover:scale-[1.02]'
+//             }`}
+//           >
+//             {isUpdating ? (
+//               <>
+//                 <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+//                 Submit kar raha...
+//               </>
+//             ) : (
+//               <>
+//                 <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+//                 Submit Final Approval
+//               </>
+//             )}
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   </div>
+// )}
 //     </div>
 //   );
 // }
@@ -377,14 +398,36 @@
 
 
 
-import React, { useState } from "react";
+
+
+import React, { useState, useEffect } from "react";
 import {
   useGetPendingOfficeExpensesLevel2Query,
   useUpdateOfficeExpenseFinalApprovalMutation,
 } from '../../features/RCC_Office_Expenses/approval2ApiSlice';
-import { Image as LucideImage, Loader2, CheckCircle, Edit3, X } from 'lucide-react';
+import { Image as LucideImage, Loader2, CheckCircle, Edit3, X, Sun, Moon } from 'lucide-react';
 
 function Approvel_By_Mayaksir() {
+  // Theme handling
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('isDarkMode');
+    return saved !== null ? JSON.parse(saved) : true; // default dark
+  });
+
+  // Sync theme with localStorage
+  useEffect(() => {
+    localStorage.setItem('isDarkMode', JSON.stringify(isDarkMode));
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  const toggleTheme = () => {
+    setIsDarkMode(prev => !prev);
+  };
+
   const {
     data: response,
     isLoading,
@@ -447,14 +490,13 @@ function Approvel_By_Mayaksir() {
       return;
     }
 
-    // Debug: show what is actually in state
     console.log("Form data BEFORE payload:", formData);
 
     const payload = {
       uid: selectedExpense.Office_Bill_No.trim(),
       STATUS_3: formData.STATUS_3,
       FINAL_AMOUNT_3: formData.FINAL_AMOUNT_3 ? Number(formData.FINAL_AMOUNT_3) : null,
-      PAYMENT_MODE_3: formData.PAYMENT_MODE_3 || null,   // will send null if empty
+      PAYMENT_MODE_3: formData.PAYMENT_MODE_3 || null,
       REMARK_3: formData.REMARK_3.trim() || null,
     };
 
@@ -477,10 +519,16 @@ function Approvel_By_Mayaksir() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${
+        isDarkMode 
+          ? 'bg-gradient-to-br from-black via-indigo-950 to-purple-950' 
+          : 'bg-gradient-to-br from-gray-50 via-white to-gray-100'
+      }`}>
         <div className="flex flex-col items-center space-y-5">
-          <Loader2 className="w-16 h-16 text-indigo-400 animate-spin" />
-          <p className="text-xl font-medium text-indigo-300">Loading pending final approvals...</p>
+          <Loader2 className={`w-16 h-16 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'} animate-spin`} />
+          <p className={`text-xl font-medium ${isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>
+            Loading pending final approvals...
+          </p>
         </div>
       </div>
     );
@@ -488,13 +536,25 @@ function Approvel_By_Mayaksir() {
 
   if (isError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 flex items-center justify-center p-6">
+      <div className={`min-h-screen flex items-center justify-center p-6 ${
+        isDarkMode 
+          ? 'bg-gradient-to-br from-black via-indigo-950 to-purple-950' 
+          : 'bg-gradient-to-br from-gray-50 via-white to-gray-100'
+      }`}>
         <div className="text-center max-w-md">
-          <h2 className="text-2xl font-bold text-red-400 mb-4">Data loading failed</h2>
-          <p className="text-gray-300 mb-6">{error?.data?.message || 'Cannot load pending records'}</p>
+          <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-red-400' : 'text-red-600'} mb-4`}>
+            Data loading failed
+          </h2>
+          <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-6`}>
+            {error?.data?.message || 'Cannot load pending records'}
+          </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg"
+            className={`px-8 py-3 rounded-xl font-medium shadow-lg transition-all ${
+              isDarkMode 
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700' 
+                : 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600'
+            }`}
           >
             Retry
           </button>
@@ -505,10 +565,16 @@ function Approvel_By_Mayaksir() {
 
   if (expenses.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 flex items-center justify-center p-6">
+      <div className={`min-h-screen flex items-center justify-center p-6 ${
+        isDarkMode 
+          ? 'bg-gradient-to-br from-black via-indigo-950 to-purple-950' 
+          : 'bg-gradient-to-br from-gray-50 via-white to-gray-100'
+      }`}>
         <div className="text-center max-w-md">
-          <h2 className="text-3xl font-bold text-indigo-300 mb-4">No Pending Data</h2>
-          <p className="text-gray-400 text-lg">
+          <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-indigo-300' : 'text-indigo-700'} mb-4`}>
+            No Pending Data
+          </h2>
+          <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-lg`}>
             All records processed or no expenses waiting for Level-2 (Mayank Sir) approval.
           </p>
         </div>
@@ -521,39 +587,86 @@ function Approvel_By_Mayaksir() {
   // ────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-purple-950 relative overflow-hidden py-8 px-4 sm:px-6 lg:px-8 xl:px-10 w-full">
+    <div className={`min-h-screen relative overflow-hidden py-8 px-4 sm:px-6 lg:px-8 xl:px-10 w-full ${
+      isDarkMode 
+        ? 'bg-gradient-to-br from-black via-indigo-950 to-purple-950' 
+        : 'bg-gradient-to-br from-gray-50 via-white to-gray-100'
+    }`}>
 
-      {/* Background effects */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-20 -left-20 w-[500px] h-[500px] bg-purple-700 rounded-full mix-blend-multiply blur-3xl opacity-30 animate-pulse"></div>
-        <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-blue-700 rounded-full mix-blend-multiply blur-3xl opacity-25 animate-pulse" style={{ animationDelay: '4s' }}></div>
-      </div>
+      {/* Background effects - only in dark mode */}
+      {isDarkMode && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-20 -left-20 w-[500px] h-[500px] bg-purple-700 rounded-full mix-blend-multiply blur-3xl opacity-30 animate-pulse"></div>
+          <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-blue-700 rounded-full mix-blend-multiply blur-3xl opacity-25 animate-pulse" style={{ animationDelay: '4s' }}></div>
+        </div>
+      )}
 
       <div className="relative z-10 w-full space-y-8 lg:space-y-10">
 
-        {/* Header */}
-        <div className="bg-black/50 backdrop-blur-xl rounded-2xl border border-indigo-700/50 p-6 sm:p-8 lg:p-10 xl:p-12 shadow-2xl w-full">
+        {/* Header + Theme Toggle */}
+        <div className={`rounded-2xl border shadow-2xl w-full p-6 sm:p-8 lg:p-10 xl:p-12 ${
+          isDarkMode 
+            ? 'bg-black/50 backdrop-blur-xl border-indigo-700/50' 
+            : 'bg-white/80 backdrop-blur-md border-gray-200'
+        }`}>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
             <div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-200 to-purple-200 bg-clip-text text-transparent">
+              <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${
+                isDarkMode 
+                  ? 'from-indigo-200 to-purple-200' 
+                  : 'from-indigo-600 to-purple-600'
+              }`}>
                 Final Approval – Mayank Sir
               </h1>
-              <p className="text-indigo-300/90 mt-2 text-base sm:text-lg lg:text-xl">
+              <p className={`mt-2 text-base sm:text-lg lg:text-xl ${
+                isDarkMode ? 'text-indigo-300/90' : 'text-indigo-700/90'
+              }`}>
                 Level 2 • {totalRecords} pending record{totalRecords !== 1 ? 's' : ''}
               </p>
             </div>
-            <div className="bg-gradient-to-br from-purple-900/70 to-indigo-900/70 px-6 py-4 lg:py-6 rounded-2xl border border-purple-600/40 shadow-lg min-w-[140px] lg:min-w-[180px] text-center">
-              <p className="text-sm uppercase tracking-wider text-purple-200 font-semibold mb-1">Pending</p>
-              <p className="text-3xl lg:text-4xl font-black text-white">{totalRecords}</p>
+
+            <div className="flex items-center gap-4">
+              <button
+                onClick={toggleTheme}
+                className={`p-3 rounded-xl transition-all ${
+                  isDarkMode 
+                    ? 'bg-purple-900/50 hover:bg-purple-800/50 text-yellow-300' 
+                    : 'bg-gray-200 hover:bg-gray-300 text-indigo-700'
+                }`}
+                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+              </button>
+
+              <div className={`px-6 py-4 lg:py-6 rounded-2xl border shadow-lg min-w-[140px] lg:min-w-[180px] text-center ${
+                isDarkMode 
+                  ? 'bg-gradient-to-br from-purple-900/70 to-indigo-900/70 border-purple-600/40' 
+                  : 'bg-gradient-to-br from-indigo-100 to-purple-100 border-indigo-300'
+              }`}>
+                <p className={`text-sm uppercase tracking-wider font-semibold mb-1 ${
+                  isDarkMode ? 'text-purple-200' : 'text-purple-800'
+                }`}>Pending</p>
+                <p className={`text-3xl lg:text-4xl font-black ${
+                  isDarkMode ? 'text-white' : 'text-indigo-800'
+                }`}>{totalRecords}</p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto rounded-2xl border border-indigo-700/50 bg-black/40 backdrop-blur-md shadow-2xl w-full">
+        <div className={`overflow-x-auto rounded-2xl border shadow-2xl w-full ${
+          isDarkMode 
+            ? 'border-indigo-700/50 bg-black/40 backdrop-blur-md' 
+            : 'border-gray-300 bg-white/70 backdrop-blur-md'
+        }`}>
           <table className="w-full min-w-[1400px] border-collapse">
             <thead>
-              <tr className="bg-gradient-to-r from-indigo-950 via-purple-950 to-indigo-950 text-white">
+              <tr className={`text-white ${
+                isDarkMode 
+                  ? 'bg-gradient-to-r from-indigo-950 via-purple-950 to-indigo-950' 
+                  : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600'
+              }`}>
                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Timestamp</th>
                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Bill No</th>
                 <th className="px-4 py-5 lg:px-6 lg:py-6 text-left text-sm lg:text-base font-semibold uppercase tracking-wider border-b border-indigo-700/60">Office</th>
@@ -569,24 +682,48 @@ function Approvel_By_Mayaksir() {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-gray-800/60 bg-gray-950/10">
+            <tbody className={`divide-y ${
+              isDarkMode ? 'divide-gray-800/60 bg-gray-950/10' : 'divide-gray-200 bg-white/50'
+            }`}>
               {expenses.map((item) => (
                 <tr
                   key={item.Office_Bill_No || item.uid}
-                  className="hover:bg-indigo-950/40 transition-colors duration-150"
+                  className={`hover transition-colors duration-150 ${
+                    isDarkMode ? 'hover:bg-indigo-950/40' : 'hover:bg-indigo-50/80'
+                  }`}
                 >
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.Timestamp || '-'}</td>
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-indigo-300 font-medium font-bold text-base">
+                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>{item.Timestamp || '-'}</td>
+                  <td className={`px-4 py-5 lg:px-6 lg:py-6 font-medium font-bold text-base ${
+                    isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                  }`}>
                     {item.Office_Bill_No || '-'}
                   </td>
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.OFFICE_NAME_1 || '-'}</td>
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.PAYEE_NAME_1 || '-'}</td>
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.EXPENSES_HEAD_1 || '-'}</td>
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-200 text-base">{item.EXPENSES_SUBHEAD_1 || '-'}</td>
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.DEPARTMENT_1 || '-'}</td>
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.APPROVAL_DOER || item.APPROVAL_DOER_2 || '-'}</td>
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-gray-300 text-base">{item.RAISED_BY_1 || '-'}</td>
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-emerald-400 font-medium text-base">
+                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
+                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                  }`}>{item.OFFICE_NAME_1 || '-'}</td>
+                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
+                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                  }`}>{item.PAYEE_NAME_1 || '-'}</td>
+                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
+                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                  }`}>{item.EXPENSES_HEAD_1 || '-'}</td>
+                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
+                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                  }`}>{item.EXPENSES_SUBHEAD_1 || '-'}</td>
+                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>{item.DEPARTMENT_1 || '-'}</td>
+                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>{item.APPROVAL_DOER || item.APPROVAL_DOER_2 || '-'}</td>
+                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>{item.RAISED_BY_1 || '-'}</td>
+                  <td className={`px-4 py-5 lg:px-6 lg:py-6 font-medium text-base ${
+                    isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
+                  }`}>
                     ₹{(item.Total_Amount || item.Amount || '—').toLocaleString('en-IN')}
                   </td>
                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-center">
@@ -595,19 +732,27 @@ function Approvel_By_Mayaksir() {
                         href={item.Bill_Photo_1 || item.Bill_Photo}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center p-3 bg-cyan-900/50 text-cyan-300 rounded-lg hover:bg-cyan-800/70 transition hover:scale-105"
+                        className={`inline-flex items-center justify-center p-3 rounded-lg hover:scale-105 transition ${
+                          isDarkMode 
+                            ? 'bg-cyan-900/50 text-cyan-300 hover:bg-cyan-800/70' 
+                            : 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200'
+                        }`}
                         title="View bill photo"
                       >
                         <LucideImage className="w-6 h-6" />
                       </a>
                     ) : (
-                      <span className="text-gray-600 text-xl">—</span>
+                      <span className={`${isDarkMode ? 'text-gray-600' : 'text-gray-400'} text-xl`}>—</span>
                     )}
                   </td>
                   <td className="px-4 py-5 lg:px-6 lg:py-6 text-center">
                     <button
                       onClick={() => openModal(item)}
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-5 py-3 lg:py-4 rounded-lg font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2 justify-center mx-auto min-w-[140px] lg:min-w-[160px] text-base lg:text-lg"
+                      className={`px-5 py-3 lg:py-4 rounded-lg font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2 justify-center mx-auto min-w-[140px] lg:min-w-[160px] text-base lg:text-lg ${
+                        isDarkMode 
+                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white' 
+                          : 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white'
+                      }`}
                       title={`Review ${item.Office_Bill_No}`}
                     >
                       <Edit3 className="w-5 h-5" />
@@ -622,152 +767,214 @@ function Approvel_By_Mayaksir() {
       </div>
 
       {/* ────────────────────────────────────────────────
-           MODAL
+           MODAL - Dark & Light both supported
       ──────────────────────────────────────────────── */}
-     {isModalOpen && selectedExpense && (
-  <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 lg:p-8 overflow-hidden">
-    {/* Modal Container – full width on mobile, limited on larger screens */}
-    <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl shadow-2xl 
-      w-full max-w-full sm:max-w-3xl lg:max-w-5xl 
-      border border-indigo-700/50 
-      max-h-[96vh] flex flex-col overflow-hidden">
+      {isModalOpen && selectedExpense && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 lg:p-8 overflow-hidden">
+          <div className={`rounded-2xl shadow-2xl w-full max-w-full sm:max-w-3xl lg:max-w-5xl border max-h-[96vh] flex flex-col overflow-hidden ${
+            isDarkMode 
+              ? 'bg-gradient-to-b from-gray-900 to-black border-indigo-700/50' 
+              : 'bg-gradient-to-b from-white to-gray-100 border-gray-300'
+          }`}>
 
-      {/* Header – fixed, no scroll */}
-      <div className="bg-gradient-to-r from-indigo-950 to-purple-950 p-5 sm:p-6 lg:p-8 
-        flex justify-between items-center border-b border-indigo-700/60 shrink-0">
-        <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">
-          Final Approval – {selectedExpense.Office_Bill_No}
-        </h3>
-        <button
-          onClick={closeModal}
-          className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800/80 transition shrink-0"
-        >
-          <X className="w-7 h-7 sm:w-8 sm:h-8" />
-        </button>
-      </div>
+            {/* Header */}
+            <div className={`p-5 sm:p-6 lg:p-8 flex justify-between items-center border-b shrink-0 ${
+              isDarkMode 
+                ? 'bg-gradient-to-r from-indigo-950 to-purple-950 border-indigo-700/60' 
+                : 'bg-gradient-to-r from-indigo-100 to-purple-100 border-gray-300'
+            }`}>
+              <h3 className={`text-xl sm:text-2xl lg:text-3xl font-bold truncate ${
+                isDarkMode ? 'text-white' : 'text-indigo-800'
+              }`}>
+                Final Approval – {selectedExpense.Office_Bill_No}
+              </h3>
+              <button
+                onClick={closeModal}
+                className={`p-2 rounded-lg transition shrink-0 ${
+                  isDarkMode 
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-800/80' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                }`}
+              >
+                <X className="w-7 h-7 sm:w-8 sm:h-8" />
+              </button>
+            </div>
 
-      {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 
-        scrollbar-thin scrollbar-thumb-indigo-600 scrollbar-track-gray-900/40">
-        
-        {/* Bill Info Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 lg:gap-8">
-          <div className="bg-gray-900/60 p-4 sm:p-5 lg:p-6 rounded-xl border border-gray-800/50">
-            <p className="text-xs sm:text-sm lg:text-base text-gray-400 uppercase mb-1 sm:mb-2">Bill No</p>
-            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-indigo-300 break-all">
-              {selectedExpense.Office_Bill_No || '—'}
-            </p>
+            {/* Scrollable Content */}
+            <div className={`flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 scrollbar-thin ${
+              isDarkMode 
+                ? 'scrollbar-thumb-indigo-600 scrollbar-track-gray-900/40' 
+                : 'scrollbar-thumb-indigo-400 scrollbar-track-gray-200'
+            }`}>
+              
+              {/* Bill Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 lg:gap-8">
+                <div className={`p-4 sm:p-5 lg:p-6 rounded-xl border ${
+                  isDarkMode 
+                    ? 'bg-gray-900/60 border-gray-800/50' 
+                    : 'bg-white border-gray-200'
+                }`}>
+                  <p className={`text-xs sm:text-sm lg:text-base uppercase mb-1 sm:mb-2 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>Bill No</p>
+                  <p className={`text-lg sm:text-xl lg:text-2xl font-bold break-all ${
+                    isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                  }`}>
+                    {selectedExpense.Office_Bill_No || '—'}
+                  </p>
+                </div>
+                <div className={`p-4 sm:p-5 lg:p-6 rounded-xl border ${
+                  isDarkMode 
+                    ? 'bg-gray-900/60 border-gray-800/50' 
+                    : 'bg-white border-gray-200'
+                }`}>
+                  <p className={`text-xs sm:text-sm lg:text-base uppercase mb-1 sm:mb-2 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>Original Amount</p>
+                  <p className={`text-xl sm:text-2xl lg:text-3xl font-bold ${
+                    isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
+                  }`}>
+                    ₹{(selectedExpense.Total_Amount || selectedExpense.Amount || '0').toLocaleString('en-IN')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Final Status */}
+              <div className="space-y-3">
+                <label className={`block text-base sm:text-lg font-medium ${
+                  isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                }`}>
+                  Final Status <span className="text-red-400">*</span>
+                </label>
+                <select
+                  value={formData.STATUS_3}
+                  onChange={(e) => setFormData({ ...formData, STATUS_3: e.target.value })}
+                  className={`w-full px-4 sm:px-5 py-3 sm:py-4 rounded-lg focus:outline-none focus:ring-2 transition-all text-base sm:text-lg ${
+                    isDarkMode
+                      ? formData.STATUS_3
+                        ? 'bg-gray-800 border-gray-700 focus:ring-emerald-500 text-white border-emerald-500/50'
+                        : 'bg-gray-800/70 border-red-500/50 focus:ring-red-500 text-white'
+                      : formData.STATUS_3
+                        ? 'bg-white border-gray-300 focus:ring-emerald-500 text-gray-900 border-emerald-500'
+                        : 'bg-white border-red-300 focus:ring-red-500 text-gray-900 border-red-500'
+                  }`}
+                >
+                  <option value="">----- Select ----- *</option>
+                  <option value="Done">✅ Done</option>
+                </select>
+              </div>
+
+              {/* Final Amount */}
+              <div className="space-y-3">
+                <label className={`block text-base sm:text-lg font-medium ${
+                  isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                }`}>Final Amount (Optional)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.FINAL_AMOUNT_3}
+                  onChange={(e) => setFormData({ ...formData, FINAL_AMOUNT_3: e.target.value })}
+                  className={`w-full px-4 sm:px-5 py-3 sm:py-4 rounded-lg focus:outline-none focus:ring-2 text-base sm:text-lg ${
+                    isDarkMode
+                      ? 'bg-gray-800 border-gray-700 focus:ring-indigo-500 text-white'
+                      : 'bg-white border-gray-300 focus:ring-indigo-500 text-gray-900'
+                  }`}
+                  placeholder="Original amount ya revised daalo"
+                />
+              </div>
+
+              {/* Payment Mode */}
+              <div className="space-y-3">
+                <label className={`block text-base sm:text-lg font-medium ${
+                  isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                }`}>
+                  Payment Mode <span className="text-yellow-400 text-xs sm:text-sm">(preferred)</span>
+                </label>
+                <select
+                  value={formData.PAYMENT_MODE_3 || ''}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, PAYMENT_MODE_3: e.target.value }))}
+                  className={`w-full px-4 sm:px-5 py-3 sm:py-4 rounded-lg focus:outline-none focus:ring-2 text-base sm:text-lg ${
+                    isDarkMode
+                      ? 'bg-gray-800 border-gray-700 focus:ring-indigo-500 text-white'
+                      : 'bg-white border-gray-300 focus:ring-indigo-500 text-gray-900'
+                  }`}
+                >
+                  <option value="">Select Payment Mode</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Bank">Bank</option>
+                </select>
+              </div>
+
+              {/* Remark */}
+              <div className="space-y-3">
+                <label className={`block text-base sm:text-lg font-medium ${
+                  isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                }`}>Final Remark (Optional)</label>
+                <textarea
+                  value={formData.REMARK_3}
+                  onChange={(e) => setFormData({ ...formData, REMARK_3: e.target.value })}
+                  rows={4}
+                  className={`w-full px-4 sm:px-5 py-3 sm:py-4 rounded-lg focus:outline-none focus:ring-2 resize-y text-base sm:text-lg ${
+                    isDarkMode
+                      ? 'bg-gray-800 border-gray-700 focus:ring-indigo-500 text-white'
+                      : 'bg-white border-gray-300 focus:ring-indigo-500 text-gray-900'
+                  }`}
+                  placeholder="Approval reason / rejection note / comments..."
+                />
+              </div>
+
+              <div className="h-6 sm:h-8 lg:h-10"></div>
+            </div>
+
+            {/* Buttons */}
+            <div className={`border-t p-5 sm:p-6 lg:p-8 sticky bottom-0 z-10 ${
+              isDarkMode 
+                ? 'bg-gradient-to-t from-black via-black/95 to-transparent border-gray-800' 
+                : 'bg-gradient-to-t from-white via-white/95 to-transparent border-gray-200'
+            }`}>
+              <div className="flex flex-col sm:flex-row justify-end gap-4 sm:gap-5">
+                <button
+                  onClick={closeModal}
+                  disabled={isUpdating}
+                  className={`px-8 py-3 sm:py-4 rounded-lg font-medium transition text-base sm:text-lg w-full sm:w-auto ${
+                    isDarkMode 
+                      ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' 
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={isUpdating || !formData.STATUS_3}
+                  className={`px-8 sm:px-10 py-3 sm:py-4 rounded-lg font-medium flex items-center justify-center gap-3 w-full sm:w-auto min-w-[200px] transition-all text-base sm:text-lg ${
+                    isUpdating || !formData.STATUS_3
+                      ? isDarkMode
+                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed border border-gray-600'
+                        : 'bg-gray-300 text-gray-400 cursor-not-allowed border border-gray-400'
+                      : isDarkMode
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl border border-emerald-500/50 hover:scale-[1.02]'
+                        : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg hover:shadow-xl border border-emerald-400 hover:scale-[1.02]'
+                  }`}
+                >
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                      Submit kar raha...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                      Submit Final Approval
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="bg-gray-900/60 p-4 sm:p-5 lg:p-6 rounded-xl border border-gray-800/50">
-            <p className="text-xs sm:text-sm lg:text-base text-gray-400 uppercase mb-1 sm:mb-2">Original Amount</p>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-emerald-400">
-              ₹{(selectedExpense.Total_Amount || selectedExpense.Amount || '0').toLocaleString('en-IN')}
-            </p>
-          </div>
         </div>
-
-        {/* Final Status */}
-        <div className="space-y-3">
-          <label className="block text-base sm:text-lg font-medium text-gray-200">
-            Final Status <span className="text-red-400">*</span>
-          </label>
-          <select
-            value={formData.STATUS_3}
-            onChange={(e) => setFormData({ ...formData, STATUS_3: e.target.value })}
-            className={`w-full px-4 sm:px-5 py-3 sm:py-4 rounded-lg text-white focus:outline-none focus:ring-2 transition-all text-base sm:text-lg ${
-              formData.STATUS_3 
-                ? 'bg-gray-800 border border-gray-700 focus:ring-emerald-500 border-emerald-500/50' 
-                : 'bg-gray-800/70 border border-red-500/50 focus:ring-red-500'
-            }`}
-          >
-            <option value="">----- Select ----- *</option>
-            <option value="Done">✅ Done</option>
-          </select>
-        </div>
-
-        {/* Final Amount */}
-        <div className="space-y-3">
-          <label className="block text-base sm:text-lg font-medium text-gray-200">Final Amount (Optional)</label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={formData.FINAL_AMOUNT_3}
-            onChange={(e) => setFormData({ ...formData, FINAL_AMOUNT_3: e.target.value })}
-            className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base sm:text-lg"
-            placeholder="Original amount ya revised daalo"
-          />
-        </div>
-
-        {/* Payment Mode */}
-        <div className="space-y-3">
-          <label className="block text-base sm:text-lg font-medium text-gray-200">
-            Payment Mode <span className="text-yellow-400 text-xs sm:text-sm">(preferred)</span>
-          </label>
-          <select
-            value={formData.PAYMENT_MODE_3 || ''}
-            onChange={(e) => setFormData((prev) => ({ ...prev, PAYMENT_MODE_3: e.target.value }))}
-            className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base sm:text-lg"
-          >
-            <option value="">Select Payment Mode</option>
-            <option value="Cash">Cash</option>
-            <option value="Bank">Bank</option>
-          </select>
-        </div>
-
-        {/* Remark */}
-        <div className="space-y-3">
-          <label className="block text-base sm:text-lg font-medium text-gray-200">Final Remark (Optional)</label>
-          <textarea
-            value={formData.REMARK_3}
-            onChange={(e) => setFormData({ ...formData, REMARK_3: e.target.value })}
-            rows={4}
-            className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y text-base sm:text-lg"
-            placeholder="Approval reason / rejection note / comments..."
-          />
-        </div>
-
-        {/* Extra space so buttons don't feel cramped */}
-        <div className="h-6 sm:h-8 lg:h-10"></div>
-      </div>
-
-      {/* Buttons – sticky bottom on mobile */}
-      <div className="shrink-0 border-t border-gray-800 p-5 sm:p-6 lg:p-8 
-        bg-gradient-to-t from-black via-black/95 to-transparent sticky bottom-0 z-10">
-        <div className="flex flex-col sm:flex-row justify-end gap-4 sm:gap-5">
-          <button
-            onClick={closeModal}
-            disabled={isUpdating}
-            className="px-8 py-3 sm:py-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition text-base sm:text-lg w-full sm:w-auto"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={isUpdating || !formData.STATUS_3}
-            className={`px-8 sm:px-10 py-3 sm:py-4 rounded-lg font-medium flex items-center justify-center gap-3 w-full sm:w-auto min-w-[200px] transition-all text-base sm:text-lg ${
-              isUpdating || !formData.STATUS_3
-                ? 'bg-gray-700 text-gray-500 cursor-not-allowed border border-gray-600'
-                : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl border border-emerald-500/50 hover:scale-[1.02]'
-            }`}
-          >
-            {isUpdating ? (
-              <>
-                <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
-                Submit kar raha...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
-                Submit Final Approval
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 }

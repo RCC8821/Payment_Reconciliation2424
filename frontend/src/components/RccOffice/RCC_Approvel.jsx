@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useMemo } from "react";
 import {
   useGetPendingOfficeExpensesQuery,
@@ -30,9 +28,10 @@ function RCC_Approvel() {
     useUpdateOfficeExpenseApprovalMutation();
 
   const currentApprover = sessionStorage.getItem("userName") || "";
+  // console.log(currentApprover)
   const userType = sessionStorage.getItem("userType")?.toUpperCase() || "";
   const allExpenses = response?.data || [];
-
+console.log(allExpenses)
   const isAdmin = userType === "ADMIN";
 
   const expensesToShow = isAdmin
@@ -41,6 +40,7 @@ function RCC_Approvel() {
         (item) =>
           item.APPROVAL_DOER?.trim().toLowerCase() ===
           currentApprover.trim().toLowerCase()
+          
       );
 
   const [searchTerm, setSearchTerm] = useState("");

@@ -10,15 +10,9 @@ const router = express.Router();
 const ALLOWED_USER_TYPES = [
   'ADMIN',
   'PAYMENT',
-  'ABBOTT',
-  'RANA',
-  'RNTU',
-  'SCOPE',
-  'NEWSCOPE',
-  'GUPTA_JI_C',
-  'GUPTA_JI_B',
-  'GUPTA_JI_D',
-  'Scope_Adjusting'
+  'RCC',
+  'DIMENSION',
+  'VRN'
 ];
 
 // Login Route
