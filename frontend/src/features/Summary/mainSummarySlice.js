@@ -1,4 +1,6 @@
 
+
+
 // import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 // const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
@@ -6,7 +8,7 @@
 // export const mainSummaryApi = createApi({
 //   reducerPath: 'mainSummaryApi',
 
-//    baseQuery: fetchBaseQuery({
+//   baseQuery: fetchBaseQuery({
 //     baseUrl,
 //     prepareHeaders: (headers) => {
 //       headers.set('Content-Type', 'application/json');
@@ -14,16 +16,17 @@
 //     },
 //   }),
 
-//   tagTypes: ['BankSummary'], 
+//   tagTypes: ['BankSummary', 'BankBalance'],
 
 //   endpoints: (builder) => ({
-    
+//     // ────────────────────────────────────────────────
+//     // Existing: Main Bank Summary (All banks + transactions)
+//     // ────────────────────────────────────────────────
 //     getMainBankSummary: builder.query({
-//       query: () => '/apiSummary/Summary-main',  
+//       query: () => '/apiSummary/Summary-main',
 //       providesTags: ['BankSummary'],
 
 //       transformResponse: (response) => {
-//         // Response validation aur clean structure
 //         if (response?.success) {
 //           return {
 //             inTotal: response.inTotal || null,
@@ -31,12 +34,11 @@
 //             netBalance: response.netBalance || null,
 //             transactions: response.transactions || [],
 //             totalTransactions: response.totalTransactions || 0,
-//             debug: response.debug || null, // testing ke liye optional
+//             debug: response.debug || null,
 //             message: response.message || '',
 //           };
 //         }
 
-//         // Agar success false ho ya kuch galat aaye
 //         return {
 //           inTotal: null,
 //           outTotal: null,
@@ -47,27 +49,47 @@
 //         };
 //       },
 
-//       // Optional: agar har 5-10 minute mein auto-refresh chahiye
-//       // pollingInterval: 300000, // 5 minutes
+//       // pollingInterval: 300000, // optional — 5 min auto-refresh
 //     }),
 
-//     // Agar future mein summary update/refund/add transaction jaisa kuch add karna ho
-//     // to yahan mutation daal sakte ho, abhi sirf GET chahiye to skip kar rahe hain
+//     // ────────────────────────────────────────────────
+//     // New: Bank-wise current balances
+//     // ────────────────────────────────────────────────
+//     getBankBalances: builder.query({
+//       query: () => '/apiSummary/Bank-Balance',
+//       providesTags: ['BankBalance'],
+
+//       transformResponse: (response) => {
+//         if (response?.success) {
+//           return {
+//             balances: response.data || [],
+//             totalBanks: (response.data || []).length,
+//             message: response.message || '',
+//           };
+//         }
+
+//         return {
+//           balances: [],
+//           totalBanks: 0,
+//           message: response?.error || 'Failed to load bank balances',
+//         };
+//       },
+
+      
+//     }),
 //   }),
 // });
 
 // // Auto-generated hooks
 // export const {
 //   useGetMainBankSummaryQuery,
-//   useLazyGetMainBankSummaryQuery,   // agar button click pe fetch karna ho
+//   useLazyGetMainBankSummaryQuery,
+//   useGetBankBalancesQuery,
+//   useLazyGetBankBalancesQuery,
 // } = mainSummaryApi;
 
-// // Reducer export → store mein add karne ke liye
 // export default mainSummaryApi;
 
-
-
-///////////////////////////////////////////
 
 
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
@@ -85,16 +107,15 @@ export const mainSummaryApi = createApi({
     },
   }),
 
-  tagTypes: ['BankSummary', 'BankBalance'],
+  tagTypes: ['BankSummary', 'BankBalance', 'Outstanding'],   // ← added new tag
 
   endpoints: (builder) => ({
     // ────────────────────────────────────────────────
-    // Existing: Main Bank Summary (All banks + transactions)
+    // Existing endpoints ...
     // ────────────────────────────────────────────────
     getMainBankSummary: builder.query({
       query: () => '/apiSummary/Summary-main',
       providesTags: ['BankSummary'],
-
       transformResponse: (response) => {
         if (response?.success) {
           return {
@@ -107,7 +128,6 @@ export const mainSummaryApi = createApi({
             message: response.message || '',
           };
         }
-
         return {
           inTotal: null,
           outTotal: null,
@@ -117,17 +137,11 @@ export const mainSummaryApi = createApi({
           message: response?.error || 'Failed to load bank summary',
         };
       },
-
-      // pollingInterval: 300000, // optional — 5 min auto-refresh
     }),
 
-    // ────────────────────────────────────────────────
-    // New: Bank-wise current balances
-    // ────────────────────────────────────────────────
     getBankBalances: builder.query({
       query: () => '/apiSummary/Bank-Balance',
       providesTags: ['BankBalance'],
-
       transformResponse: (response) => {
         if (response?.success) {
           return {
@@ -136,15 +150,44 @@ export const mainSummaryApi = createApi({
             message: response.message || '',
           };
         }
-
         return {
           balances: [],
           totalBanks: 0,
           message: response?.error || 'Failed to load bank balances',
         };
       },
+    }),
 
-      
+    // ────────────────────────────────────────────────
+    // NEW: Outstanding Bills / Pending Payments
+    // ────────────────────────────────────────────────
+    getOutstanding: builder.query({
+      query: () => '/apiSummary/outStanding',          // ← match your route name
+      providesTags: ['Outstanding'],
+
+      transformResponse: (response) => {
+        if (response?.success) {
+          return {
+            totalOutstanding : response.totalOutstanding  || "0.00",
+            totalNetAmount   : response.totalNetAmount    || "0.00",
+            totalPaidAmount  : response.totalPaidAmount   || "0.00",
+            totalTransactions: response.totalTransactions || 0,
+            transactions     : response.transactions      || [],
+            message          : response.message           || '',
+            // optional debug
+            debug            : response.debug             || null,
+          };
+        }
+
+        return {
+          totalOutstanding : "0.00",
+          totalNetAmount   : "0.00",
+          totalPaidAmount  : "0.00",
+          totalTransactions: 0,
+          transactions     : [],
+          message          : response?.error || 'Failed to load outstanding data',
+        };
+      },
     }),
   }),
 });
@@ -155,6 +198,8 @@ export const {
   useLazyGetMainBankSummaryQuery,
   useGetBankBalancesQuery,
   useLazyGetBankBalancesQuery,
+  useGetOutstandingQuery,           // ← new
+  useLazyGetOutstandingQuery,       // ← new (if you need manual trigger)
 } = mainSummaryApi;
 
 export default mainSummaryApi;
