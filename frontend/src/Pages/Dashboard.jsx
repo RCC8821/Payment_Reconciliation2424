@@ -2206,6 +2206,7 @@ const Dashboard = () => {
     { id: "RCC_Approvel", name: "RCC Approval", email: "grnagar.82@gmail.com" },
     { id: "RCC_Approvel", name: "RCC Approval", email: "subhashpatidar@vipinchauhanassociates.com" },
     { id: "RCC_Approvel", name: "RCC Approval", email: "rajakravi9@gmail.com" },
+    { id: "RCC_Approvel", name: "RCC Approval", email: "ravinder@rccinfrastructures.com" },
     { id: "RCC_Approvel", name: "RCC Approval", email: "varsharccinfra@gmail.com" },
     { id: "RCC_Approvel", name: "RCC Approval", email: "Bharti@vipinchauhanassociates.com" },
     { id: "Approvel_By_Mayaksir", name: "Approval By Mayanksir", email: "rccinfra2024@gmail.com" },
@@ -2246,7 +2247,7 @@ const Dashboard = () => {
       return true;
     }
 
-    const specialSummaryEmails = ["rccinfra2024@gmail.com"];
+    const specialSummaryEmails = ["rccinfra2024@gmail.com","ravinder@rccinfrastructures.com"];
     if (section.toLowerCase() === "summary") {
       return specialSummaryEmails.includes(userEmail.toLowerCase());
     }
