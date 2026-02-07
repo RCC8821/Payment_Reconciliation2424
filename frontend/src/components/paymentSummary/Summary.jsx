@@ -411,291 +411,6 @@ const BankBalance = ({ isDarkMode }) => {
 
 
 
-
-
-
-
-// const Outstanding = ({ isDarkMode }) => {
-//   const { data: outstandingApiData, isLoading, isError, error, refetch } = useGetOutstandingQuery();
-
-//   const [filters, setFilters] = useState({
-//     siteNames: [],
-//     vendorNames: [],
-//     expHeads: [],
-//   });
-
-//   const [showAll, setShowAll] = useState(false);
-
-//   // Raw parsed data (ek baar hi calculate hota hai)
-//   const rawData = useMemo(() => {
-//     if (!outstandingApiData?.transactions || !Array.isArray(outstandingApiData.transactions)) {
-//       return [];
-//     }
-
-//     return outstandingApiData.transactions.map(item => ({
-//       date: item.date || "—",
-//       siteName: item.siteName || "—",
-//       vendorName: item.vendorName || "—",
-//       billNo: item.billNo || "—",
-//       expHead: item.expHead || "—",
-//       netAmount: parseAmount(item.netAmount),
-//       paidAmount: parseAmount(item.paidAmount),
-//       balance: parseAmount(item.balance),
-//     }));
-//   }, [outstandingApiData]);
-
-//   // Final filtered data jo table mein dikhega
-//   const filteredData = useMemo(() => {
-//     let data = [...rawData];
-
-//     if (filters.siteNames.length > 0 && !filters.siteNames.includes("All")) {
-//       data = data.filter(t => filters.siteNames.includes(t.siteName));
-//     }
-
-//     if (filters.vendorNames.length > 0 && !filters.vendorNames.includes("All")) {
-//       data = data.filter(t => filters.vendorNames.includes(t.vendorName));
-//     }
-
-//     if (filters.expHeads.length > 0 && !filters.expHeads.includes("All")) {
-//       data = data.filter(t => filters.expHeads.includes(t.expHead));
-//     }
-
-//     return data.sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance));
-//   }, [rawData, filters]);
-
-//   // Cascading dropdown options (yeh sabse important hai)
-//   const filterOptions = useMemo(() => {
-//     let currentData = [...rawData];
-
-//     // Site filter apply → vendor options update
-//     if (filters.siteNames.length > 0 && !filters.siteNames.includes("All")) {
-//       currentData = currentData.filter(t => filters.siteNames.includes(t.siteName));
-//     }
-//     const vendors = [...new Set(currentData.map(t => t.vendorName).filter(Boolean))].sort();
-
-//     // Vendor filter apply → expHead options update
-//     if (filters.vendorNames.length > 0 && !filters.vendorNames.includes("All")) {
-//       currentData = currentData.filter(t => filters.vendorNames.includes(t.vendorName));
-//     }
-//     const heads = [...new Set(currentData.map(t => t.expHead).filter(Boolean))].sort();
-
-//     return {
-//       siteNames: ["All", ...[...new Set(rawData.map(t => t.siteName).filter(Boolean))].sort()],
-//       vendorNames: ["All", ...vendors],
-//       expHeads: ["All", ...heads],
-//     };
-//   }, [rawData, filters.siteNames, filters.vendorNames]);
-
-//   const totalOutstanding = filteredData.reduce((sum, t) => sum + t.balance, 0);
-//   const totalNet = filteredData.reduce((sum, t) => sum + t.netAmount, 0);
-//   const totalPaid = filteredData.reduce((sum, t) => sum + t.paidAmount, 0);
-
-//   const activeFiltersCount = filters.siteNames.length + filters.vendorNames.length + filters.expHeads.length;
-
-//   const displayedData = showAll ? filteredData : filteredData.slice(0, 10);
-
-//   if (isLoading) {
-//     return (
-//       <div className="py-20 flex flex-col items-center justify-center">
-//         <div className="w-14 h-14 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-5"></div>
-//         <p className={`text-lg ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
-//           Loading outstanding dues...
-//         </p>
-//       </div>
-//     );
-//   }
-
-//   if (isError || !rawData.length) {
-//     return (
-//       <div className={`rounded-2xl p-10 text-center border max-w-lg mx-auto ${isDarkMode ? "bg-rose-950/20 border-rose-800/40" : "bg-rose-50 border-rose-200"}`}>
-//         <AlertCircle className={`w-12 h-12 mx-auto mb-4 ${isDarkMode ? "text-rose-400" : "text-rose-600"}`} />
-//         <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? "text-rose-300" : "text-rose-800"}`}>
-//           {isError ? "Failed to load data" : "No outstanding items found"}
-//         </h3>
-//         <button onClick={refetch} className="mt-5 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-2 mx-auto transition-colors">
-//           <RefreshCw size={18} /> Retry
-//         </button>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="space-y-8">
-//       {/* Summary Cards */}
-     
-//       {/* Filters - cascading */}
-//       <div className={`rounded-xl border shadow-lg p-6 lg:p-8 ${isDarkMode ? "bg-gray-900/40 border-gray-700/60" : "bg-white border-gray-200/80"}`}>
-//         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-//           <h3 className={`text-xl lg:text-2xl font-bold flex items-center gap-3 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
-//             <Search className={`w-6 h-6 ${isDarkMode ? "text-indigo-400" : "text-indigo-600"}`} />
-//             Filter Pending Dues
-//             {activeFiltersCount > 0 && (
-//               <span className={`ml-3 px-3 py-1 text-xs font-semibold rounded-full ${isDarkMode ? "bg-indigo-900/80 text-indigo-200" : "bg-indigo-100 text-indigo-800"}`}>
-//                 {activeFiltersCount} active
-//               </span>
-//             )}
-//           </h3>
-
-//           {activeFiltersCount > 0 && (
-//             <button
-//               onClick={() => setFilters({ siteNames: [], vendorNames: [], expHeads: [] })}
-//               className={`px-5 py-2 rounded-lg border flex items-center gap-2 text-sm font-medium transition-colors ${isDarkMode ? "border-gray-600 hover:bg-rose-950/30 text-rose-400 hover:border-rose-600" : "border-gray-300 hover:bg-rose-50 text-rose-600 hover:border-rose-400"}`}
-//             >
-//               <X size={16} /> Clear All
-//             </button>
-//           )}
-//         </div>
-
-//         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
-//           <MultiSelectFilter
-//             label="Site Name"
-//             value={filters.siteNames}
-//             onChange={(vals) => setFilters(prev => ({
-//               ...prev,
-//               siteNames: vals,
-//               vendorNames: [],   // Reset downstream filters
-//               expHeads: [],
-//             }))}
-//             options={filterOptions.siteNames}
-//             placeholder="Search & select sites..."
-//             isDarkMode={isDarkMode}
-//           />
-
-//           <MultiSelectFilter
-//             label="Vendor / Party"
-//             value={filters.vendorNames}
-//             onChange={(vals) => setFilters(prev => ({
-//               ...prev,
-//               vendorNames: vals,
-//               expHeads: [],      // Reset downstream
-//             }))}
-//             options={filterOptions.vendorNames}
-//             placeholder="Search & select vendors..."
-//             isDarkMode={isDarkMode}
-//           />
-
-//           <MultiSelectFilter
-//             label="Expense Head"
-//             value={filters.expHeads}
-//             onChange={(vals) => setFilters(prev => ({ ...prev, expHeads: vals }))}
-//             options={filterOptions.expHeads}
-//             placeholder="Search & select heads..."
-//             isDarkMode={isDarkMode}
-//           />
-//         </div>
-//       </div>
-
-
-//        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 lg:gap-6">
-//         <div className={`rounded-xl border shadow-lg p-6 text-center transition-all hover:shadow-xl ${isDarkMode ? "bg-gradient-to-br from-rose-950/40 to-rose-900/30 border-rose-800/50" : "bg-gradient-to-br from-rose-50 to-rose-100 border-rose-200"}`}>
-//           <p className={`text-sm font-medium uppercase tracking-wide mb-2 ${isDarkMode ? "text-rose-300" : "text-rose-700"}`}>Total Billed</p>
-//           <p className={`text-3xl lg:text-4xl font-black ${isDarkMode ? "text-rose-400" : "text-rose-700"}`}>
-//             ₹{totalNet.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-//           </p>
-//         </div>
-
-//         <div className={`rounded-xl border shadow-lg p-6 text-center transition-all hover:shadow-xl ${isDarkMode ? "bg-gradient-to-br from-emerald-950/40 to-emerald-900/30 border-emerald-800/50" : "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200"}`}>
-//           <p className={`text-sm font-medium uppercase tracking-wide mb-2 ${isDarkMode ? "text-emerald-300" : "text-emerald-700"}`}>Total Paid</p>
-//           <p className={`text-3xl lg:text-4xl font-black ${isDarkMode ? "text-emerald-400" : "text-emerald-700"}`}>
-//             ₹{totalPaid.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-//           </p>
-//         </div>
-
-//         <div className={`rounded-xl border shadow-lg p-6 text-center transition-all hover:shadow-xl ${isDarkMode ? "bg-gradient-to-br from-indigo-950/40 to-purple-950/30 border-indigo-800/50" : "bg-gradient-to-br from-indigo-50 to-purple-100 border-indigo-200"}`}>
-//           <p className={`text-sm font-medium uppercase tracking-wide mb-2 ${isDarkMode ? "text-indigo-300" : "text-indigo-700"}`}>Outstanding</p>
-//           <p className={`text-3xl lg:text-4xl font-black ${totalOutstanding >= 0 ? "text-rose-500" : "text-emerald-500"}`}>
-//             ₹{Math.abs(totalOutstanding).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-//           </p>
-//         </div>
-//       </div>
-
-
-//       {/* Table */}
-//       <div className={`rounded-xl border shadow-lg overflow-hidden ${isDarkMode ? "bg-gray-900/30 border-gray-700/50" : "bg-white border-gray-200/70"}`}>
-//         <div className={`px-6 py-5 border-b font-semibold text-lg flex items-center justify-between ${isDarkMode ? "bg-gradient-to-r from-indigo-950/70 to-purple-950/50 text-indigo-200 border-gray-700/60" : "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-800 border-indigo-200/40"}`}>
-//           <div className="flex items-center gap-3">
-//             <AlertCircle className={`w-6 h-6 ${isDarkMode ? "text-indigo-400" : "text-indigo-600"}`} />
-//             Pending Payments
-//           </div>
-//           <span className="text-sm font-medium opacity-90">
-//             Showing {displayedData.length} of {filteredData.length} records
-//           </span>
-//         </div>
-
-//         {filteredData.length === 0 ? (
-//           <div className="py-16 text-center">
-//             <p className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-//               No matching records found with current filters
-//             </p>
-//           </div>
-//         ) : (
-//           <>
-//             <div className="overflow-x-auto">
-//               <table className="w-full min-w-[1100px]">
-//                 <thead className={`${isDarkMode ? "bg-gray-800/40" : "bg-gray-100/80"}`}>
-//                   <tr>
-//                     <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Date</th>
-//                     <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Site</th>
-//                     <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Vendor/Party</th>
-//                     <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Head</th>
-//                     <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Bill No</th>
-//                     <th className={`px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Net Amount</th>
-//                     <th className={`px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Paid</th>
-//                     <th className={`px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Balance</th>
-//                   </tr>
-//                 </thead>
-//                 <tbody className={`divide-y ${isDarkMode ? "divide-gray-800/40" : "divide-gray-200/40"}`}>
-//                   {displayedData.map((item, index) => (
-//                     <tr
-//                       key={index}
-//                       className={`transition-colors hover:bg-opacity-50 ${isDarkMode ? "hover:bg-indigo-950/30" : "hover:bg-indigo-50/30"}`}
-//                     >
-//                       <td className={`px-6 py-4 text-sm ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>{item.date}</td>
-//                       <td className={`px-6 py-4 text-sm font-medium ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}>{item.siteName}</td>
-//                       <td className={`px-6 py-4 text-sm font-medium ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}>{item.vendorName}</td>
-//                       <td className={`px-6 py-4 text-sm ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>{item.expHead}</td>
-//                       <td className={`px-6 py-4 text-sm ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>{item.billNo}</td>
-//                       <td className={`px-6 py-4 text-right text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-800"}`}>
-//                         ₹{item.netAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-//                       </td>
-//                       <td className={`px-6 py-4 text-right text-sm font-medium ${isDarkMode ? "text-emerald-400" : "text-emerald-700"}`}>
-//                         ₹{item.paidAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-//                       </td>
-//                       <td className={`px-6 py-4 text-right text-lg font-bold ${item.balance > 0 ? "text-rose-500" : "text-emerald-500"}`}>
-//                         ₹{Math.abs(item.balance).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-//                         {item.balance < 0 && <span className="text-xs ml-1 opacity-70">(advance)</span>}
-//                       </td>
-//                     </tr>
-//                   ))}
-//                 </tbody>
-//               </table>
-//             </div>
-
-//             {filteredData.length > 10 && (
-//               <div className={`px-6 py-5 border-t text-center ${isDarkMode ? "bg-gray-900/30 border-gray-700/50" : "bg-gray-50 border-gray-200"}`}>
-//                 <button
-//                   onClick={() => setShowAll(!showAll)}
-//                   className={`px-8 py-3 rounded-xl font-medium transition-all shadow-sm ${isDarkMode ? "bg-indigo-600/80 hover:bg-indigo-700 text-white" : "bg-indigo-600 hover:bg-indigo-700 text-white"}`}
-//                 >
-//                   {showAll ? "Show Top 10 Only" : `Show All ${filteredData.length} Records`}
-//                 </button>
-//               </div>
-//             )}
-//           </>
-//         )}
-
-//         <div className={`px-6 py-5 border-t font-bold text-right text-lg flex justify-between items-center ${isDarkMode ? "bg-gray-900/40 border-gray-700/60 text-indigo-300" : "bg-gray-50 border-gray-200 text-indigo-800"}`}>
-//           <span>Total Outstanding (filtered):</span>
-//           <span className={totalOutstanding >= 0 ? "text-rose-500" : "text-emerald-500"}>
-//             ₹{Math.abs(totalOutstanding).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-//           </span>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-
 const Outstanding = ({ isDarkMode }) => {
   const { data: outstandingApiData, isLoading, isError, error, refetch } = useGetOutstandingQuery();
 
@@ -703,7 +418,7 @@ const Outstanding = ({ isDarkMode }) => {
     siteNames: [],
     vendorNames: [],
     expHeads: [],
-    billNos: [],          // ← नया filter: Bill Number
+    billNos: [],          
   });
 
   const [showAll, setShowAll] = useState(false);
@@ -1230,7 +945,7 @@ const Summary = () => {
 
           <div className="mt-8">
             <div className={`border-2 p-1.5 rounded-xl shadow-lg inline-flex flex-wrap gap-1 ${isDarkMode ? "bg-black/50 border-indigo-600/50" : "bg-white/60 border-indigo-300/60"}`}>
-              {["summary", "bankBalance", "outstanding"].map(tab => (
+              {["summary", "bankBalance", "AccrualAccounting"].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -1238,8 +953,8 @@ const Summary = () => {
                 >
                   {tab === "summary" && <ListOrdered className="w-5 h-5" />}
                   {tab === "bankBalance" && <Building2 className="w-5 h-5" />}
-                  {tab === "outstanding" && <AlertCircle className="w-5 h-5" />}
-                  {tab === "summary" ? "Summary" : tab === "bankBalance" ? "Bank Balance" : "Outstanding"}
+                  {tab === "AccrualAccounting" && <AlertCircle className="w-5 h-5" />}
+                  {tab === "summary" ? "Summary" : tab === "bankBalance" ? "Bank Balance" : "AccrualAccounting"}
                 </button>
               ))}
             </div>
@@ -1456,7 +1171,7 @@ const Summary = () => {
         )}
 
         {activeTab === "bankBalance" && <BankBalance isDarkMode={isDarkMode} />}
-        {activeTab === "outstanding" && <Outstanding isDarkMode={isDarkMode} />}
+        {activeTab === "AccrualAccounting" && <Outstanding isDarkMode={isDarkMode} />}
       </div>
 
       <style jsx global>{`
