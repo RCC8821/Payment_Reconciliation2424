@@ -682,86 +682,115 @@ function Approvel_By_Mayaksir() {
               </tr>
             </thead>
 
-            <tbody className={`divide-y ${
-              isDarkMode ? 'divide-gray-800/60 bg-gray-950/10' : 'divide-gray-200 bg-white/50'
-            }`}>
-              {expenses.map((item) => (
-                <tr
-                  key={item.Office_Bill_No || item.uid}
-                  className={`hover transition-colors duration-150 ${
-                    isDarkMode ? 'hover:bg-indigo-950/40' : 'hover:bg-indigo-50/80'
-                  }`}
-                >
-                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                  }`}>{item.Timestamp || '-'}</td>
-                  <td className={`px-4 py-5 lg:px-6 lg:py-6 font-medium font-bold text-base ${
-                    isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                  }`}>
-                    {item.Office_Bill_No || '-'}
-                  </td>
-                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                  }`}>{item.OFFICE_NAME_1 || '-'}</td>
-                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                  }`}>{item.PAYEE_NAME_1 || '-'}</td>
-                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                  }`}>{item.EXPENSES_HEAD_1 || '-'}</td>
-                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                  }`}>{item.EXPENSES_SUBHEAD_1 || '-'}</td>
-                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                  }`}>{item.DEPARTMENT_1 || '-'}</td>
-                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                  }`}>{item.APPROVAL_DOER || item.APPROVAL_DOER_2 || '-'}</td>
-                  <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                  }`}>{item.RAISED_BY_1 || '-'}</td>
-                  <td className={`px-4 py-5 lg:px-6 lg:py-6 font-medium text-base ${
-                    isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
-                  }`}>
-                    ₹{(item.Total_Amount || item.Amount || '—').toLocaleString('en-IN')}
-                  </td>
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-center">
-                    {item.Bill_Photo_1 || item.Bill_Photo ? (
-                      <a
-                        href={item.Bill_Photo_1 || item.Bill_Photo}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`inline-flex items-center justify-center p-3 rounded-lg hover:scale-105 transition ${
-                          isDarkMode 
-                            ? 'bg-cyan-900/50 text-cyan-300 hover:bg-cyan-800/70' 
-                            : 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200'
-                        }`}
-                        title="View bill photo"
-                      >
-                        <LucideImage className="w-6 h-6" />
-                      </a>
-                    ) : (
-                      <span className={`${isDarkMode ? 'text-gray-600' : 'text-gray-400'} text-xl`}>—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-5 lg:px-6 lg:py-6 text-center">
-                    <button
-                      onClick={() => openModal(item)}
-                      className={`px-5 py-3 lg:py-4 rounded-lg font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2 justify-center mx-auto min-w-[140px] lg:min-w-[160px] text-base lg:text-lg ${
-                        isDarkMode 
-                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white' 
-                          : 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white'
-                      }`}
-                      title={`Review ${item.Office_Bill_No}`}
-                    >
-                      <Edit3 className="w-5 h-5" />
-                      Review
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+          <tbody className={`divide-y ${isDarkMode ? 'divide-gray-800/60 bg-gray-950/10' : 'divide-gray-200 bg-white/50'}`}>
+  {expenses.map((item) => {
+    // ← यहाँ curly braces {} इस्तेमाल करें और return करें
+
+    const rawUrl = item.Bill_Photo_1 || item.Bill_Photo || '';
+    const photoUrl = typeof rawUrl === 'string' ? rawUrl.trim() : '';
+
+    const hasValidPhoto =
+      photoUrl.length > 0 &&
+      photoUrl !== 'No file uploaded' &&
+      photoUrl !== 'null' &&
+      photoUrl !== 'undefined' &&
+      !photoUrl.toLowerCase().includes('no file') &&
+      photoUrl.startsWith('http');
+
+    return (
+      <tr
+        key={item.Office_Bill_No || item.uid || Math.random()} // Math.random() fallback के लिए
+        className={`hover transition-colors duration-150 ${
+          isDarkMode ? 'hover:bg-indigo-950/40' : 'hover:bg-indigo-50/80'
+        }`}
+      >
+        <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          {item.Timestamp || '-'}
+        </td>
+        <td
+          className={`px-4 py-5 lg:px-6 lg:py-6 font-medium font-bold text-base ${
+            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+          }`}
+        >
+          {item.Office_Bill_No || '-'}
+        </td>
+        <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+          {item.OFFICE_NAME_1 || '-'}
+        </td>
+        <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+          {item.PAYEE_NAME_1 || '-'}
+        </td>
+        <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+          {item.EXPENSES_HEAD_1 || '-'}
+        </td>
+        <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+          {item.EXPENSES_SUBHEAD_1 || '-'}
+        </td>
+        <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          {item.DEPARTMENT_1 || '-'}
+        </td>
+        <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          {item.APPROVAL_DOER || item.APPROVAL_DOER_2 || '-'}
+        </td>
+        <td className={`px-4 py-5 lg:px-6 lg:py-6 text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          {item.RAISED_BY_1 || '-'}
+        </td>
+        <td
+          className={`px-4 py-5 lg:px-6 lg:py-6 font-medium text-base ${
+            isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
+          }`}
+        >
+          ₹{(item.Total_Amount || item.Amount || 0).toLocaleString('en-IN')}
+        </td>
+
+        {/* Bill Photo Column */}
+        <td className="px-4 py-5 lg:px-6 lg:py-6 text-center">
+          {hasValidPhoto ? (
+            <a
+              href={photoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className={`inline-flex items-center justify-center p-3 rounded-lg hover:scale-105 transition cursor-pointer ${
+                isDarkMode
+                  ? 'bg-cyan-900/50 text-cyan-300 hover:bg-cyan-800/70'
+                  : 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200'
+              }`}
+              title="View bill photo"
+            >
+              <LucideImage className="w-6 h-6" />
+            </a>
+          ) : (
+            <span
+              className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} text-base font-medium select-none pointer-events-none`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              N/A
+            </span>
+          )}
+        </td>
+
+        <td className="px-4 py-5 lg:px-6 lg:py-6 text-center">
+          <button
+            onClick={() => openModal(item)}
+            className={`px-5 py-3 lg:py-4 rounded-lg font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2 justify-center mx-auto min-w-[140px] lg:min-w-[160px] text-base lg:text-lg ${
+              isDarkMode
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white'
+                : 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white'
+            }`}
+            title={`Review ${item.Office_Bill_No || 'record'}`}
+          >
+            <Edit3 className="w-5 h-5" />
+            Review
+          </button>
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
           </table>
         </div>
       </div>
@@ -861,6 +890,7 @@ function Approvel_By_Mayaksir() {
                 >
                   <option value="">----- Select ----- *</option>
                   <option value="Done">✅ Done</option>
+                  <option value="Cancel">Cancel</option>
                 </select>
               </div>
 
