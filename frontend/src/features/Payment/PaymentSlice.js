@@ -62,10 +62,10 @@ export const PaymentSlice = createApi({
     }),
 
     updateReconciliation: builder.mutation({
-      query: ({ paymentDetails, bankClosingBalanceAfterPayment, status, remark }) => ({
+      query: ({ paymentDetails,bankDetails, bankClosingBalanceAfterPayment, status, remark }) => ({
         url: '/api/update-reconciliation',
         method: 'POST',
-        body: { paymentDetails, bankClosingBalanceAfterPayment, status, remark },
+        body: { paymentDetails,bankDetails, bankClosingBalanceAfterPayment, status, remark },
       }),
       invalidatesTags: ['ReconciliationData'],
     }),

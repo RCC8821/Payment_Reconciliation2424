@@ -68,7 +68,43 @@ async function uploadToGoogleDrive(base64Data, fileName) {
 }
 
 
+async function generateUniqueUIDINDATA() {
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Client_Payment_In_Data!B7:B10000', // ज्यादा rows के लिए safe limit
+    });
 
+    const values = response.data.values || [];
+
+    if (values.length === 0) {
+      return 'IN-0001';
+    }
+
+    let maxNumber = 0;
+
+    values.forEach(row => {
+      const uid = row[0]?.toString().trim();
+      if (uid && uid.startsWith('IN-')) {
+        // IN- हटाओ, बाकी digits लो
+        const numPart = uid.substring(3); // 'IN-' के बाद से शुरू
+        const cleaned = numPart.replace(/^0+/, ''); // leading zeros हटाओ parsing के लिए
+        const num = parseInt(cleaned, 10);
+        if (!isNaN(num) && num > maxNumber) {
+          maxNumber = num;
+        }
+      }
+    });
+
+    const nextNumber = maxNumber + 1;
+    // 4 digits + leading zeros + hyphen format
+    return `IN-${String(nextNumber).padStart(4, '0')}`;
+
+  } catch (error) {
+    console.error('Error generating UID:', error);
+    return 'IN-0001'; // fallback
+  }
+}
 
 
 router.post('/add-payment', async (req, res) => {
@@ -102,6 +138,8 @@ router.post('/add-payment', async (req, res) => {
       chequePhotoUrl = await uploadToGoogleDrive(ChequePhoto, fileName);
     }
 
+     const UID = await generateUniqueUIDINDATA();
+
     // Timestamp - Exact format: 29/12/2025 11:31:54
     const now = new Date();
     const Timestamp = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
@@ -112,7 +150,7 @@ router.post('/add-payment', async (req, res) => {
     // Row data - Column B (UID) ke liye empty string daal rahe hain taaki formula safe rahe
     const row = [
       cleanTimestamp,             // A - Timestamp (clean - no leading ')
-      '',                         // B - UID → empty chhod rahe hain (sheet ka formula apne aap fill karega)
+      UID,                         // B - UID → empty chhod rahe hain (sheet ka formula apne aap fill karega)
       SiteName,                   // C - SiteName
       Amount || 0,                // D - Amount
       CGST || 0,                  // E - CGST
