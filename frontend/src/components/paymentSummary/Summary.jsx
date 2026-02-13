@@ -1,3 +1,5 @@
+
+
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Chart as ChartJS,
@@ -31,6 +33,11 @@ import {
   useGetOutstandingQuery,
 } from "../../features/Summary/mainSummarySlice";
 
+import {
+  useGetPaymentReconciliationQuery,
+
+} from "../../features/Payment/PaymentSlice";
+
 // Register ChartJS components
 ChartJS.register(
   ArcElement,
@@ -44,6 +51,9 @@ ChartJS.register(
   BarElement,
   Filler,
 );
+
+
+
 
 const MultiSelectFilter = ({
   label,
@@ -302,6 +312,9 @@ const StatCard = ({
   );
 };
 
+
+
+
 const BankBalance = ({ isDarkMode }) => {
   const {
     data: bankApiData,
@@ -310,11 +323,53 @@ const BankBalance = ({ isDarkMode }) => {
     refetch,
   } = useGetBankBalancesQuery();
 
+    const {
+      data: reconciliationData = [],
+      
+    } = useGetPaymentReconciliationQuery();
+
+    console.log("=== RECONCILIATION DATA ===")
+    console.log("Full reconciliation data:", reconciliationData)
+    console.log("Sample items:", reconciliationData.slice(0, 3))
+    console.log("=========================")
+
+    // Bank-wise pending amounts from reconciliation data
+    const bankWisePending = useMemo(() => {
+      const pendingMap = {};
+      
+      reconciliationData.forEach((item) => {
+        // Get bank name from bankDetails field
+        const bankDetails = (item.bankDetails || "").toString().trim();
+        
+        if (bankDetails) {
+          // Get amount from paidAmount field
+          const amountStr = (item.paidAmount || "0").toString().replace(/[₹,]/g, "").trim();
+          const amount = Number(amountStr);
+          
+          if (!isNaN(amount) && amount > 0) {
+            // Add to existing amount if bank already exists
+            pendingMap[bankDetails] = (pendingMap[bankDetails] || 0) + amount;
+          }
+        }
+      });
+      
+      console.log("=== BANK-WISE PENDING FROM RECONCILIATION ===");
+      console.log("Pending Map:", pendingMap);
+      console.log("==========================================");
+      
+      return pendingMap;
+    }, [reconciliationData]);
+
+    const totalPendingAmount = useMemo(() => {
+      return Object.values(bankWisePending).reduce((sum, amt) => sum + amt, 0);
+    }, [bankWisePending]);
+
+
   const bankData = useMemo(() => {
     if (!bankApiData?.balances || !Array.isArray(bankApiData.balances))
       return [];
 
-    return bankApiData.balances
+    const data = bankApiData.balances
       .map((item) => {
         let balanceStr = (item.Balance || "0").toString().trim();
         const balanceNum =
@@ -331,6 +386,13 @@ const BankBalance = ({ isDarkMode }) => {
       })
       .filter((b) => b.bankName !== "Unknown" && b.balance > 0)
       .sort((a, b) => b.balance - a.balance);
+    
+    console.log("=== BANK BALANCE DEBUG ===");
+    console.log("Bank names from balance API:", data.map(b => b.bankName));
+    console.log("Total Balance:", data.reduce((sum, b) => sum + b.balance, 0));
+    console.log("========================");
+    
+    return data;
   }, [bankApiData]);
 
   const totalBalance = useMemo(
@@ -338,17 +400,67 @@ const BankBalance = ({ isDarkMode }) => {
     [bankData],
   );
 
+  const availableBalance = useMemo(
+    () => totalBalance - totalPendingAmount,
+    [totalBalance, totalPendingAmount]
+  );
+
+  // Helper function to get pending amount for a bank with fuzzy matching
+  const getPendingForBank = (bankName) => {
+    // Try exact match first
+    if (bankWisePending[bankName]) {
+      return bankWisePending[bankName];
+    }
+    
+    // Normalize function - removes spaces, brackets, converts to lowercase
+    const normalize = (name) => 
+      name.toLowerCase().replace(/\s+/g, '').replace(/[()]/g, '').trim();
+    
+    const normalizedSearch = normalize(bankName);
+    
+    // Try normalized exact match
+    for (const [key, value] of Object.entries(bankWisePending)) {
+      if (normalize(key) === normalizedSearch) {
+        console.log(`✓ Matched: "${bankName}" with "${key}"`);
+        return value;
+      }
+    }
+    
+    // Try partial match - check if one contains the other
+    for (const [key, value] of Object.entries(bankWisePending)) {
+      const normalizedKey = normalize(key);
+      if (normalizedSearch.includes(normalizedKey) || normalizedKey.includes(normalizedSearch)) {
+        console.log(`✓ Partial match: "${bankName}" with "${key}"`);
+        return value;
+      }
+    }
+    
+    return 0;
+  };
+
   const barChartData = {
     labels: bankData.map((b) => b.bankName),
     datasets: [
       {
-        label: "Balance",
-        data: bankData.map((b) => b.balance),
+        label: "Available Balance",
+        data: bankData.map((b) => {
+          const pending = getPendingForBank(b.bankName);
+          return Math.max(0, b.balance - pending);
+        }),
         backgroundColor: "rgba(16, 185, 129, 0.75)",
         borderColor: "#10b981",
         borderWidth: 1,
         borderRadius: 8,
         hoverBackgroundColor: "rgba(16, 185, 129, 0.95)",
+      },
+      {
+        label: "Pending Reconciliation",
+        data: bankData.map((b) => getPendingForBank(b.bankName)),
+        backgroundColor: "rgba(239, 68, 68, 0.75)",
+        borderColor: "#ef4444",
+        borderWidth: 1,
+        borderRadius: 8,
+        hoverBackgroundColor: "rgba(239, 68, 68, 0.95)",
       },
     ],
   };
@@ -358,7 +470,17 @@ const BankBalance = ({ isDarkMode }) => {
     maintainAspectRatio: false,
     responsive: true,
     plugins: {
-      legend: { display: false },
+      legend: { 
+        display: true,
+        position: "top",
+        labels: {
+          color: isDarkMode ? "#ffffff" : "#111827",
+          font: { size: 13, weight: "600" },
+          padding: 15,
+          usePointStyle: true,
+          pointStyle: "circle",
+        }
+      },
       title: {
         display: true,
         text: "Bank Balance Overview",
@@ -377,17 +499,16 @@ const BankBalance = ({ isDarkMode }) => {
         callbacks: {
           label: (ctx) => {
             const val = ctx.parsed.y;
-            const pct =
-              totalBalance > 0
-                ? ((val / totalBalance) * 100).toFixed(1)
-                : "0.0";
-            return ` ₹${val.toLocaleString("en-IN")}  (${pct}%)`;
+            const totalBankBalance = bankData.find(b => b.bankName === ctx.label)?.balance || 0;
+            const pct = totalBankBalance > 0 ? ((val / totalBankBalance) * 100).toFixed(1) : "0.0";
+            return ` ${ctx.dataset.label}: ₹${val.toLocaleString("en-IN")}  (${pct}% of bank total)`;
           },
         },
       },
     },
     scales: {
       y: {
+        stacked: true,
         beginAtZero: true,
         grid: {
           color: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
@@ -400,6 +521,7 @@ const BankBalance = ({ isDarkMode }) => {
         },
       },
       x: {
+        stacked: true,
         grid: { display: false },
         ticks: {
           color: isDarkMode ? "#d1d5db" : "#374151",
@@ -448,19 +570,51 @@ const BankBalance = ({ isDarkMode }) => {
 
   return (
     <div className="space-y-8">
-      <div
-        className={`rounded-2xl border shadow-2xl p-8 text-center ${isDarkMode ? "bg-gradient-to-br from-emerald-950/60 to-teal-950/50 border-emerald-800/50" : "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200"}`}
-      >
-        <p
-          className={`text-sm font-semibold uppercase tracking-wider mb-3 ${isDarkMode ? "text-emerald-300/90" : "text-emerald-700"}`}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
+          className={`rounded-2xl border shadow-2xl p-8 text-center ${isDarkMode ? "bg-gradient-to-br from-emerald-950/60 to-teal-950/50 border-emerald-800/50" : "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200"}`}
         >
-          Current Total Balance
-        </p>
-        <p
-          className={`text-5xl lg:text-6xl font-black tracking-tight ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          <p
+            className={`text-sm font-semibold uppercase tracking-wider mb-3 ${isDarkMode ? "text-emerald-300/90" : "text-emerald-700"}`}
+          >
+            Current Total Balance
+          </p>
+          <p
+            className={`text-4xl lg:text-4xl font-black tracking-tight ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          >
+            ₹{totalBalance.toLocaleString("en-IN")}
+          </p>
+        </div>
+
+        <div
+          className={`rounded-2xl border shadow-2xl p-8 text-center ${isDarkMode ? "bg-gradient-to-br from-orange-950/60 to-amber-950/50 border-orange-800/50" : "bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200"}`}
         >
-          ₹{totalBalance.toLocaleString("en-IN")}
-        </p>
+          <p
+            className={`text-sm font-semibold uppercase tracking-wider mb-3 ${isDarkMode ? "text-orange-300/90" : "text-orange-700"}`}
+          >
+            Cheque Clearing Pending
+          </p>
+          <p
+            className={`text-4xl lg:text-4xl font-black tracking-tight ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          >
+            ₹{totalPendingAmount.toLocaleString("en-IN")}
+          </p>
+        </div>
+
+        <div
+          className={`rounded-2xl border shadow-2xl p-8 text-center ${isDarkMode ? "bg-gradient-to-br from-blue-950/60 to-cyan-950/50 border-blue-800/50" : "bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200"}`}
+        >
+          <p
+            className={`text-sm font-semibold uppercase tracking-wider mb-3 ${isDarkMode ? "text-blue-300/90" : "text-blue-700"}`}
+          >
+            After Cheque clearing Balance
+          </p>
+          <p
+            className={`text-4xl lg:text-4xl font-black tracking-tight ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          >
+            ₹{availableBalance.toLocaleString("en-IN")}
+          </p>
+        </div>
       </div>
 
       <div
@@ -495,23 +649,50 @@ const BankBalance = ({ isDarkMode }) => {
           All Banks
         </div>
         <div className="divide-y divide-gray-700/30 dark:divide-gray-700/40 max-h-[420px] overflow-y-auto">
-          {bankData.map((bank, idx) => (
-            <div
-              key={idx}
-              className={`px-6 py-4 flex justify-between items-center hover:bg-opacity-40 transition-colors ${isDarkMode ? "hover:bg-emerald-950/20" : "hover:bg-emerald-50/60"}`}
-            >
-              <span
-                className={`font-medium text-base ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
+          {bankData.map((bank, idx) => {
+            const pending = getPendingForBank(bank.bankName);
+            const available = Math.max(0, bank.balance - pending);
+            
+            return (
+              <div
+                key={idx}
+                className={`px-6 py-4 hover:bg-opacity-40 transition-colors ${isDarkMode ? "hover:bg-emerald-950/20" : "hover:bg-emerald-50/60"}`}
               >
-                {bank.bankName}
-              </span>
-              <span
-                className={`text-xl font-bold tracking-tight ${isDarkMode ? "text-emerald-400" : "text-emerald-700"}`}
-              >
-                ₹{bank.balanceFormatted}
-              </span>
-            </div>
-          ))}
+                <div className="flex justify-between items-center mb-2">
+                  <span
+                    className={`font-medium text-base ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}
+                  >
+                    {bank.bankName}
+                  </span>
+                  <span
+                    className={`text-xl font-bold tracking-tight ${isDarkMode ? "text-emerald-400" : "text-emerald-700"}`}
+                  >
+                    ₹{bank.balanceFormatted}
+                  </span>
+                </div>
+                
+                {pending > 0 && (
+                  <div className="flex justify-between items-center text-sm mt-1">
+                    <span className={isDarkMode ? "text-gray-400" : "text-gray-600"}>
+                      <span className={isDarkMode ? "text-red-400" : "text-red-600"}>
+                        Pending: ₹{pending.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                      {" | "}
+                      <span className={isDarkMode ? "text-emerald-400" : "text-emerald-600"}>
+                        Available: ₹{available.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -1016,6 +1197,9 @@ const Outstanding = ({ isDarkMode }) => {
 
 
 
+
+
+
 // const Summary = () => {
 //   const isDarkMode = localStorage.getItem("isDarkMode") === "true";
 //   const [activeTab, setActiveTab] = useState("summary");
@@ -1039,7 +1223,7 @@ const Outstanding = ({ isDarkMode }) => {
 //   const apiTotalOut = useMemo(() => parseAmount(apiData?.outTotal), [apiData]);
 //   const apiNetBalance = useMemo(
 //     () => parseAmount(apiData?.netBalance),
-//     [apiData],
+//     [apiData]
 //   );
 
 //   const processedTransactions = useMemo(() => {
@@ -1058,7 +1242,7 @@ const Outstanding = ({ isDarkMode }) => {
 //           category: t.expHead || t.siteName || "General",
 //         };
 //       })
-//       .filter((t) => t.date !== null);
+//       .filter((t) => t.date !== null && !isNaN(t.date?.getTime()));
 //   }, [apiData]);
 
 //   const allUniqueOptions = useMemo(
@@ -1066,23 +1250,23 @@ const Outstanding = ({ isDarkMode }) => {
 //       siteNames: [
 //         "All",
 //         ...new Set(
-//           processedTransactions.map((t) => t.siteName || "").filter(Boolean),
+//           processedTransactions.map((t) => t.siteName || "").filter(Boolean)
 //         ),
 //       ].sort(),
 //       bankNames: [
 //         "All",
 //         ...new Set(
-//           processedTransactions.map((t) => t.bankName || "").filter(Boolean),
+//           processedTransactions.map((t) => t.bankName || "").filter(Boolean)
 //         ),
 //       ].sort(),
 //       expHeads: [
 //         "All",
 //         ...new Set(
-//           processedTransactions.map((t) => t.category || "").filter(Boolean),
+//           processedTransactions.map((t) => t.category || "").filter(Boolean)
 //         ),
 //       ].sort(),
 //     }),
-//     [processedTransactions],
+//     [processedTransactions]
 //   );
 
 //   const cascadingOptions = useMemo(() => {
@@ -1103,18 +1287,53 @@ const Outstanding = ({ isDarkMode }) => {
 //     ].sort();
 
 //     return { siteNames: allUniqueOptions.siteNames, bankNames, expHeads };
-//   }, [processedTransactions, filters, allUniqueOptions]);
+//   }, [processedTransactions, filters, allUniqueOptions.siteNames]);
 
 //   const finalFilteredData = useMemo(() => {
 //     let data = processedTransactions;
 
 //     let startDate = new Date(0);
-//     if (period === "1y") startDate.setFullYear(currentDate.getFullYear() - 1);
-//     else if (period === "6m") startDate.setMonth(currentDate.getMonth() - 6);
-//     else if (period === "3m") startDate.setMonth(currentDate.getMonth() - 3);
-//     else if (period === "1m") startDate.setMonth(currentDate.getMonth() - 1);
-//     else if (period === "2w") startDate.setDate(currentDate.getDate() - 14);
-//     else if (period === "1w") startDate.setDate(currentDate.getDate() - 7);
+
+//     switch (period) {
+//       case "1w":
+//         startDate = new Date(currentDate);
+//         startDate.setDate(currentDate.getDate() - 7);
+//         break;
+//       case "2w":
+//         startDate = new Date(currentDate);
+//         startDate.setDate(currentDate.getDate() - 14);
+//         break;
+//       case "1m":
+//         startDate = new Date(
+//           currentDate.getFullYear(),
+//           currentDate.getMonth() - 1,
+//           1
+//         );
+//         break;
+//       case "3m":
+//         startDate = new Date(
+//           currentDate.getFullYear(),
+//           currentDate.getMonth() - 3,
+//           1
+//         );
+//         break;
+//       case "6m":
+//         startDate = new Date(
+//           currentDate.getFullYear(),
+//           currentDate.getMonth() - 6,
+//           1
+//         );
+//         break;
+//       case "1y":
+//         startDate = new Date(currentDate.getFullYear() - 1, 0, 1);
+//         break;
+//       case "all":
+//       default:
+//         startDate = new Date(0);
+//         break;
+//     }
+
+//     startDate.setHours(0, 0, 0, 0);
 
 //     data = data.filter((t) => t.date >= startDate);
 
@@ -1172,30 +1391,35 @@ const Outstanding = ({ isDarkMode }) => {
 //     if (finalFilteredData.length === 0) return { labels: [], datasets: [] };
 
 //     const monthlyData = {};
+
 //     finalFilteredData.forEach((t) => {
 //       if (!t.date) return;
-//       const monthYear = t.date.toLocaleDateString("en-IN", {
+//       const year = t.date.getFullYear();
+//       const month = String(t.date.getMonth() + 1).padStart(2, "0");
+//       const key = `${year}-${month}`;
+//       const displayLabel = t.date.toLocaleDateString("en-IN", {
 //         month: "short",
 //         year: "numeric",
 //       });
-//       monthlyData[monthYear] = monthlyData[monthYear] || {
+
+//       monthlyData[key] = monthlyData[key] || {
 //         income: 0,
 //         expense: 0,
+//         display: displayLabel,
 //       };
-//       if (t.type === "in") monthlyData[monthYear].income += t.amount;
-//       else monthlyData[monthYear].expense += t.amount;
+
+//       if (t.type === "in") monthlyData[key].income += t.amount;
+//       else monthlyData[key].expense += t.amount;
 //     });
 
-//     const sortedMonths = Object.keys(monthlyData).sort(
-//       (a, b) => new Date(a) - new Date(b),
-//     );
+//     const sortedKeys = Object.keys(monthlyData).sort();
 
 //     return {
-//       labels: sortedMonths,
+//       labels: sortedKeys.map((key) => monthlyData[key].display),
 //       datasets: [
 //         {
 //           label: "Income",
-//           data: sortedMonths.map((m) => monthlyData[m].income),
+//           data: sortedKeys.map((key) => monthlyData[key].income),
 //           backgroundColor: "rgba(16, 185, 129, 0.75)",
 //           borderColor: "#10b981",
 //           borderWidth: 1,
@@ -1203,7 +1427,7 @@ const Outstanding = ({ isDarkMode }) => {
 //         },
 //         {
 //           label: "Expense",
-//           data: sortedMonths.map((m) => monthlyData[m].expense),
+//           data: sortedKeys.map((key) => monthlyData[key].expense),
 //           backgroundColor: "rgba(244, 63, 94, 0.75)",
 //           borderColor: "#f43f5e",
 //           borderWidth: 1,
@@ -1381,8 +1605,8 @@ const Outstanding = ({ isDarkMode }) => {
 //                   {tab === "summary"
 //                     ? "Summary"
 //                     : tab === "bankBalance"
-//                       ? "Bank Balance"
-//                       : "AccrualAccounting"}
+//                     ? "Bank Balance"
+//                     : "AccrualAccounting"}
 //                 </button>
 //               ))}
 //             </div>
@@ -1665,8 +1889,7 @@ const Outstanding = ({ isDarkMode }) => {
 //                     <p
 //                       className={`text-3xl lg:text-4xl font-bold ${balance >= 0 ? "text-emerald-500" : "text-rose-500"}`}
 //                     >
-//                       {totalIn > 0 ? ((balance / totalIn) * 100).toFixed(1) : 0}
-//                       %
+//                       {totalIn > 0 ? ((balance / totalIn) * 100).toFixed(1) : 0}%
 //                     </p>
 //                   </div>
 //                 </div>
@@ -1850,7 +2073,6 @@ const Outstanding = ({ isDarkMode }) => {
 
 
 
-
 const Summary = () => {
   const isDarkMode = localStorage.getItem("isDarkMode") === "true";
   const [activeTab, setActiveTab] = useState("summary");
@@ -1870,12 +2092,8 @@ const Summary = () => {
     refetch,
   } = useGetMainBankSummaryQuery();
 
-  const apiTotalIn = useMemo(() => parseAmount(apiData?.inTotal), [apiData]);
-  const apiTotalOut = useMemo(() => parseAmount(apiData?.outTotal), [apiData]);
-  const apiNetBalance = useMemo(
-    () => parseAmount(apiData?.netBalance),
-    [apiData]
-  );
+  // Removed unused apiTotalIn, apiTotalOut, apiNetBalance memos
+  // They were causing the inconsistency problem
 
   const processedTransactions = useMemo(() => {
     const transactions = apiData?.transactions || [];
@@ -1998,31 +2216,21 @@ const Summary = () => {
     return data;
   }, [processedTransactions, period, currentDate, filters]);
 
+  // ────────────────────────────────────────────────
+  // FIXED: Always calculate from the actual filtered transactions
+  // No more using apiData.inTotal / outTotal → solves All time showing less amount
+  // ────────────────────────────────────────────────
   const totalIn = useMemo(() => {
-    if (
-      period === "all" &&
-      filters.siteNames.length === 0 &&
-      filters.bankNames.length === 0 &&
-      filters.expHeads.length === 0
-    )
-      return apiTotalIn;
     return finalFilteredData
       .filter((t) => t.type === "in")
       .reduce((sum, t) => sum + t.amount, 0);
-  }, [finalFilteredData, period, apiTotalIn, filters]);
+  }, [finalFilteredData]);
 
   const totalOut = useMemo(() => {
-    if (
-      period === "all" &&
-      filters.siteNames.length === 0 &&
-      filters.bankNames.length === 0 &&
-      filters.expHeads.length === 0
-    )
-      return apiTotalOut;
     return finalFilteredData
       .filter((t) => t.type === "out")
       .reduce((sum, t) => sum + t.amount, 0);
-  }, [finalFilteredData, period, apiTotalOut, filters]);
+  }, [finalFilteredData]);
 
   const balance = totalIn - totalOut;
 
@@ -2242,7 +2450,7 @@ const Summary = () => {
             <div
               className={`border-2 p-1.5 rounded-xl shadow-lg inline-flex flex-wrap gap-1 ${isDarkMode ? "bg-black/50 border-indigo-600/50" : "bg-white/60 border-indigo-300/60"}`}
             >
-              {["summary", "bankBalance", "AccrualAccounting"].map((tab) => (
+              {["summary", "bankBalance", "Accrual Accounting"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -2250,14 +2458,14 @@ const Summary = () => {
                 >
                   {tab === "summary" && <ListOrdered className="w-5 h-5" />}
                   {tab === "bankBalance" && <Building2 className="w-5 h-5" />}
-                  {tab === "AccrualAccounting" && (
+                  {tab === "Accrual Accounting" && (
                     <AlertCircle className="w-5 h-5" />
                   )}
                   {tab === "summary"
                     ? "Summary"
                     : tab === "bankBalance"
                     ? "Bank Balance"
-                    : "AccrualAccounting"}
+                    : "Accrual Accounting"}
                 </button>
               ))}
             </div>
@@ -2667,7 +2875,7 @@ const Summary = () => {
         )}
 
         {activeTab === "bankBalance" && <BankBalance isDarkMode={isDarkMode} />}
-        {activeTab === "AccrualAccounting" && (
+        {activeTab === "Accrual Accounting" && (
           <Outstanding isDarkMode={isDarkMode} />
         )}
       </div>
@@ -2721,6 +2929,5 @@ const Summary = () => {
     </div>
   );
 };
-
 
 export default Summary;
