@@ -106,34 +106,5 @@ router.get("/outStanding", async (req, res) => {
 
 
 
-// router.get("/Bank-Balance",async (req,res)=>{
-//     try {
-
-//     const response = await sheets.spreadsheets.values.get({
-//       spreadsheetId:Summary_ID,
-//       range: 'Bank Balance!A2:B',
-//     });
-
-//     let rows = response.data.values || [];
-
-//     if (rows.length === 0) {
-//       return res.json({ success: true, data: [] });
-//     }
-
-  
-//     const filteredData = rows
-//     //  .filter(row => row[12] && !row[13])
-//       .map(row => ({
-//         BankName: (row[0] || '').toString().trim(),
-//         Balance: (row[1] || '').toString().trim(),
-       
-//       }));
-
-//     res.json({ success: true, data: filteredData });
-//   } catch (error) {
-//     console.error('GET /Bank Balnace:', error);
-//     res.status(500).json({ success: false, error: 'Failed to fetch data' });
-//   }
-// })
 
 module.exports = router;

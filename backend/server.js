@@ -36,7 +36,9 @@ const DIMENSION_OFFICE_PAYMANT= require('./DIMENSION_OFFICE_EXPENSES/DIM_Payment
 
 const SummaryMain = require('./Summary/SummaryMain')
 
+//////// GST /////
 
+const GSTData= require('./GST/GST')
 
 const app = express();
 // 1. CORS (Pehle daalo)
@@ -104,6 +106,11 @@ app.use('/api/Dim-Expenses',DIMENSION_OFFICE_PAYMANT)
 //////////////////////////// Summary /////
 
 app.use('/apiSummary',SummaryMain)
+
+//////////////////// GST
+
+
+app.use('/api',GSTData)
 
 // 8. Start Server
 const PORT = process.env.PORT || 5000;
