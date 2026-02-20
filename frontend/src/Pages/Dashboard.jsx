@@ -1,5 +1,4 @@
 
-
 // import React, { useState, useEffect, useRef } from "react";
 // import { useNavigate } from "react-router-dom";
 // import { useDispatch, useSelector } from "react-redux";
@@ -89,6 +88,7 @@
 
 //   // IMPORTANT CHANGE: Summary ko default mein false rakha hai
 //   const [isSummarySelected, setIsSummarySelected] = useState(false);
+//   const [isGstSelected, setIsGstSelected] = useState(false);
 
 //   const [isDarkMode, setIsDarkMode] = useState(() => {
 //     const saved = localStorage.getItem("isDarkMode");
@@ -116,9 +116,10 @@
 //     { id: "RCC_Approvel", name: "RCC Approval", email: "rajakravi9@gmail.com" },
 //     { id: "RCC_Approvel", name: "RCC Approval", email: "ravinder@rccinfrastructures.com" },
 //     { id: "RCC_Approvel", name: "RCC Approval", email: "varsharccinfra@gmail.com" },
+//     { id: "RCC_Approvel", name: "RCC Approval", email: "Ramprasad@gmail.com"},
 //     { id: "RCC_Approvel", name: "RCC Approval", email: "Bharti@vipinchauhanassociates.com" },
 //     { id: "Approvel_By_Mayaksir", name: "Approval By Mayanksir", email: "rccinfra2024@gmail.com" },
-//     { id: "OfficeExpensesPayment", name: "Office Expenses Payment", email: "Ramprasad@gmail.com" },
+//     { id: "OfficeExpensesPayment", name: "Office Expenses Payment", email: "Ramprasad@gmail.com"  },
 //     { id: "OfficeExpensesPayment", name: "Office Expenses Payment", email: "varsharccinfra@gmail.com" },
 //   ];
 
@@ -156,7 +157,7 @@
 //     }
 
 //     const specialSummaryEmails = ["rccinfra2024@gmail.com","ravinder@rccinfrastructures.com"];
-//     if (section.toLowerCase() === "summary") {
+//     if (section.toLowerCase() === "summary" || section.toLowerCase() === "gst") {
 //       return specialSummaryEmails.includes(userEmail.toLowerCase());
 //     }
 
@@ -179,7 +180,7 @@
 
 //     if (userEmail.toLowerCase() === specialUserEmail) {
 //       if (section.toUpperCase() === "RCC") {
-//         return pages.filter(p => p.id === "OfficeExpensesPayment");
+//         return pages.filter(p => p.id === "OfficeExpensesPayment" || "RCC_Approvel");
 //       }
 //       if (section.toUpperCase() === "VRN") {
 //         return pages.filter(p => p.id === "VRN_payment_Office");
@@ -222,11 +223,20 @@
 //       setSelectedVrnPage(null);
 //       setSelectedDimensionPage(null);
 //       setIsSummarySelected(true);
+//       setIsGstSelected(false);
+//     } else if (type === "gst") {
+//       setSelectedPage(null);
+//       setSelectedRccPage(null);
+//       setSelectedVrnPage(null);
+//       setSelectedDimensionPage(null);
+//       setIsSummarySelected(false);
+//       setIsGstSelected(true);
 //     } else if (type === "payment") {
 //       setSelectedRccPage(null);
 //       setSelectedVrnPage(null);
 //       setSelectedDimensionPage(null);
 //       setIsSummarySelected(false);
+//       setIsGstSelected(false);
 //       setSelectedPage(id);
 //       localStorage.setItem("selectedPage", id);
 //     } else if (type === "rcc") {
@@ -234,6 +244,7 @@
 //       setSelectedVrnPage(null);
 //       setSelectedDimensionPage(null);
 //       setIsSummarySelected(false);
+//       setIsGstSelected(false);
 //       setSelectedRccPage(id);
 //       localStorage.setItem("selectedRccPage", id);
 //     } else if (type === "vrn") {
@@ -241,6 +252,7 @@
 //       setSelectedRccPage(null);
 //       setSelectedDimensionPage(null);
 //       setIsSummarySelected(false);
+//       setIsGstSelected(false);
 //       setSelectedVrnPage(id);
 //       localStorage.setItem("selectedVrnPage", id);
 //     } else if (type === "dimension") {
@@ -248,6 +260,7 @@
 //       setSelectedRccPage(null);
 //       setSelectedVrnPage(null);
 //       setIsSummarySelected(false);
+//       setIsGstSelected(false);
 //       setSelectedDimensionPage(id);
 //       localStorage.setItem("selectedDimensionPage", id);
 //     }
@@ -267,7 +280,8 @@
 //       selectedRccPage ||
 //       selectedVrnPage ||
 //       selectedDimensionPage ||
-//       isSummarySelected;
+//       isSummarySelected ||
+//       isGstSelected;
 
 //     if (hasAnySelection) return;
 
@@ -317,6 +331,7 @@
 //     selectedVrnPage,
 //     selectedDimensionPage,
 //     isSummarySelected,
+//     isGstSelected,
 //   ]);
 
 //   const handleLogout = () => {
@@ -382,6 +397,9 @@
 //   if (isSummarySelected) {
 //     ActiveComponent = SummaryDashboard;
 //     pageTitle = "Summary";
+//   } else if (isGstSelected) {
+//     ActiveComponent = GstData;
+//     pageTitle = "";
 //   } else if (selectedPage) {
 //     pageTitle = paymentPages.find((p) => p.id === selectedPage)?.name || "Payment";
 //     if (selectedPage === "Reconciliation") ActiveComponent = Reconciliation;
@@ -460,6 +478,19 @@
 //                 >
 //                   <BarChart3 className="w-4 h-4" />
 //                   <span>Summary</span>
+//                 </button>
+//               )}
+//               {hasAccess("gst") && (
+//                 <button
+//                   onClick={() => selectPage(null, "gst")}
+//                   className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+//                     isGstSelected
+//                       ? "bg-gradient-to-r from-amber-600 to-yellow-600 text-white shadow-md"
+//                       : `${textPrimary} ${hoverBg}`
+//                   }`}
+//                 >
+//                   <DollarSign className="w-4 h-4" />
+//                   <span>GST</span>
 //                 </button>
 //               )}
 
@@ -764,6 +795,19 @@
 //                   >
 //                     <BarChart3 className="w-5 h-5" />
 //                     <span className="font-medium">Summary</span>
+//                   </button>
+//                 )}
+//                 {hasAccess("gst") && (
+//                   <button
+//                     onClick={() => selectPage(null, "gst")}
+//                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
+//                       isGstSelected
+//                         ? "bg-gradient-to-r from-amber-700 to-yellow-700 text-white shadow-md"
+//                         : `${textSecondary} ${hoverBg}`
+//                     }`}
+//                   >
+//                     <DollarSign className="w-5 h-5" />
+//                     <span className="font-medium">GST</span>
 //                   </button>
 //                 )}
 
@@ -1078,7 +1122,7 @@
 
 
 
-////////
+
 
 
 
@@ -1101,7 +1145,6 @@ import {
 
 // Components imports
 import SummaryDashboard from "../../src/components/paymentSummary/Summary";
-
 import Reconciliation from "../components/Payment/Reconciliation";
 import Forms from "../components/Payment/Form";
 import ActualPaymentIn from "../components/Payment/Actual_Payment_in";
@@ -1119,7 +1162,6 @@ import DimApproval1 from "../components/DimensionOffice/Dim_Approvel1";
 import DimApproval2 from "../components/DimensionOffice/Dim_Approvel2";
 import DimensionTransfer from "../components/DimensionOffice/Dim_Payment_Office";
 
-////// 
 import GstData from "../components/GST/GstData";
 
 const Dashboard = () => {
@@ -1169,7 +1211,6 @@ const Dashboard = () => {
     return saved && saved !== "null" ? saved : null;
   });
 
-  // IMPORTANT CHANGE: Summary ko default mein false rakha hai
   const [isSummarySelected, setIsSummarySelected] = useState(false);
   const [isGstSelected, setIsGstSelected] = useState(false);
 
@@ -1199,6 +1240,7 @@ const Dashboard = () => {
     { id: "RCC_Approvel", name: "RCC Approval", email: "rajakravi9@gmail.com" },
     { id: "RCC_Approvel", name: "RCC Approval", email: "ravinder@rccinfrastructures.com" },
     { id: "RCC_Approvel", name: "RCC Approval", email: "varsharccinfra@gmail.com" },
+    { id: "RCC_Approvel", name: "RCC Approval", email: "Ramprasad@gmail.com" },
     { id: "RCC_Approvel", name: "RCC Approval", email: "Bharti@vipinchauhanassociates.com" },
     { id: "Approvel_By_Mayaksir", name: "Approval By Mayanksir", email: "rccinfra2024@gmail.com" },
     { id: "OfficeExpensesPayment", name: "Office Expenses Payment", email: "Ramprasad@gmail.com" },
@@ -1218,11 +1260,13 @@ const Dashboard = () => {
     { id: "Dim_Payment", name: "Dim Payment Office", email: "Ramprasad@gmail.com" },
   ];
 
-  const getUniquePagesForAdmin = (pages) => {
+  // Improved unique function – uses both id and name as key
+  const getUniquePages = (pages) => {
     const seen = new Map();
     return pages.reduce((unique, page) => {
-      if (!seen.has(page.id)) {
-        seen.set(page.id, true);
+      const key = `${page.id}|${page.name}`;
+      if (!seen.has(key)) {
+        seen.set(key, true);
         unique.push({ id: page.id, name: page.name });
       }
       return unique;
@@ -1233,12 +1277,9 @@ const Dashboard = () => {
     if (userType === "ADMIN") return true;
 
     const specialUserEmail = "Ramprasad@gmail.com".toLowerCase();
+    if (userEmail.toLowerCase() === specialUserEmail) return true;
 
-    if (userEmail.toLowerCase() === specialUserEmail) {
-      return true;
-    }
-
-    const specialSummaryEmails = ["rccinfra2024@gmail.com","ravinder@rccinfrastructures.com"];
+    const specialSummaryEmails = ["rccinfra2024@gmail.com", "ravinder@rccinfrastructures.com"];
     if (section.toLowerCase() === "summary" || section.toLowerCase() === "gst") {
       return specialSummaryEmails.includes(userEmail.toLowerCase());
     }
@@ -1262,13 +1303,14 @@ const Dashboard = () => {
 
     if (userEmail.toLowerCase() === specialUserEmail) {
       if (section.toUpperCase() === "RCC") {
-        return pages.filter(p => p.id === "OfficeExpensesPayment");
+        // Fixed: proper condition
+        return pages.filter((p) => p.id === "OfficeExpensesPayment" || p.id === "RCC_Approvel");
       }
       if (section.toUpperCase() === "VRN") {
-        return pages.filter(p => p.id === "VRN_payment_Office");
+        return pages.filter((p) => p.id === "VRN_payment_Office");
       }
       if (section.toUpperCase() === "DIMENSION") {
-        return pages.filter(p => p.id === "Dim_Payment");
+        return pages.filter((p) => p.id === "Dim_Payment");
       }
       return pages;
     }
@@ -1283,8 +1325,10 @@ const Dashboard = () => {
   const filteredVrnPages = getFilteredPages("VRN", vrnOfficePages);
   const filteredDimensionPages = getFilteredPages("DIMENSION", dimensionOfficePages);
 
-  const displayRccPages =
-    userType === "ADMIN" ? getUniquePagesForAdmin(rccOfficePages) : filteredRccPages;
+  // Always show unique pages in dropdown (fixes duplicates for all users)
+  const displayRccPages = getUniquePages(
+    userType === "ADMIN" ? rccOfficePages : filteredRccPages
+  );
 
   const shouldShowDropdown = (pages) => pages.length > 1;
 
@@ -1350,13 +1394,10 @@ const Dashboard = () => {
     setIsMobileMenuOpen(false);
   };
 
-  // ───────────────────────────────────────────────────────────────
-  // Yeh part sabse important hai → default mein Summary nahi khulega
-  // ───────────────────────────────────────────────────────────────
+  // Default page selection logic
   useEffect(() => {
     if (!userType) return;
 
-    // Agar pehle se koi selection saved hai to usko respect karo
     const hasAnySelection =
       selectedPage ||
       selectedRccPage ||
@@ -1367,18 +1408,15 @@ const Dashboard = () => {
 
     if (hasAnySelection) return;
 
-    // Special user logic (Ramprasad)
     const specialUserEmail = "Ramprasad@gmail.com".toLowerCase();
 
     if (userEmail.toLowerCase() === specialUserEmail) {
-      // Special case mein RCC ka last step priority
       if (filteredRccPages.some((p) => p.id === "OfficeExpensesPayment")) {
         selectPage("OfficeExpensesPayment", "rcc");
         return;
       }
     }
 
-    // Normal users ke liye pehla available module kholo
     if (hasAccess("payment") && filteredPaymentPages.length > 0) {
       selectPage(filteredPaymentPages[0].id, "payment");
       return;
@@ -1398,9 +1436,6 @@ const Dashboard = () => {
       selectPage(filteredDimensionPages[0].id, "dimension");
       return;
     }
-
-    // Agar bilkul kuch nahi mila to welcome screen dikhega (Summary nahi)
-    // setIsSummarySelected(true);   ← YEH LINE COMMENT / HATA DI HAI
   }, [
     userType,
     userEmail,
@@ -1408,6 +1443,7 @@ const Dashboard = () => {
     filteredRccPages,
     filteredVrnPages,
     filteredDimensionPages,
+    displayRccPages,
     selectedPage,
     selectedRccPage,
     selectedVrnPage,
@@ -1445,7 +1481,7 @@ const Dashboard = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Theme styles
+  // Theme variables
   const bgGradient = isDarkMode
     ? "bg-gradient-to-br from-black via-indigo-950 to-purple-950"
     : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50";
@@ -1472,16 +1508,16 @@ const Dashboard = () => {
 
   const particleColor = isDarkMode ? "bg-white" : "bg-indigo-400";
 
-  // Active Component Logic
+  // Active Component
   let ActiveComponent = null;
   let pageTitle = "";
 
   if (isSummarySelected) {
     ActiveComponent = SummaryDashboard;
-    pageTitle = "Summary";
+    // pageTitle = "Summary";
   } else if (isGstSelected) {
     ActiveComponent = GstData;
-    pageTitle = "";
+    // pageTitle = "GST";
   } else if (selectedPage) {
     pageTitle = paymentPages.find((p) => p.id === selectedPage)?.name || "Payment";
     if (selectedPage === "Reconciliation") ActiveComponent = Reconciliation;
@@ -1509,9 +1545,17 @@ const Dashboard = () => {
     <div className={`min-h-screen relative ${bgGradient} overflow-hidden transition-colors duration-300`}>
       {/* Background orbs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className={`absolute -top-20 -left-20 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[500px] lg:h-[500px] ${orbColors[0]} rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse-slow`}></div>
-        <div className={`absolute top-1/4 right-0 w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] lg:w-[600px] lg:h-[600px] ${orbColors[1]} rounded-full mix-blend-multiply filter blur-3xl opacity-25 animate-pulse-slow`} style={{ animationDelay: "3s" }}></div>
-        <div className={`absolute -bottom-32 left-1/3 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[450px] lg:h-[450px] ${orbColors[2]} rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse-slow`} style={{ animationDelay: "6s" }}></div>
+        <div
+          className={`absolute -top-20 -left-20 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[500px] lg:h-[500px] ${orbColors[0]} rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse-slow`}
+        ></div>
+        <div
+          className={`absolute top-1/4 right-0 w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] lg:w-[600px] lg:h-[600px] ${orbColors[1]} rounded-full mix-blend-multiply filter blur-3xl opacity-25 animate-pulse-slow`}
+          style={{ animationDelay: "3s" }}
+        ></div>
+        <div
+          className={`absolute -bottom-32 left-1/3 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[450px] lg:h-[450px] ${orbColors[2]} rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse-slow`}
+          style={{ animationDelay: "6s" }}
+        ></div>
       </div>
 
       {/* Particles */}
@@ -1531,7 +1575,10 @@ const Dashboard = () => {
       </div>
 
       {/* Navbar */}
-      <nav ref={navbarRef} className={`fixed top-0 left-0 right-0 z-50 ${navBg} border-b shadow-xl transition-colors duration-300`}>
+      <nav
+        ref={navbarRef}
+        className={`fixed top-0 left-0 right-0 z-50 ${navBg} border-b shadow-xl transition-colors duration-300`}
+      >
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo */}
@@ -1562,6 +1609,7 @@ const Dashboard = () => {
                   <span>Summary</span>
                 </button>
               )}
+
               {hasAccess("gst") && (
                 <button
                   onClick={() => selectPage(null, "gst")}
@@ -1577,231 +1625,247 @@ const Dashboard = () => {
               )}
 
               {hasAccess("payment") && (
-                shouldShowDropdown(filteredPaymentPages) ? (
-                  <div className="relative">
+                <>
+                  {shouldShowDropdown(filteredPaymentPages) ? (
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setIsPaymentDropdownOpen(!isPaymentDropdownOpen);
+                          setIsRccDropdownOpen(false);
+                          setIsVrnDropdownOpen(false);
+                          setIsDimensionDropdownOpen(false);
+                        }}
+                        className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+                          isPaymentDropdownOpen || selectedPage
+                            ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md"
+                            : `${textPrimary} ${hoverBg}`
+                        }`}
+                      >
+                        <DollarSign className="w-4 h-4" />
+                        <span>Payment</span>
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform ${isPaymentDropdownOpen ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                      {isPaymentDropdownOpen && (
+                        <div
+                          className={`absolute top-full left-0 mt-2 w-56 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}
+                        >
+                          {filteredPaymentPages.map((page) => (
+                            <button
+                              key={page.id}
+                              onClick={() => selectPage(page.id, "payment")}
+                              className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
+                                selectedPage === page.id
+                                  ? isDarkMode
+                                    ? "bg-emerald-900/40 text-emerald-200 font-medium"
+                                    : "bg-emerald-100 text-emerald-800 font-medium"
+                                  : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
+                              }`}
+                            >
+                              {page.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : filteredPaymentPages.length === 1 ? (
                     <button
-                      onClick={() => {
-                        setIsPaymentDropdownOpen(!isPaymentDropdownOpen);
-                        setIsRccDropdownOpen(false);
-                        setIsVrnDropdownOpen(false);
-                        setIsDimensionDropdownOpen(false);
-                      }}
+                      onClick={() => selectPage(filteredPaymentPages[0].id, "payment")}
                       className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                        isPaymentDropdownOpen || selectedPage
+                        selectedPage === filteredPaymentPages[0].id
                           ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md"
                           : `${textPrimary} ${hoverBg}`
                       }`}
                     >
                       <DollarSign className="w-4 h-4" />
-                      <span>Payment</span>
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform ${isPaymentDropdownOpen ? "rotate-180" : ""}`}
-                      />
+                      <span>{filteredPaymentPages[0].name}</span>
                     </button>
-                    {isPaymentDropdownOpen && (
-                      <div className={`absolute top-full left-0 mt-2 w-56 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}>
-                        {filteredPaymentPages.map((page) => (
-                          <button
-                            key={page.id}
-                            onClick={() => selectPage(page.id, "payment")}
-                            className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                              selectedPage === page.id
-                                ? isDarkMode
-                                  ? "bg-emerald-900/40 text-emerald-200 font-medium"
-                                  : "bg-emerald-100 text-emerald-800 font-medium"
-                                : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
-                            }`}
-                          >
-                            {page.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : filteredPaymentPages.length === 1 ? (
-                  <button
-                    onClick={() => selectPage(filteredPaymentPages[0].id, "payment")}
-                    className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                      selectedPage === filteredPaymentPages[0].id
-                        ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md"
-                        : `${textPrimary} ${hoverBg}`
-                    }`}
-                  >
-                    <DollarSign className="w-4 h-4" />
-                    <span>{filteredPaymentPages[0].name}</span>
-                  </button>
-                ) : null
+                  ) : null}
+                </>
               )}
 
               {hasAccess("rcc") && (
-                shouldShowDropdown(displayRccPages) ? (
-                  <div className="relative">
+                <>
+                  {shouldShowDropdown(displayRccPages) ? (
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setIsRccDropdownOpen(!isRccDropdownOpen);
+                          setIsPaymentDropdownOpen(false);
+                          setIsVrnDropdownOpen(false);
+                          setIsDimensionDropdownOpen(false);
+                        }}
+                        className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+                          isRccDropdownOpen || selectedRccPage
+                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md"
+                            : `${textPrimary} ${hoverBg}`
+                        }`}
+                      >
+                        <Building2 className="w-4 h-4" />
+                        <span>RCC Office</span>
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform ${isRccDropdownOpen ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                      {isRccDropdownOpen && (
+                        <div
+                          className={`absolute top-full left-0 mt-2 w-64 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}
+                        >
+                          {displayRccPages.map((page) => (
+                            <button
+                              key={page.id}
+                              onClick={() => selectPage(page.id, "rcc")}
+                              className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
+                                selectedRccPage === page.id
+                                  ? isDarkMode
+                                    ? "bg-purple-900/40 text-purple-200 font-medium"
+                                    : "bg-purple-100 text-purple-800 font-medium"
+                                  : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
+                              }`}
+                            >
+                              {page.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : displayRccPages.length === 1 ? (
                     <button
-                      onClick={() => {
-                        setIsRccDropdownOpen(!isRccDropdownOpen);
-                        setIsPaymentDropdownOpen(false);
-                        setIsVrnDropdownOpen(false);
-                        setIsDimensionDropdownOpen(false);
-                      }}
+                      onClick={() => selectPage(displayRccPages[0].id, "rcc")}
                       className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                        isRccDropdownOpen || selectedRccPage
+                        selectedRccPage === displayRccPages[0].id
                           ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md"
                           : `${textPrimary} ${hoverBg}`
                       }`}
                     >
                       <Building2 className="w-4 h-4" />
-                      <span>RCC Office</span>
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform ${isRccDropdownOpen ? "rotate-180" : ""}`}
-                      />
+                      <span>{displayRccPages[0].name}</span>
                     </button>
-                    {isRccDropdownOpen && (
-                      <div className={`absolute top-full left-0 mt-2 w-64 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}>
-                        {displayRccPages.map((page) => (
-                          <button
-                            key={page.id}
-                            onClick={() => selectPage(page.id, "rcc")}
-                            className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                              selectedRccPage === page.id
-                                ? isDarkMode
-                                  ? "bg-purple-900/40 text-purple-200 font-medium"
-                                  : "bg-purple-100 text-purple-800 font-medium"
-                                : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
-                            }`}
-                          >
-                            {page.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : displayRccPages.length === 1 ? (
-                  <button
-                    onClick={() => selectPage(displayRccPages[0].id, "rcc")}
-                    className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                      selectedRccPage === displayRccPages[0].id
-                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md"
-                        : `${textPrimary} ${hoverBg}`
-                    }`}
-                  >
-                    <Building2 className="w-4 h-4" />
-                    <span>{displayRccPages[0].name}</span>
-                  </button>
-                ) : null
+                  ) : null}
+                </>
               )}
 
               {hasAccess("vrn") && (
-                shouldShowDropdown(filteredVrnPages) ? (
-                  <div className="relative">
+                <>
+                  {shouldShowDropdown(filteredVrnPages) ? (
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setIsVrnDropdownOpen(!isVrnDropdownOpen);
+                          setIsPaymentDropdownOpen(false);
+                          setIsRccDropdownOpen(false);
+                          setIsDimensionDropdownOpen(false);
+                        }}
+                        className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+                          isVrnDropdownOpen || selectedVrnPage
+                            ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md"
+                            : `${textPrimary} ${hoverBg}`
+                        }`}
+                      >
+                        <Building2 className="w-4 h-4" />
+                        <span>VRN Office</span>
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform ${isVrnDropdownOpen ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                      {isVrnDropdownOpen && (
+                        <div
+                          className={`absolute top-full left-0 mt-2 w-56 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}
+                        >
+                          {filteredVrnPages.map((page) => (
+                            <button
+                              key={page.id}
+                              onClick={() => selectPage(page.id, "vrn")}
+                              className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
+                                selectedVrnPage === page.id
+                                  ? isDarkMode
+                                    ? "bg-indigo-900/40 text-indigo-200 font-medium"
+                                    : "bg-indigo-100 text-indigo-800 font-medium"
+                                  : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
+                              }`}
+                            >
+                              {page.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : filteredVrnPages.length === 1 ? (
                     <button
-                      onClick={() => {
-                        setIsVrnDropdownOpen(!isVrnDropdownOpen);
-                        setIsPaymentDropdownOpen(false);
-                        setIsRccDropdownOpen(false);
-                        setIsDimensionDropdownOpen(false);
-                      }}
+                      onClick={() => selectPage(filteredVrnPages[0].id, "vrn")}
                       className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                        isVrnDropdownOpen || selectedVrnPage
+                        selectedVrnPage === filteredVrnPages[0].id
                           ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md"
                           : `${textPrimary} ${hoverBg}`
                       }`}
                     >
                       <Building2 className="w-4 h-4" />
-                      <span>VRN Office</span>
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform ${isVrnDropdownOpen ? "rotate-180" : ""}`}
-                      />
+                      <span>{filteredVrnPages[0].name}</span>
                     </button>
-                    {isVrnDropdownOpen && (
-                      <div className={`absolute top-full left-0 mt-2 w-56 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}>
-                        {filteredVrnPages.map((page) => (
-                          <button
-                            key={page.id}
-                            onClick={() => selectPage(page.id, "vrn")}
-                            className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                              selectedVrnPage === page.id
-                                ? isDarkMode
-                                  ? "bg-indigo-900/40 text-indigo-200 font-medium"
-                                  : "bg-indigo-100 text-indigo-800 font-medium"
-                                : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
-                            }`}
-                          >
-                            {page.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : filteredVrnPages.length === 1 ? (
-                  <button
-                    onClick={() => selectPage(filteredVrnPages[0].id, "vrn")}
-                    className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                      selectedVrnPage === filteredVrnPages[0].id
-                        ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md"
-                        : `${textPrimary} ${hoverBg}`
-                    }`}
-                  >
-                    <Building2 className="w-4 h-4" />
-                    <span>{filteredVrnPages[0].name}</span>
-                  </button>
-                ) : null
+                  ) : null}
+                </>
               )}
 
               {hasAccess("dimension") && (
-                shouldShowDropdown(filteredDimensionPages) ? (
-                  <div className="relative">
+                <>
+                  {shouldShowDropdown(filteredDimensionPages) ? (
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setIsDimensionDropdownOpen(!isDimensionDropdownOpen);
+                          setIsPaymentDropdownOpen(false);
+                          setIsRccDropdownOpen(false);
+                          setIsVrnDropdownOpen(false);
+                        }}
+                        className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+                          isDimensionDropdownOpen || selectedDimensionPage
+                            ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-md"
+                            : `${textPrimary} ${hoverBg}`
+                        }`}
+                      >
+                        <Building2 className="w-4 h-4" />
+                        <span>Dimension</span>
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform ${isDimensionDropdownOpen ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                      {isDimensionDropdownOpen && (
+                        <div
+                          className={`absolute top-full left-0 mt-2 w-56 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}
+                        >
+                          {filteredDimensionPages.map((page) => (
+                            <button
+                              key={page.id}
+                              onClick={() => selectPage(page.id, "dimension")}
+                              className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
+                                selectedDimensionPage === page.id
+                                  ? isDarkMode
+                                    ? "bg-rose-900/40 text-rose-200 font-medium"
+                                    : "bg-rose-100 text-rose-800 font-medium"
+                                  : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
+                              }`}
+                            >
+                              {page.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : filteredDimensionPages.length === 1 ? (
                     <button
-                      onClick={() => {
-                        setIsDimensionDropdownOpen(!isDimensionDropdownOpen);
-                        setIsPaymentDropdownOpen(false);
-                        setIsRccDropdownOpen(false);
-                        setIsVrnDropdownOpen(false);
-                      }}
+                      onClick={() => selectPage(filteredDimensionPages[0].id, "dimension")}
                       className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                        isDimensionDropdownOpen || selectedDimensionPage
+                        selectedDimensionPage === filteredDimensionPages[0].id
                           ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-md"
                           : `${textPrimary} ${hoverBg}`
                       }`}
                     >
                       <Building2 className="w-4 h-4" />
-                      <span>Dimension</span>
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform ${isDimensionDropdownOpen ? "rotate-180" : ""}`}
-                      />
+                      <span>{filteredDimensionPages[0].name}</span>
                     </button>
-                    {isDimensionDropdownOpen && (
-                      <div className={`absolute top-full left-0 mt-2 w-56 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}>
-                        {filteredDimensionPages.map((page) => (
-                          <button
-                            key={page.id}
-                            onClick={() => selectPage(page.id, "dimension")}
-                            className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                              selectedDimensionPage === page.id
-                                ? isDarkMode
-                                  ? "bg-rose-900/40 text-rose-200 font-medium"
-                                  : "bg-rose-100 text-rose-800 font-medium"
-                                : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
-                            }`}
-                          >
-                            {page.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : filteredDimensionPages.length === 1 ? (
-                  <button
-                    onClick={() => selectPage(filteredDimensionPages[0].id, "dimension")}
-                    className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                      selectedDimensionPage === filteredDimensionPages[0].id
-                        ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-md"
-                        : `${textPrimary} ${hoverBg}`
-                    }`}
-                  >
-                    <Building2 className="w-4 h-4" />
-                    <span>{filteredDimensionPages[0].name}</span>
-                  </button>
-                ) : null
+                  ) : null}
+                </>
               )}
             </div>
 
@@ -1853,12 +1917,14 @@ const Dashboard = () => {
             }`}
           >
             <div className="flex flex-col h-full">
-              <div className={`flex items-center justify-between p-4 sm:p-5 border-b ${isDarkMode ? "border-white/10" : "border-gray-200"}`}>
+              <div
+                className={`flex items-center justify-between p-4 sm:p-5 border-b ${
+                  isDarkMode ? "border-white/10" : "border-gray-200"
+                }`}
+              >
                 <div>
                   <h2 className={`text-lg font-bold ${textPrimary}`}>Menu</h2>
-                  {userName && (
-                    <p className={`text-xs ${textSecondary} mt-1`}>{userName}</p>
-                  )}
+                  {userName && <p className={`text-xs ${textSecondary} mt-1`}>{userName}</p>}
                 </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className={`p-2 ${hoverBg} rounded-lg`}>
                   <X className={`w-6 h-6 ${textPrimary}`} />
@@ -1879,6 +1945,7 @@ const Dashboard = () => {
                     <span className="font-medium">Summary</span>
                   </button>
                 )}
+
                 {hasAccess("gst") && (
                   <button
                     onClick={() => selectPage(null, "gst")}
@@ -1894,219 +1961,235 @@ const Dashboard = () => {
                 )}
 
                 {hasAccess("payment") && (
-                  shouldShowDropdown(filteredPaymentPages) ? (
-                    <div>
+                  <>
+                    {shouldShowDropdown(filteredPaymentPages) ? (
+                      <div>
+                        <button
+                          onClick={() => setIsPaymentDropdownOpen(!isPaymentDropdownOpen)}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+                            isPaymentDropdownOpen || selectedPage
+                              ? "bg-gradient-to-r from-emerald-700 to-teal-700 text-white shadow-md"
+                              : `${textSecondary} ${hoverBg}`
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <DollarSign className="w-5 h-5" />
+                            <span className="font-medium">Payment</span>
+                          </div>
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform ${isPaymentDropdownOpen ? "rotate-180" : ""}`}
+                          />
+                        </button>
+                        {isPaymentDropdownOpen && (
+                          <div className="ml-6 mt-2 space-y-1">
+                            {filteredPaymentPages.map((page) => (
+                              <button
+                                key={page.id}
+                                onClick={() => selectPage(page.id, "payment")}
+                                className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
+                                  selectedPage === page.id
+                                    ? isDarkMode
+                                      ? "bg-emerald-900/50 text-emerald-200 font-medium"
+                                      : "bg-emerald-100 text-emerald-800 font-medium"
+                                    : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
+                                        isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
+                                      }`
+                                }`}
+                              >
+                                {page.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : filteredPaymentPages.length === 1 ? (
                       <button
-                        onClick={() => setIsPaymentDropdownOpen(!isPaymentDropdownOpen)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                          isPaymentDropdownOpen || selectedPage
+                        onClick={() => selectPage(filteredPaymentPages[0].id, "payment")}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
+                          selectedPage === filteredPaymentPages[0].id
                             ? "bg-gradient-to-r from-emerald-700 to-teal-700 text-white shadow-md"
                             : `${textSecondary} ${hoverBg}`
                         }`}
                       >
-                        <div className="flex items-center space-x-3">
-                          <DollarSign className="w-5 h-5" />
-                          <span className="font-medium">Payment</span>
-                        </div>
-                        <ChevronDown className={`w-4 h-4 transition-transform ${isPaymentDropdownOpen ? "rotate-180" : ""}`} />
+                        <DollarSign className="w-5 h-5" />
+                        <span className="font-medium">{filteredPaymentPages[0].name}</span>
                       </button>
-                      {isPaymentDropdownOpen && (
-                        <div className="ml-6 mt-2 space-y-1">
-                          {filteredPaymentPages.map((page) => (
-                            <button
-                              key={page.id}
-                              onClick={() => selectPage(page.id, "payment")}
-                              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-                                selectedPage === page.id
-                                  ? isDarkMode
-                                    ? "bg-emerald-900/50 text-emerald-200 font-medium"
-                                    : "bg-emerald-100 text-emerald-800 font-medium"
-                                  : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
-                                      isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
-                                    }`
-                              }`}
-                            >
-                              {page.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : filteredPaymentPages.length === 1 ? (
-                    <button
-                      onClick={() => selectPage(filteredPaymentPages[0].id, "payment")}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                        selectedPage === filteredPaymentPages[0].id
-                          ? "bg-gradient-to-r from-emerald-700 to-teal-700 text-white shadow-md"
-                          : `${textSecondary} ${hoverBg}`
-                      }`}
-                    >
-                      <DollarSign className="w-5 h-5" />
-                      <span className="font-medium">{filteredPaymentPages[0].name}</span>
-                    </button>
-                  ) : null
+                    ) : null}
+                  </>
                 )}
 
                 {hasAccess("rcc") && (
-                  shouldShowDropdown(displayRccPages) ? (
-                    <div>
+                  <>
+                    {shouldShowDropdown(displayRccPages) ? (
+                      <div>
+                        <button
+                          onClick={() => setIsRccDropdownOpen(!isRccDropdownOpen)}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+                            isRccDropdownOpen || selectedRccPage
+                              ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md"
+                              : `${textSecondary} ${hoverBg}`
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Building2 className="w-5 h-5" />
+                            <span className="font-medium">RCC Office</span>
+                          </div>
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform ${isRccDropdownOpen ? "rotate-180" : ""}`}
+                          />
+                        </button>
+                        {isRccDropdownOpen && (
+                          <div className="ml-6 mt-2 space-y-1">
+                            {displayRccPages.map((page) => (
+                              <button
+                                key={page.id}
+                                onClick={() => selectPage(page.id, "rcc")}
+                                className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
+                                  selectedRccPage === page.id
+                                    ? isDarkMode
+                                      ? "bg-purple-900/50 text-purple-200 font-medium"
+                                      : "bg-purple-100 text-purple-800 font-medium"
+                                    : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
+                                        isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
+                                      }`
+                                }`}
+                              >
+                                {page.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : displayRccPages.length === 1 ? (
                       <button
-                        onClick={() => setIsRccDropdownOpen(!isRccDropdownOpen)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                          isRccDropdownOpen || selectedRccPage
+                        onClick={() => selectPage(displayRccPages[0].id, "rcc")}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
+                          selectedRccPage === displayRccPages[0].id
                             ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md"
                             : `${textSecondary} ${hoverBg}`
                         }`}
                       >
-                        <div className="flex items-center space-x-3">
-                          <Building2 className="w-5 h-5" />
-                          <span className="font-medium">RCC Office</span>
-                        </div>
-                        <ChevronDown className={`w-4 h-4 transition-transform ${isRccDropdownOpen ? "rotate-180" : ""}`} />
+                        <Building2 className="w-5 h-5" />
+                        <span className="font-medium">{displayRccPages[0].name}</span>
                       </button>
-                      {isRccDropdownOpen && (
-                        <div className="ml-6 mt-2 space-y-1">
-                          {displayRccPages.map((page) => (
-                            <button
-                              key={page.id}
-                              onClick={() => selectPage(page.id, "rcc")}
-                              className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                                selectedRccPage === page.id
-                                  ? isDarkMode
-                                    ? "bg-purple-900/50 text-purple-200 font-medium"
-                                    : "bg-purple-100 text-purple-800 font-medium"
-                                  : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
-                                      isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
-                                    }`
-                              }`}
-                            >
-                              {page.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : displayRccPages.length === 1 ? (
-                    <button
-                      onClick={() => selectPage(displayRccPages[0].id, "rcc")}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                        selectedRccPage === displayRccPages[0].id
-                          ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md"
-                          : `${textSecondary} ${hoverBg}`
-                      }`}
-                    >
-                      <Building2 className="w-5 h-5" />
-                      <span className="font-medium">{displayRccPages[0].name}</span>
-                    </button>
-                  ) : null
+                    ) : null}
+                  </>
                 )}
 
                 {hasAccess("vrn") && (
-                  shouldShowDropdown(filteredVrnPages) ? (
-                    <div>
+                  <>
+                    {shouldShowDropdown(filteredVrnPages) ? (
+                      <div>
+                        <button
+                          onClick={() => setIsVrnDropdownOpen(!isVrnDropdownOpen)}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+                            isVrnDropdownOpen || selectedVrnPage
+                              ? "bg-gradient-to-r from-indigo-700 to-blue-700 text-white shadow-md"
+                              : `${textSecondary} ${hoverBg}`
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Building2 className="w-5 h-5" />
+                            <span className="font-medium">VRN Office</span>
+                          </div>
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform ${isVrnDropdownOpen ? "rotate-180" : ""}`}
+                          />
+                        </button>
+                        {isVrnDropdownOpen && (
+                          <div className="ml-6 mt-2 space-y-1">
+                            {filteredVrnPages.map((page) => (
+                              <button
+                                key={page.id}
+                                onClick={() => selectPage(page.id, "vrn")}
+                                className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
+                                  selectedVrnPage === page.id
+                                    ? isDarkMode
+                                      ? "bg-indigo-900/50 text-indigo-200 font-medium"
+                                      : "bg-indigo-100 text-indigo-800 font-medium"
+                                    : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
+                                        isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
+                                      }`
+                                }`}
+                              >
+                                {page.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : filteredVrnPages.length === 1 ? (
                       <button
-                        onClick={() => setIsVrnDropdownOpen(!isVrnDropdownOpen)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                          isVrnDropdownOpen || selectedVrnPage
+                        onClick={() => selectPage(filteredVrnPages[0].id, "vrn")}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
+                          selectedVrnPage === filteredVrnPages[0].id
                             ? "bg-gradient-to-r from-indigo-700 to-blue-700 text-white shadow-md"
                             : `${textSecondary} ${hoverBg}`
                         }`}
                       >
-                        <div className="flex items-center space-x-3">
-                          <Building2 className="w-5 h-5" />
-                          <span className="font-medium">VRN Office</span>
-                        </div>
-                        <ChevronDown className={`w-4 h-4 transition-transform ${isVrnDropdownOpen ? "rotate-180" : ""}`} />
+                        <Building2 className="w-5 h-5" />
+                        <span className="font-medium">{filteredVrnPages[0].name}</span>
                       </button>
-                      {isVrnDropdownOpen && (
-                        <div className="ml-6 mt-2 space-y-1">
-                          {filteredVrnPages.map((page) => (
-                            <button
-                              key={page.id}
-                              onClick={() => selectPage(page.id, "vrn")}
-                              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-                                selectedVrnPage === page.id
-                                  ? isDarkMode
-                                    ? "bg-indigo-900/50 text-indigo-200 font-medium"
-                                    : "bg-indigo-100 text-indigo-800 font-medium"
-                                  : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
-                                      isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
-                                    }`
-                              }`}
-                            >
-                              {page.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : filteredVrnPages.length === 1 ? (
-                    <button
-                      onClick={() => selectPage(filteredVrnPages[0].id, "vrn")}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                        selectedVrnPage === filteredVrnPages[0].id
-                          ? "bg-gradient-to-r from-indigo-700 to-blue-700 text-white shadow-md"
-                          : `${textSecondary} ${hoverBg}`
-                      }`}
-                    >
-                      <Building2 className="w-5 h-5" />
-                      <span className="font-medium">{filteredVrnPages[0].name}</span>
-                    </button>
-                  ) : null
+                    ) : null}
+                  </>
                 )}
 
                 {hasAccess("dimension") && (
-                  shouldShowDropdown(filteredDimensionPages) ? (
-                    <div>
+                  <>
+                    {shouldShowDropdown(filteredDimensionPages) ? (
+                      <div>
+                        <button
+                          onClick={() => setIsDimensionDropdownOpen(!isDimensionDropdownOpen)}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+                            isDimensionDropdownOpen || selectedDimensionPage
+                              ? "bg-gradient-to-r from-pink-700 to-rose-700 text-white shadow-md"
+                              : `${textSecondary} ${hoverBg}`
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Building2 className="w-5 h-5" />
+                            <span className="font-medium">Dimension Office</span>
+                          </div>
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform ${isDimensionDropdownOpen ? "rotate-180" : ""}`}
+                          />
+                        </button>
+                        {isDimensionDropdownOpen && (
+                          <div className="ml-6 mt-2 space-y-1">
+                            {filteredDimensionPages.map((page) => (
+                              <button
+                                key={page.id}
+                                onClick={() => selectPage(page.id, "dimension")}
+                                className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
+                                  selectedDimensionPage === page.id
+                                    ? isDarkMode
+                                      ? "bg-rose-900/50 text-rose-200 font-medium"
+                                      : "bg-rose-100 text-rose-800 font-medium"
+                                    : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
+                                        isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
+                                      }`
+                                }`}
+                              >
+                                {page.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : filteredDimensionPages.length === 1 ? (
                       <button
-                        onClick={() => setIsDimensionDropdownOpen(!isDimensionDropdownOpen)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                          isDimensionDropdownOpen || selectedDimensionPage
+                        onClick={() => selectPage(filteredDimensionPages[0].id, "dimension")}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
+                          selectedDimensionPage === filteredDimensionPages[0].id
                             ? "bg-gradient-to-r from-pink-700 to-rose-700 text-white shadow-md"
                             : `${textSecondary} ${hoverBg}`
                         }`}
                       >
-                        <div className="flex items-center space-x-3">
-                          <Building2 className="w-5 h-5" />
-                          <span className="font-medium">Dimension Office</span>
-                        </div>
-                        <ChevronDown className={`w-4 h-4 transition-transform ${isDimensionDropdownOpen ? "rotate-180" : ""}`} />
+                        <Building2 className="w-5 h-5" />
+                        <span className="font-medium">{filteredDimensionPages[0].name}</span>
                       </button>
-                      {isDimensionDropdownOpen && (
-                        <div className="ml-6 mt-2 space-y-1">
-                          {filteredDimensionPages.map((page) => (
-                            <button
-                              key={page.id}
-                              onClick={() => selectPage(page.id, "dimension")}
-                              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-                                selectedDimensionPage === page.id
-                                  ? isDarkMode
-                                    ? "bg-rose-900/50 text-rose-200 font-medium"
-                                    : "bg-rose-100 text-rose-800 font-medium"
-                                  : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
-                                      isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
-                                    }`
-                              }`}
-                            >
-                              {page.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : filteredDimensionPages.length === 1 ? (
-                    <button
-                      onClick={() => selectPage(filteredDimensionPages[0].id, "dimension")}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                        selectedDimensionPage === filteredDimensionPages[0].id
-                          ? "bg-gradient-to-r from-pink-700 to-rose-700 text-white shadow-md"
-                          : `${textSecondary} ${hoverBg}`
-                      }`}
-                    >
-                      <Building2 className="w-5 h-5" />
-                      <span className="font-medium">{filteredDimensionPages[0].name}</span>
-                    </button>
-                  ) : null
+                    ) : null}
+                  </>
                 )}
               </div>
 
@@ -2165,7 +2248,9 @@ const Dashboard = () => {
                 >
                   Welcome to Office Payments Dashboard
                 </h3>
-                <p className={`${isDarkMode ? "text-indigo-200/70" : "text-indigo-700/80"} max-w-lg text-base sm:text-lg px-4`}>
+                <p
+                  className={`${isDarkMode ? "text-indigo-200/70" : "text-indigo-700/80"} max-w-lg text-base sm:text-lg px-4`}
+                >
                   {filteredPaymentPages.length === 0 &&
                   displayRccPages.length === 0 &&
                   filteredVrnPages.length === 0 &&
@@ -2182,15 +2267,27 @@ const Dashboard = () => {
       {/* Animations */}
       <style jsx global>{`
         @keyframes float {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(${Math.random() > 0.5 ? "" : "-"}40px, -80px); }
+          0%,
+          100% {
+            transform: translate(0, 0);
+          }
+          50% {
+            transform: translate(${Math.random() > 0.5 ? "" : "-"}40px, -80px);
+          }
         }
         .animate-pulse-slow {
           animation: pulse 20s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         @keyframes pulse {
-          0%, 100% { opacity: 0.2; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(1.12); }
+          0%,
+          100% {
+            opacity: 0.2;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.4;
+            transform: scale(1.12);
+          }
         }
       `}</style>
     </div>
