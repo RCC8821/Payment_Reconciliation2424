@@ -34,10 +34,10 @@ export const gstApi = createApi({
     // POST /Gst-Followup-Update → followup update (timestamp, status, count, remark)
     // ────────────────────────────────────────────────
     updateGstFollowup: builder.mutation({
-      query: ({ uid, status, remark }) => ({
+      query: ({ uid, status, followUpDate,remark }) => ({
         url: '/api/Gst-Followup-Update',
         method: 'POST',
-        body: { uid, status, remark },
+        body: { uid, status, followUpDate,remark },
       }),
       invalidatesTags: ['GstData'], // Update hone ke baad list auto refresh ho jayegi
     }),

@@ -151,7 +151,7 @@ router.get("/outStanding", async (req, res) => {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: Summary_ID,
-      range: "Out_Standing_Data!A3:H1000", // ← adjust end row if needed
+      range: "Out_Standing_Data!A3:J", // ← adjust end row if needed
       valueRenderOption: "FORMATTED_VALUE",
     });
 
@@ -183,11 +183,13 @@ router.get("/outStanding", async (req, res) => {
         date       : row[0] || "",           // A - Date
         siteName   : row[1] || "",           // B - Site Name
         vendorName : row[2] || "",           // C - Vendor Name
-        billNo     : row[3] || "",           // D - Bill. No
-        expHead    : row[4] || "",           // E - Exp. Head
-        netAmount  : row[5] || "0.00",       // F - Net Amount
-        paidAmount : row[6] || "0.00",       // G - Paid Amount
-        balance    : row[7] || "0.00",       // H - Balance (most important)
+        billNo     : row[3] || "", 
+        billDate: row[4] || "",          // D - Bill. No
+        billPDF: row[5] || "",          // D - Bill. No
+        expHead    : row[6] || "",           // E - Exp. Head
+        netAmount  : row[7] || "0.00",       // F - Net Amount
+        paidAmount : row[8] || "0.00",       // G - Paid Amount
+        balance    : row[9] || "0.00",       // H - Balance (most important)
       }))
       .reverse(); // newest first (optional — remove if you want oldest first)
 
