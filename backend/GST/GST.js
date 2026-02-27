@@ -48,7 +48,7 @@ router.get("/Gst-Data", async (req, res) => {
         Total_GST_Amount_1: (row[13] || "").trim(),
         GST_Filling_Period: (row[14] || "").trim(),
         IN_Out_Head_1: (row[15] || "").trim(),
-        Timestamp_2: (row[23] || "").trim(),
+        Gst_Fill_Date_2: (row[23] || "").trim(),
         Status_1: (row[21] || "").trim(),
       }));
 
