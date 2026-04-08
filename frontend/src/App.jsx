@@ -24,15 +24,15 @@ import RCC_Approvel from './components/RccOffice/RCC_Approvel';
 import Approvel_By_Mayaksir from './components/RccOffice/Approvel_By_Mayaksir';
 import OfficeExpensesPayment from './components/RccOffice/OfficeExpensesPayment';
 
-// VRN Office
-import VRN_Approvel1 from './components/VRNOffice/VRN_Approvel1';
-import VRN_Approvel2 from './components/VRNOffice/VRN_Approvel2';
-import VRN_payment_Office from './components/VRNOffice/VRN_payment_Office';
+// // VRN Office
+// import VRN_Approvel1 from './components/VRNOffice/VRN_Approvel1';
+// import VRN_Approvel2 from './components/VRNOffice/VRN_Approvel2';
+// import VRN_payment_Office from './components/VRNOffice/VRN_payment_Office';
 
-// Dimension Office
-import Dim_Approvel1 from './components/DimensionOffice/Dim_Approvel1';
-import Dim_Approvel2 from './components/DimensionOffice/Dim_Approvel2';
-import Dim_Payment_Office from './components/DimensionOffice/Dim_Payment_Office';
+// // Dimension Office
+// import Dim_Approvel1 from './components/DimensionOffice/Dim_Approvel1';
+// import Dim_Approvel2 from './components/DimensionOffice/Dim_Approvel2';
+// import Dim_Payment_Office from './components/DimensionOffice/Dim_Payment_Office';
 
 // GST
 import GstData from './components/GST/GstData';
@@ -74,14 +74,14 @@ function App() {
           <Route path="office-expenses-payment" element={<OfficeExpensesPayment />} />
 
           {/* VRN Office */}
-          <Route path="vrn-approvel1" element={<VRN_Approvel1 />} />
+          {/* <Route path="vrn-approvel1" element={<VRN_Approvel1 />} />
           <Route path="vrn-approvel2" element={<VRN_Approvel2 />} />
           <Route path="vrn-payment" element={<VRN_payment_Office />} />
 
           {/* Dimension Office */}
-          <Route path="dim-approvel1" element={<Dim_Approvel1 />} />
+          {/* <Route path="dim-approvel1" element={<Dim_Approvel1 />} />
           <Route path="dim-approvel2" element={<Dim_Approvel2 />} />
-          <Route path="dim-payment" element={<Dim_Payment_Office />} />
+          <Route path="dim-payment" element={<Dim_Payment_Office />} /> */} 
 
           {/* Optional: default / redirect inside dashboard */}
           <Route

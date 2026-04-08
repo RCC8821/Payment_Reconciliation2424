@@ -27,14 +27,6 @@
 // import ApprovalByMayaksir from "../components/RccOffice/Approvel_By_Mayaksir";
 // import OfficeExpensesPayment from "../components/RccOffice/OfficeExpensesPayment";
 
-// import VrnApproval1 from "../components/VRNOffice/VRN_Approvel1";
-// import VrnApproval2 from "../components/VRNOffice/VRN_Approvel2";
-// import VrnReport from "../components/VRNOffice/VRN_payment_Office";
-
-// import DimApproval1 from "../components/DimensionOffice/Dim_Approvel1";
-// import DimApproval2 from "../components/DimensionOffice/Dim_Approvel2";
-// import DimensionTransfer from "../components/DimensionOffice/Dim_Payment_Office";
-
 // import GstData from "../components/GST/GstData";
 
 // const Dashboard = () => {
@@ -64,28 +56,15 @@
 
 //   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-//   const [selectedPage, setSelectedPage] = useState(() => {
-//     const saved = localStorage.getItem("selectedPage");
-//     return saved && saved !== "null" ? saved : null;
+//   // ── Persistent section + page selection ────────────────────────────────
+//   const [activeSection, setActiveSection] = useState(() => {
+//     return localStorage.getItem("activeSection") || null;
 //   });
 
-//   const [selectedRccPage, setSelectedRccPage] = useState(() => {
-//     const saved = localStorage.getItem("selectedRccPage");
-//     return saved && saved !== "null" ? saved : null;
+//   const [selectedId, setSelectedId] = useState(() => {
+//     return localStorage.getItem("selectedId") || null;
 //   });
-
-//   const [selectedVrnPage, setSelectedVrnPage] = useState(() => {
-//     const saved = localStorage.getItem("selectedVrnPage");
-//     return saved && saved !== "null" ? saved : null;
-//   });
-
-//   const [selectedDimensionPage, setSelectedDimensionPage] = useState(() => {
-//     const saved = localStorage.getItem("selectedDimensionPage");
-//     return saved && saved !== "null" ? saved : null;
-//   });
-
-//   const [isSummarySelected, setIsSummarySelected] = useState(false);
-//   const [isGstSelected, setIsGstSelected] = useState(false);
+//   // ───────────────────────────────────────────────────────────────────────
 
 //   const [isDarkMode, setIsDarkMode] = useState(() => {
 //     const saved = localStorage.getItem("isDarkMode");
@@ -94,8 +73,6 @@
 
 //   const [isPaymentDropdownOpen, setIsPaymentDropdownOpen] = useState(false);
 //   const [isRccDropdownOpen, setIsRccDropdownOpen] = useState(false);
-//   const [isVrnDropdownOpen, setIsVrnDropdownOpen] = useState(false);
-//   const [isDimensionDropdownOpen, setIsDimensionDropdownOpen] = useState(false);
 
 //   const navbarRef = useRef(null);
 
@@ -114,6 +91,7 @@
 //     { id: "RCC_Approvel", name: "RCC Approval", email: "ravinder@rccinfrastructures.com" },
 //     { id: "RCC_Approvel", name: "RCC Approval", email: "varsharccinfra@gmail.com" },
 //     { id: "RCC_Approvel", name: "RCC Approval", email: "Ramprasad@gmail.com" },
+//     { id: "RCC_Approvel", name: "RCC Approval", email: "Govindrcc@gmail.com" },
 //     { id: "RCC_Approvel", name: "RCC Approval", email: "Bharti@vipinchauhanassociates.com" },
 //     { id: "Approvel_By_Mayaksir", name: "Approval By Mayanksir", email: "rccinfra2024@gmail.com" },
 //     { id: "OfficeExpensesPayment", name: "Office Expenses Payment", email: "Ramprasad@gmail.com" },
@@ -121,20 +99,6 @@
 //     { id: "OfficeExpensesPayment", name: "Office Expenses Payment", email: "sandeeppatil1450@gmail.com" },
 //   ];
 
-//   const vrnOfficePages = [
-//     { id: "VRN_Approvel1", name: "VRN Approval 1", email: "mohanpandey@vipinchauhanassociates.com" },
-//     { id: "VRN_Approvel2", name: "VRN Approval 2", email: "mohanpandey@vipinchauhanassociates.com" },
-//     { id: "VRN_payment_Office", name: "VRN Payment Office", email: "Ramprasad@gmail.com" },
-//   ];
-
-//   const dimensionOfficePages = [
-//     { id: "Dim_Approvel1", name: "Dim Approval 1", email: "richa.kaul92@gmail.com" },
-//     { id: "Dim_Approvel1", name: "Dim Approval 1", email: "vijaypatildimensions@gmail.com" },
-//     { id: "Dim_Approvel2", name: "Dim Approval 2", email: "ajaysharmadimensions@gmail.com" },
-//     { id: "Dim_Payment", name: "Dim Payment Office", email: "Ramprasad@gmail.com" },
-//   ];
-
-//   // Improved unique function – uses both id and name as key
 //   const getUniquePages = (pages) => {
 //     const seen = new Map();
 //     return pages.reduce((unique, page) => {
@@ -163,10 +127,6 @@
 //         return userType === "PAYMENT" || userType === "Payment";
 //       case "RCC":
 //         return userType === "RCC";
-//       case "VRN":
-//         return userType === "VRN";
-//       case "DIMENSION":
-//         return userType === "DIMENSION";
 //       default:
 //         return false;
 //     }
@@ -177,14 +137,7 @@
 
 //     if (userEmail.toLowerCase() === specialUserEmail) {
 //       if (section.toUpperCase() === "RCC") {
-//         // Fixed: proper condition
 //         return pages.filter((p) => p.id === "OfficeExpensesPayment" || p.id === "RCC_Approvel");
-//       }
-//       if (section.toUpperCase() === "VRN") {
-//         return pages.filter((p) => p.id === "VRN_payment_Office");
-//       }
-//       if (section.toUpperCase() === "DIMENSION") {
-//         return pages.filter((p) => p.id === "Dim_Payment");
 //       }
 //       return pages;
 //     }
@@ -196,134 +149,67 @@
 
 //   const filteredPaymentPages = getFilteredPages("PAYMENT", paymentPages);
 //   const filteredRccPages = getFilteredPages("RCC", rccOfficePages);
-//   const filteredVrnPages = getFilteredPages("VRN", vrnOfficePages);
-//   const filteredDimensionPages = getFilteredPages("DIMENSION", dimensionOfficePages);
 
-//   // Always show unique pages in dropdown (fixes duplicates for all users)
 //   const displayRccPages = getUniquePages(
 //     userType === "ADMIN" ? rccOfficePages : filteredRccPages
 //   );
 
 //   const shouldShowDropdown = (pages) => pages.length > 1;
 
-//   const selectPage = (id, type) => {
-//     setIsPaymentDropdownOpen(false);
-//     setIsRccDropdownOpen(false);
-//     setIsVrnDropdownOpen(false);
-//     setIsDimensionDropdownOpen(false);
+//   const selectSection = (section, id = null) => {
+//     setActiveSection(section);
+//     setSelectedId(id);
 
-//     localStorage.removeItem("selectedPage");
-//     localStorage.removeItem("selectedRccPage");
-//     localStorage.removeItem("selectedVrnPage");
-//     localStorage.removeItem("selectedDimensionPage");
-
-//     if (type === "summary") {
-//       setSelectedPage(null);
-//       setSelectedRccPage(null);
-//       setSelectedVrnPage(null);
-//       setSelectedDimensionPage(null);
-//       setIsSummarySelected(true);
-//       setIsGstSelected(false);
-//     } else if (type === "gst") {
-//       setSelectedPage(null);
-//       setSelectedRccPage(null);
-//       setSelectedVrnPage(null);
-//       setSelectedDimensionPage(null);
-//       setIsSummarySelected(false);
-//       setIsGstSelected(true);
-//     } else if (type === "payment") {
-//       setSelectedRccPage(null);
-//       setSelectedVrnPage(null);
-//       setSelectedDimensionPage(null);
-//       setIsSummarySelected(false);
-//       setIsGstSelected(false);
-//       setSelectedPage(id);
-//       localStorage.setItem("selectedPage", id);
-//     } else if (type === "rcc") {
-//       setSelectedPage(null);
-//       setSelectedVrnPage(null);
-//       setSelectedDimensionPage(null);
-//       setIsSummarySelected(false);
-//       setIsGstSelected(false);
-//       setSelectedRccPage(id);
-//       localStorage.setItem("selectedRccPage", id);
-//     } else if (type === "vrn") {
-//       setSelectedPage(null);
-//       setSelectedRccPage(null);
-//       setSelectedDimensionPage(null);
-//       setIsSummarySelected(false);
-//       setIsGstSelected(false);
-//       setSelectedVrnPage(id);
-//       localStorage.setItem("selectedVrnPage", id);
-//     } else if (type === "dimension") {
-//       setSelectedPage(null);
-//       setSelectedRccPage(null);
-//       setSelectedVrnPage(null);
-//       setIsSummarySelected(false);
-//       setIsGstSelected(false);
-//       setSelectedDimensionPage(id);
-//       localStorage.setItem("selectedDimensionPage", id);
+//     localStorage.setItem("activeSection", section);
+//     if (id) {
+//       localStorage.setItem("selectedId", id);
+//     } else {
+//       localStorage.removeItem("selectedId");
 //     }
 
+//     setIsPaymentDropdownOpen(false);
+//     setIsRccDropdownOpen(false);
 //     setIsMobileMenuOpen(false);
 //   };
 
-//   // Default page selection logic
+//   // Default page on first load / no saved state
 //   useEffect(() => {
-//     if (!userType) return;
-
-//     const hasAnySelection =
-//       selectedPage ||
-//       selectedRccPage ||
-//       selectedVrnPage ||
-//       selectedDimensionPage ||
-//       isSummarySelected ||
-//       isGstSelected;
-
-//     if (hasAnySelection) return;
+//     if (!userType || activeSection) return;
 
 //     const specialUserEmail = "Ramprasad@gmail.com".toLowerCase();
 
 //     if (userEmail.toLowerCase() === specialUserEmail) {
 //       if (filteredRccPages.some((p) => p.id === "OfficeExpensesPayment")) {
-//         selectPage("OfficeExpensesPayment", "rcc");
+//         selectSection("rcc", "OfficeExpensesPayment");
 //         return;
 //       }
 //     }
 
 //     if (hasAccess("payment") && filteredPaymentPages.length > 0) {
-//       selectPage(filteredPaymentPages[0].id, "payment");
+//       selectSection("payment", filteredPaymentPages[0].id);
 //       return;
 //     }
 
 //     if (hasAccess("rcc") && displayRccPages.length > 0) {
-//       selectPage(displayRccPages[0].id, "rcc");
+//       selectSection("rcc", displayRccPages[0].id);
 //       return;
 //     }
 
-//     if (hasAccess("vrn") && filteredVrnPages.length > 0) {
-//       selectPage(filteredVrnPages[0].id, "vrn");
+//     if (hasAccess("summary")) {
+//       selectSection("summary");
 //       return;
 //     }
 
-//     if (hasAccess("dimension") && filteredDimensionPages.length > 0) {
-//       selectPage(filteredDimensionPages[0].id, "dimension");
-//       return;
+//     if (hasAccess("gst")) {
+//       selectSection("gst");
 //     }
 //   }, [
 //     userType,
 //     userEmail,
 //     filteredPaymentPages,
 //     filteredRccPages,
-//     filteredVrnPages,
-//     filteredDimensionPages,
 //     displayRccPages,
-//     selectedPage,
-//     selectedRccPage,
-//     selectedVrnPage,
-//     selectedDimensionPage,
-//     isSummarySelected,
-//     isGstSelected,
+//     activeSection,
 //   ]);
 
 //   const handleLogout = () => {
@@ -331,6 +217,8 @@
 //     sessionStorage.removeItem("userType");
 //     sessionStorage.removeItem("userName");
 //     sessionStorage.removeItem("userEmail");
+//     localStorage.removeItem("activeSection");
+//     localStorage.removeItem("selectedId");
 //     setIsMobileMenuOpen(false);
 //   };
 
@@ -347,8 +235,6 @@
 //       if (navbarRef.current && !navbarRef.current.contains(e.target)) {
 //         setIsPaymentDropdownOpen(false);
 //         setIsRccDropdownOpen(false);
-//         setIsVrnDropdownOpen(false);
-//         setIsDimensionDropdownOpen(false);
 //       }
 //     };
 //     document.addEventListener("mousedown", handleClickOutside);
@@ -386,33 +272,21 @@
 //   let ActiveComponent = null;
 //   let pageTitle = "";
 
-//   if (isSummarySelected) {
+//   if (activeSection === "summary") {
 //     ActiveComponent = SummaryDashboard;
-//     // pageTitle = "Summary";
-//   } else if (isGstSelected) {
+//   } else if (activeSection === "gst") {
 //     ActiveComponent = GstData;
-//     // pageTitle = "GST";
-//   } else if (selectedPage) {
-//     pageTitle = paymentPages.find((p) => p.id === selectedPage)?.name || "Payment";
-//     if (selectedPage === "Reconciliation") ActiveComponent = Reconciliation;
-//     else if (selectedPage === "Form") ActiveComponent = Forms;
-//     else if (selectedPage === "Actual_Payment_in") ActiveComponent = ActualPaymentIn;
-//     else if (selectedPage === "Transfer_bank_To_bank") ActiveComponent = TransferBankToBank;
-//   } else if (selectedRccPage) {
-//     pageTitle = rccOfficePages.find((p) => p.id === selectedRccPage)?.name || "RCC Office";
-//     if (selectedRccPage === "RCC_Approvel") ActiveComponent = RccApproval;
-//     else if (selectedRccPage === "Approvel_By_Mayaksir") ActiveComponent = ApprovalByMayaksir;
-//     else if (selectedRccPage === "OfficeExpensesPayment") ActiveComponent = OfficeExpensesPayment;
-//   } else if (selectedVrnPage) {
-//     pageTitle = vrnOfficePages.find((p) => p.id === selectedVrnPage)?.name || "VRN Office";
-//     if (selectedVrnPage === "VRN_Approvel1") ActiveComponent = VrnApproval1;
-//     else if (selectedVrnPage === "VRN_Approvel2") ActiveComponent = VrnApproval2;
-//     else if (selectedVrnPage === "VRN_payment_Office") ActiveComponent = VrnReport;
-//   } else if (selectedDimensionPage) {
-//     pageTitle = dimensionOfficePages.find((p) => p.id === selectedDimensionPage)?.name || "Dimension";
-//     if (selectedDimensionPage === "Dim_Approvel1") ActiveComponent = DimApproval1;
-//     else if (selectedDimensionPage === "Dim_Approvel2") ActiveComponent = DimApproval2;
-//     else if (selectedDimensionPage === "Dim_Payment") ActiveComponent = DimensionTransfer;
+//   } else if (activeSection === "payment" && selectedId) {
+//     pageTitle = paymentPages.find((p) => p.id === selectedId)?.name || "Payment";
+//     if (selectedId === "Reconciliation") ActiveComponent = Reconciliation;
+//     else if (selectedId === "Form") ActiveComponent = Forms;
+//     else if (selectedId === "Actual_Payment_in") ActiveComponent = ActualPaymentIn;
+//     else if (selectedId === "Transfer_bank_To_bank") ActiveComponent = TransferBankToBank;
+//   } else if (activeSection === "rcc" && selectedId) {
+//     pageTitle = rccOfficePages.find((p) => p.id === selectedId)?.name || "RCC Office";
+//     if (selectedId === "RCC_Approvel") ActiveComponent = RccApproval;
+//     else if (selectedId === "Approvel_By_Mayaksir") ActiveComponent = ApprovalByMayaksir;
+//     else if (selectedId === "OfficeExpensesPayment") ActiveComponent = OfficeExpensesPayment;
 //   }
 
 //   return (
@@ -472,9 +346,9 @@
 //             <div className="hidden lg:flex items-center space-x-1">
 //               {hasAccess("summary") && (
 //                 <button
-//                   onClick={() => selectPage(null, "summary")}
+//                   onClick={() => selectSection("summary")}
 //                   className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-//                     isSummarySelected
+//                     activeSection === "summary"
 //                       ? "bg-gradient-to-r from-amber-600 to-yellow-600 text-white shadow-md"
 //                       : `${textPrimary} ${hoverBg}`
 //                   }`}
@@ -486,9 +360,9 @@
 
 //               {hasAccess("gst") && (
 //                 <button
-//                   onClick={() => selectPage(null, "gst")}
+//                   onClick={() => selectSection("gst")}
 //                   className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-//                     isGstSelected
+//                     activeSection === "gst"
 //                       ? "bg-gradient-to-r from-amber-600 to-yellow-600 text-white shadow-md"
 //                       : `${textPrimary} ${hoverBg}`
 //                   }`}
@@ -506,11 +380,9 @@
 //                         onClick={() => {
 //                           setIsPaymentDropdownOpen(!isPaymentDropdownOpen);
 //                           setIsRccDropdownOpen(false);
-//                           setIsVrnDropdownOpen(false);
-//                           setIsDimensionDropdownOpen(false);
 //                         }}
 //                         className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-//                           isPaymentDropdownOpen || selectedPage
+//                           isPaymentDropdownOpen || activeSection === "payment"
 //                             ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md"
 //                             : `${textPrimary} ${hoverBg}`
 //                         }`}
@@ -528,9 +400,9 @@
 //                           {filteredPaymentPages.map((page) => (
 //                             <button
 //                               key={page.id}
-//                               onClick={() => selectPage(page.id, "payment")}
+//                               onClick={() => selectSection("payment", page.id)}
 //                               className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-//                                 selectedPage === page.id
+//                                 activeSection === "payment" && selectedId === page.id
 //                                   ? isDarkMode
 //                                     ? "bg-emerald-900/40 text-emerald-200 font-medium"
 //                                     : "bg-emerald-100 text-emerald-800 font-medium"
@@ -545,9 +417,9 @@
 //                     </div>
 //                   ) : filteredPaymentPages.length === 1 ? (
 //                     <button
-//                       onClick={() => selectPage(filteredPaymentPages[0].id, "payment")}
+//                       onClick={() => selectSection("payment", filteredPaymentPages[0].id)}
 //                       className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-//                         selectedPage === filteredPaymentPages[0].id
+//                         activeSection === "payment" && selectedId === filteredPaymentPages[0].id
 //                           ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md"
 //                           : `${textPrimary} ${hoverBg}`
 //                       }`}
@@ -567,11 +439,9 @@
 //                         onClick={() => {
 //                           setIsRccDropdownOpen(!isRccDropdownOpen);
 //                           setIsPaymentDropdownOpen(false);
-//                           setIsVrnDropdownOpen(false);
-//                           setIsDimensionDropdownOpen(false);
 //                         }}
 //                         className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-//                           isRccDropdownOpen || selectedRccPage
+//                           isRccDropdownOpen || activeSection === "rcc"
 //                             ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md"
 //                             : `${textPrimary} ${hoverBg}`
 //                         }`}
@@ -589,9 +459,9 @@
 //                           {displayRccPages.map((page) => (
 //                             <button
 //                               key={page.id}
-//                               onClick={() => selectPage(page.id, "rcc")}
+//                               onClick={() => selectSection("rcc", page.id)}
 //                               className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-//                                 selectedRccPage === page.id
+//                                 activeSection === "rcc" && selectedId === page.id
 //                                   ? isDarkMode
 //                                     ? "bg-purple-900/40 text-purple-200 font-medium"
 //                                     : "bg-purple-100 text-purple-800 font-medium"
@@ -606,137 +476,15 @@
 //                     </div>
 //                   ) : displayRccPages.length === 1 ? (
 //                     <button
-//                       onClick={() => selectPage(displayRccPages[0].id, "rcc")}
+//                       onClick={() => selectSection("rcc", displayRccPages[0].id)}
 //                       className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-//                         selectedRccPage === displayRccPages[0].id
+//                         activeSection === "rcc" && selectedId === displayRccPages[0].id
 //                           ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md"
 //                           : `${textPrimary} ${hoverBg}`
 //                       }`}
 //                     >
 //                       <Building2 className="w-4 h-4" />
 //                       <span>{displayRccPages[0].name}</span>
-//                     </button>
-//                   ) : null}
-//                 </>
-//               )}
-
-//               {hasAccess("vrn") && (
-//                 <>
-//                   {shouldShowDropdown(filteredVrnPages) ? (
-//                     <div className="relative">
-//                       <button
-//                         onClick={() => {
-//                           setIsVrnDropdownOpen(!isVrnDropdownOpen);
-//                           setIsPaymentDropdownOpen(false);
-//                           setIsRccDropdownOpen(false);
-//                           setIsDimensionDropdownOpen(false);
-//                         }}
-//                         className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-//                           isVrnDropdownOpen || selectedVrnPage
-//                             ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md"
-//                             : `${textPrimary} ${hoverBg}`
-//                         }`}
-//                       >
-//                         <Building2 className="w-4 h-4" />
-//                         <span>VRN Office</span>
-//                         <ChevronDown
-//                           className={`w-4 h-4 transition-transform ${isVrnDropdownOpen ? "rotate-180" : ""}`}
-//                         />
-//                       </button>
-//                       {isVrnDropdownOpen && (
-//                         <div
-//                           className={`absolute top-full left-0 mt-2 w-56 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}
-//                         >
-//                           {filteredVrnPages.map((page) => (
-//                             <button
-//                               key={page.id}
-//                               onClick={() => selectPage(page.id, "vrn")}
-//                               className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-//                                 selectedVrnPage === page.id
-//                                   ? isDarkMode
-//                                     ? "bg-indigo-900/40 text-indigo-200 font-medium"
-//                                     : "bg-indigo-100 text-indigo-800 font-medium"
-//                                   : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
-//                               }`}
-//                             >
-//                               {page.name}
-//                             </button>
-//                           ))}
-//                         </div>
-//                       )}
-//                     </div>
-//                   ) : filteredVrnPages.length === 1 ? (
-//                     <button
-//                       onClick={() => selectPage(filteredVrnPages[0].id, "vrn")}
-//                       className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-//                         selectedVrnPage === filteredVrnPages[0].id
-//                           ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md"
-//                           : `${textPrimary} ${hoverBg}`
-//                       }`}
-//                     >
-//                       <Building2 className="w-4 h-4" />
-//                       <span>{filteredVrnPages[0].name}</span>
-//                     </button>
-//                   ) : null}
-//                 </>
-//               )}
-
-//               {hasAccess("dimension") && (
-//                 <>
-//                   {shouldShowDropdown(filteredDimensionPages) ? (
-//                     <div className="relative">
-//                       <button
-//                         onClick={() => {
-//                           setIsDimensionDropdownOpen(!isDimensionDropdownOpen);
-//                           setIsPaymentDropdownOpen(false);
-//                           setIsRccDropdownOpen(false);
-//                           setIsVrnDropdownOpen(false);
-//                         }}
-//                         className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-//                           isDimensionDropdownOpen || selectedDimensionPage
-//                             ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-md"
-//                             : `${textPrimary} ${hoverBg}`
-//                         }`}
-//                       >
-//                         <Building2 className="w-4 h-4" />
-//                         <span>Dimension</span>
-//                         <ChevronDown
-//                           className={`w-4 h-4 transition-transform ${isDimensionDropdownOpen ? "rotate-180" : ""}`}
-//                         />
-//                       </button>
-//                       {isDimensionDropdownOpen && (
-//                         <div
-//                           className={`absolute top-full left-0 mt-2 w-56 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}
-//                         >
-//                           {filteredDimensionPages.map((page) => (
-//                             <button
-//                               key={page.id}
-//                               onClick={() => selectPage(page.id, "dimension")}
-//                               className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-//                                 selectedDimensionPage === page.id
-//                                   ? isDarkMode
-//                                     ? "bg-rose-900/40 text-rose-200 font-medium"
-//                                     : "bg-rose-100 text-rose-800 font-medium"
-//                                   : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
-//                               }`}
-//                             >
-//                               {page.name}
-//                             </button>
-//                           ))}
-//                         </div>
-//                       )}
-//                     </div>
-//                   ) : filteredDimensionPages.length === 1 ? (
-//                     <button
-//                       onClick={() => selectPage(filteredDimensionPages[0].id, "dimension")}
-//                       className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-//                         selectedDimensionPage === filteredDimensionPages[0].id
-//                           ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-md"
-//                           : `${textPrimary} ${hoverBg}`
-//                       }`}
-//                     >
-//                       <Building2 className="w-4 h-4" />
-//                       <span>{filteredDimensionPages[0].name}</span>
 //                     </button>
 //                   ) : null}
 //                 </>
@@ -808,9 +556,9 @@
 //               <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2">
 //                 {hasAccess("summary") && (
 //                   <button
-//                     onClick={() => selectPage(null, "summary")}
+//                     onClick={() => selectSection("summary")}
 //                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-//                       isSummarySelected
+//                       activeSection === "summary"
 //                         ? "bg-gradient-to-r from-amber-700 to-yellow-700 text-white shadow-md"
 //                         : `${textSecondary} ${hoverBg}`
 //                     }`}
@@ -822,9 +570,9 @@
 
 //                 {hasAccess("gst") && (
 //                   <button
-//                     onClick={() => selectPage(null, "gst")}
+//                     onClick={() => selectSection("gst")}
 //                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-//                       isGstSelected
+//                       activeSection === "gst"
 //                         ? "bg-gradient-to-r from-amber-700 to-yellow-700 text-white shadow-md"
 //                         : `${textSecondary} ${hoverBg}`
 //                     }`}
@@ -841,7 +589,7 @@
 //                         <button
 //                           onClick={() => setIsPaymentDropdownOpen(!isPaymentDropdownOpen)}
 //                           className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-//                             isPaymentDropdownOpen || selectedPage
+//                             isPaymentDropdownOpen || activeSection === "payment"
 //                               ? "bg-gradient-to-r from-emerald-700 to-teal-700 text-white shadow-md"
 //                               : `${textSecondary} ${hoverBg}`
 //                           }`}
@@ -859,9 +607,9 @@
 //                             {filteredPaymentPages.map((page) => (
 //                               <button
 //                                 key={page.id}
-//                                 onClick={() => selectPage(page.id, "payment")}
+//                                 onClick={() => selectSection("payment", page.id)}
 //                                 className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-//                                   selectedPage === page.id
+//                                   activeSection === "payment" && selectedId === page.id
 //                                     ? isDarkMode
 //                                       ? "bg-emerald-900/50 text-emerald-200 font-medium"
 //                                       : "bg-emerald-100 text-emerald-800 font-medium"
@@ -878,9 +626,9 @@
 //                       </div>
 //                     ) : filteredPaymentPages.length === 1 ? (
 //                       <button
-//                         onClick={() => selectPage(filteredPaymentPages[0].id, "payment")}
+//                         onClick={() => selectSection("payment", filteredPaymentPages[0].id)}
 //                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-//                           selectedPage === filteredPaymentPages[0].id
+//                           activeSection === "payment" && selectedId === filteredPaymentPages[0].id
 //                             ? "bg-gradient-to-r from-emerald-700 to-teal-700 text-white shadow-md"
 //                             : `${textSecondary} ${hoverBg}`
 //                         }`}
@@ -899,7 +647,7 @@
 //                         <button
 //                           onClick={() => setIsRccDropdownOpen(!isRccDropdownOpen)}
 //                           className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-//                             isRccDropdownOpen || selectedRccPage
+//                             isRccDropdownOpen || activeSection === "rcc"
 //                               ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md"
 //                               : `${textSecondary} ${hoverBg}`
 //                           }`}
@@ -917,9 +665,9 @@
 //                             {displayRccPages.map((page) => (
 //                               <button
 //                                 key={page.id}
-//                                 onClick={() => selectPage(page.id, "rcc")}
+//                                 onClick={() => selectSection("rcc", page.id)}
 //                                 className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-//                                   selectedRccPage === page.id
+//                                   activeSection === "rcc" && selectedId === page.id
 //                                     ? isDarkMode
 //                                       ? "bg-purple-900/50 text-purple-200 font-medium"
 //                                       : "bg-purple-100 text-purple-800 font-medium"
@@ -936,131 +684,15 @@
 //                       </div>
 //                     ) : displayRccPages.length === 1 ? (
 //                       <button
-//                         onClick={() => selectPage(displayRccPages[0].id, "rcc")}
+//                         onClick={() => selectSection("rcc", displayRccPages[0].id)}
 //                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-//                           selectedRccPage === displayRccPages[0].id
+//                           activeSection === "rcc" && selectedId === displayRccPages[0].id
 //                             ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md"
 //                             : `${textSecondary} ${hoverBg}`
 //                         }`}
 //                       >
 //                         <Building2 className="w-5 h-5" />
 //                         <span className="font-medium">{displayRccPages[0].name}</span>
-//                       </button>
-//                     ) : null}
-//                   </>
-//                 )}
-
-//                 {hasAccess("vrn") && (
-//                   <>
-//                     {shouldShowDropdown(filteredVrnPages) ? (
-//                       <div>
-//                         <button
-//                           onClick={() => setIsVrnDropdownOpen(!isVrnDropdownOpen)}
-//                           className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-//                             isVrnDropdownOpen || selectedVrnPage
-//                               ? "bg-gradient-to-r from-indigo-700 to-blue-700 text-white shadow-md"
-//                               : `${textSecondary} ${hoverBg}`
-//                           }`}
-//                         >
-//                           <div className="flex items-center space-x-3">
-//                             <Building2 className="w-5 h-5" />
-//                             <span className="font-medium">VRN Office</span>
-//                           </div>
-//                           <ChevronDown
-//                             className={`w-4 h-4 transition-transform ${isVrnDropdownOpen ? "rotate-180" : ""}`}
-//                           />
-//                         </button>
-//                         {isVrnDropdownOpen && (
-//                           <div className="ml-6 mt-2 space-y-1">
-//                             {filteredVrnPages.map((page) => (
-//                               <button
-//                                 key={page.id}
-//                                 onClick={() => selectPage(page.id, "vrn")}
-//                                 className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-//                                   selectedVrnPage === page.id
-//                                     ? isDarkMode
-//                                       ? "bg-indigo-900/50 text-indigo-200 font-medium"
-//                                       : "bg-indigo-100 text-indigo-800 font-medium"
-//                                     : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
-//                                         isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
-//                                       }`
-//                                 }`}
-//                               >
-//                                 {page.name}
-//                               </button>
-//                             ))}
-//                           </div>
-//                         )}
-//                       </div>
-//                     ) : filteredVrnPages.length === 1 ? (
-//                       <button
-//                         onClick={() => selectPage(filteredVrnPages[0].id, "vrn")}
-//                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-//                           selectedVrnPage === filteredVrnPages[0].id
-//                             ? "bg-gradient-to-r from-indigo-700 to-blue-700 text-white shadow-md"
-//                             : `${textSecondary} ${hoverBg}`
-//                         }`}
-//                       >
-//                         <Building2 className="w-5 h-5" />
-//                         <span className="font-medium">{filteredVrnPages[0].name}</span>
-//                       </button>
-//                     ) : null}
-//                   </>
-//                 )}
-
-//                 {hasAccess("dimension") && (
-//                   <>
-//                     {shouldShowDropdown(filteredDimensionPages) ? (
-//                       <div>
-//                         <button
-//                           onClick={() => setIsDimensionDropdownOpen(!isDimensionDropdownOpen)}
-//                           className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-//                             isDimensionDropdownOpen || selectedDimensionPage
-//                               ? "bg-gradient-to-r from-pink-700 to-rose-700 text-white shadow-md"
-//                               : `${textSecondary} ${hoverBg}`
-//                           }`}
-//                         >
-//                           <div className="flex items-center space-x-3">
-//                             <Building2 className="w-5 h-5" />
-//                             <span className="font-medium">Dimension Office</span>
-//                           </div>
-//                           <ChevronDown
-//                             className={`w-4 h-4 transition-transform ${isDimensionDropdownOpen ? "rotate-180" : ""}`}
-//                           />
-//                         </button>
-//                         {isDimensionDropdownOpen && (
-//                           <div className="ml-6 mt-2 space-y-1">
-//                             {filteredDimensionPages.map((page) => (
-//                               <button
-//                                 key={page.id}
-//                                 onClick={() => selectPage(page.id, "dimension")}
-//                                 className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-//                                   selectedDimensionPage === page.id
-//                                     ? isDarkMode
-//                                       ? "bg-rose-900/50 text-rose-200 font-medium"
-//                                       : "bg-rose-100 text-rose-800 font-medium"
-//                                     : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
-//                                         isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
-//                                       }`
-//                                 }`}
-//                               >
-//                                 {page.name}
-//                               </button>
-//                             ))}
-//                           </div>
-//                         )}
-//                       </div>
-//                     ) : filteredDimensionPages.length === 1 ? (
-//                       <button
-//                         onClick={() => selectPage(filteredDimensionPages[0].id, "dimension")}
-//                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-//                           selectedDimensionPage === filteredDimensionPages[0].id
-//                             ? "bg-gradient-to-r from-pink-700 to-rose-700 text-white shadow-md"
-//                             : `${textSecondary} ${hoverBg}`
-//                         }`}
-//                       >
-//                         <Building2 className="w-5 h-5" />
-//                         <span className="font-medium">{filteredDimensionPages[0].name}</span>
 //                       </button>
 //                     ) : null}
 //                   </>
@@ -1125,10 +757,7 @@
 //                 <p
 //                   className={`${isDarkMode ? "text-indigo-200/70" : "text-indigo-700/80"} max-w-lg text-base sm:text-lg px-4`}
 //                 >
-//                   {filteredPaymentPages.length === 0 &&
-//                   displayRccPages.length === 0 &&
-//                   filteredVrnPages.length === 0 &&
-//                   filteredDimensionPages.length === 0
+//                   {filteredPaymentPages.length === 0 && displayRccPages.length === 0
 //                     ? "No modules available for your account."
 //                     : "Select a module from the navigation bar to start managing payments, approvals and reports."}
 //                 </p>
@@ -1172,6 +801,7 @@
 
 
 
+/////////
 
 
 
@@ -1204,14 +834,6 @@ import RccApproval from "../components/RccOffice/RCC_Approvel";
 import ApprovalByMayaksir from "../components/RccOffice/Approvel_By_Mayaksir";
 import OfficeExpensesPayment from "../components/RccOffice/OfficeExpensesPayment";
 
-import VrnApproval1 from "../components/VRNOffice/VRN_Approvel1";
-import VrnApproval2 from "../components/VRNOffice/VRN_Approvel2";
-import VrnReport from "../components/VRNOffice/VRN_payment_Office";
-
-import DimApproval1 from "../components/DimensionOffice/Dim_Approvel1";
-import DimApproval2 from "../components/DimensionOffice/Dim_Approvel2";
-import DimensionTransfer from "../components/DimensionOffice/Dim_Payment_Office";
-
 import GstData from "../components/GST/GstData";
 
 const Dashboard = () => {
@@ -1241,7 +863,6 @@ const Dashboard = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // ── Persistent section + page selection ────────────────────────────────
   const [activeSection, setActiveSection] = useState(() => {
     return localStorage.getItem("activeSection") || null;
   });
@@ -1249,7 +870,6 @@ const Dashboard = () => {
   const [selectedId, setSelectedId] = useState(() => {
     return localStorage.getItem("selectedId") || null;
   });
-  // ───────────────────────────────────────────────────────────────────────
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem("isDarkMode");
@@ -1258,13 +878,17 @@ const Dashboard = () => {
 
   const [isPaymentDropdownOpen, setIsPaymentDropdownOpen] = useState(false);
   const [isRccDropdownOpen, setIsRccDropdownOpen] = useState(false);
-  const [isVrnDropdownOpen, setIsVrnDropdownOpen] = useState(false);
-  const [isDimensionDropdownOpen, setIsDimensionDropdownOpen] = useState(false);
 
   const navbarRef = useRef(null);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // paymentPages: Reconciliation has an optional email allowlist.
+  // If email is present → only that user sees it under Payment.
+  // If no email → all PAYMENT-type + ADMIN users see it (existing behaviour).
+  // varsharccinfra@gmail.com is RCC type but gets Reconciliation under Payment.
+  // ─────────────────────────────────────────────────────────────────────────
   const paymentPages = [
-    { id: "Reconciliation", name: "Reconciliation" },
+    { id: "Reconciliation", name: "Reconciliation", allowedEmails: ["varsharccinfra@gmail.com"] },
     { id: "Form", name: "Forms" },
     { id: "Actual_Payment_in", name: "Actual Payment In" },
     { id: "Transfer_bank_To_bank", name: "Transfer Bank to Bank" },
@@ -1286,19 +910,6 @@ const Dashboard = () => {
     { id: "OfficeExpensesPayment", name: "Office Expenses Payment", email: "sandeeppatil1450@gmail.com" },
   ];
 
-  const vrnOfficePages = [
-    { id: "VRN_Approvel1", name: "VRN Approval 1", email: "mohanpandey@vipinchauhanassociates.com" },
-    { id: "VRN_Approvel2", name: "VRN Approval 2", email: "mohanpandey@vipinchauhanassociates.com" },
-    { id: "VRN_payment_Office", name: "VRN Payment Office", email: "Ramprasad@gmail.com" },
-  ];
-
-  const dimensionOfficePages = [
-    { id: "Dim_Approvel1", name: "Dim Approval 1", email: "richa.kaul92@gmail.com" },
-    { id: "Dim_Approvel1", name: "Dim Approval 1", email: "vijaypatildimensions@gmail.com" },
-    { id: "Dim_Approvel2", name: "Dim Approval 2", email: "ajaysharmadimensions@gmail.com" },
-    { id: "Dim_Payment", name: "Dim Payment Office", email: "Ramprasad@gmail.com" },
-  ];
-
   const getUniquePages = (pages) => {
     const seen = new Map();
     return pages.reduce((unique, page) => {
@@ -1310,6 +921,9 @@ const Dashboard = () => {
       return unique;
     }, []);
   };
+
+  // Emails that get Reconciliation under Payment nav (even if userType is not PAYMENT)
+  const RECONCILIATION_SPECIAL_EMAILS = ["varsharccinfra@gmail.com"];
 
   const hasAccess = (section) => {
     if (userType === "ADMIN") return true;
@@ -1324,13 +938,14 @@ const Dashboard = () => {
 
     switch (section.toUpperCase()) {
       case "PAYMENT":
-        return userType === "PAYMENT" || userType === "Payment";
+        // Normal PAYMENT users OR special emails that only get Reconciliation
+        return (
+          userType === "PAYMENT" ||
+          userType === "Payment" ||
+          RECONCILIATION_SPECIAL_EMAILS.includes(userEmail.toLowerCase())
+        );
       case "RCC":
         return userType === "RCC";
-      case "VRN":
-        return userType === "VRN";
-      case "DIMENSION":
-        return userType === "DIMENSION";
       default:
         return false;
     }
@@ -1341,26 +956,33 @@ const Dashboard = () => {
 
     if (userEmail.toLowerCase() === specialUserEmail) {
       if (section.toUpperCase() === "RCC") {
-        return pages.filter((p) => p.id === "OfficeExpensesPayment" || p.id === "RCC_Approvel");
-      }
-      if (section.toUpperCase() === "VRN") {
-        return pages.filter((p) => p.id === "VRN_payment_Office");
-      }
-      if (section.toUpperCase() === "DIMENSION") {
-        return pages.filter((p) => p.id === "Dim_Payment");
+        return pages.filter(
+          (p) => p.id === "OfficeExpensesPayment" || p.id === "RCC_Approvel"
+        );
       }
       return pages;
     }
 
     if (userType === "ADMIN") return pages;
 
-    return pages.filter((page) => page.email?.toLowerCase() === userEmail.toLowerCase());
+    if (section.toUpperCase() === "PAYMENT") {
+      // Special emails (e.g. Varsha): show only pages where their email is in allowedEmails
+      if (RECONCILIATION_SPECIAL_EMAILS.includes(userEmail.toLowerCase())) {
+        return pages.filter((page) =>
+          page.allowedEmails?.map((e) => e.toLowerCase()).includes(userEmail.toLowerCase())
+        );
+      }
+      // Normal PAYMENT users: show only pages with NO allowedEmails restriction
+      return pages.filter((page) => !page.allowedEmails);
+    }
+
+    return pages.filter(
+      (page) => page.email?.toLowerCase() === userEmail.toLowerCase()
+    );
   };
 
   const filteredPaymentPages = getFilteredPages("PAYMENT", paymentPages);
   const filteredRccPages = getFilteredPages("RCC", rccOfficePages);
-  const filteredVrnPages = getFilteredPages("VRN", vrnOfficePages);
-  const filteredDimensionPages = getFilteredPages("DIMENSION", dimensionOfficePages);
 
   const displayRccPages = getUniquePages(
     userType === "ADMIN" ? rccOfficePages : filteredRccPages
@@ -1381,12 +1003,10 @@ const Dashboard = () => {
 
     setIsPaymentDropdownOpen(false);
     setIsRccDropdownOpen(false);
-    setIsVrnDropdownOpen(false);
-    setIsDimensionDropdownOpen(false);
     setIsMobileMenuOpen(false);
   };
 
-  // Default page on first load / no saved state
+  // Default page on first load
   useEffect(() => {
     if (!userType || activeSection) return;
 
@@ -1409,16 +1029,6 @@ const Dashboard = () => {
       return;
     }
 
-    if (hasAccess("vrn") && filteredVrnPages.length > 0) {
-      selectSection("vrn", filteredVrnPages[0].id);
-      return;
-    }
-
-    if (hasAccess("dimension") && filteredDimensionPages.length > 0) {
-      selectSection("dimension", filteredDimensionPages[0].id);
-      return;
-    }
-
     if (hasAccess("summary")) {
       selectSection("summary");
       return;
@@ -1432,8 +1042,6 @@ const Dashboard = () => {
     userEmail,
     filteredPaymentPages,
     filteredRccPages,
-    filteredVrnPages,
-    filteredDimensionPages,
     displayRccPages,
     activeSection,
   ]);
@@ -1461,8 +1069,6 @@ const Dashboard = () => {
       if (navbarRef.current && !navbarRef.current.contains(e.target)) {
         setIsPaymentDropdownOpen(false);
         setIsRccDropdownOpen(false);
-        setIsVrnDropdownOpen(false);
-        setIsDimensionDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -1496,7 +1102,9 @@ const Dashboard = () => {
 
   const particleColor = isDarkMode ? "bg-white" : "bg-indigo-400";
 
-  // Active Component
+  // ─────────────────────────────────────────────────────────────────────────
+  // Active Component resolution
+  // ─────────────────────────────────────────────────────────────────────────
   let ActiveComponent = null;
   let pageTitle = "";
 
@@ -1511,20 +1119,11 @@ const Dashboard = () => {
     else if (selectedId === "Actual_Payment_in") ActiveComponent = ActualPaymentIn;
     else if (selectedId === "Transfer_bank_To_bank") ActiveComponent = TransferBankToBank;
   } else if (activeSection === "rcc" && selectedId) {
-    pageTitle = rccOfficePages.find((p) => p.id === selectedId)?.name || "RCC Office";
+    pageTitle =
+      rccOfficePages.find((p) => p.id === selectedId)?.name || "RCC Office";
     if (selectedId === "RCC_Approvel") ActiveComponent = RccApproval;
     else if (selectedId === "Approvel_By_Mayaksir") ActiveComponent = ApprovalByMayaksir;
     else if (selectedId === "OfficeExpensesPayment") ActiveComponent = OfficeExpensesPayment;
-  } else if (activeSection === "vrn" && selectedId) {
-    pageTitle = vrnOfficePages.find((p) => p.id === selectedId)?.name || "VRN Office";
-    if (selectedId === "VRN_Approvel1") ActiveComponent = VrnApproval1;
-    else if (selectedId === "VRN_Approvel2") ActiveComponent = VrnApproval2;
-    else if (selectedId === "VRN_payment_Office") ActiveComponent = VrnReport;
-  } else if (activeSection === "dimension" && selectedId) {
-    pageTitle = dimensionOfficePages.find((p) => p.id === selectedId)?.name || "Dimension";
-    if (selectedId === "Dim_Approvel1") ActiveComponent = DimApproval1;
-    else if (selectedId === "Dim_Approvel2") ActiveComponent = DimApproval2;
-    else if (selectedId === "Dim_Payment") ActiveComponent = DimensionTransfer;
   }
 
   return (
@@ -1618,8 +1217,6 @@ const Dashboard = () => {
                         onClick={() => {
                           setIsPaymentDropdownOpen(!isPaymentDropdownOpen);
                           setIsRccDropdownOpen(false);
-                          setIsVrnDropdownOpen(false);
-                          setIsDimensionDropdownOpen(false);
                         }}
                         className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
                           isPaymentDropdownOpen || activeSection === "payment"
@@ -1679,8 +1276,6 @@ const Dashboard = () => {
                         onClick={() => {
                           setIsRccDropdownOpen(!isRccDropdownOpen);
                           setIsPaymentDropdownOpen(false);
-                          setIsVrnDropdownOpen(false);
-                          setIsDimensionDropdownOpen(false);
                         }}
                         className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
                           isRccDropdownOpen || activeSection === "rcc"
@@ -1731,128 +1326,6 @@ const Dashboard = () => {
                   ) : null}
                 </>
               )}
-
-              {hasAccess("vrn") && (
-                <>
-                  {shouldShowDropdown(filteredVrnPages) ? (
-                    <div className="relative">
-                      <button
-                        onClick={() => {
-                          setIsVrnDropdownOpen(!isVrnDropdownOpen);
-                          setIsPaymentDropdownOpen(false);
-                          setIsRccDropdownOpen(false);
-                          setIsDimensionDropdownOpen(false);
-                        }}
-                        className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                          isVrnDropdownOpen || activeSection === "vrn"
-                            ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md"
-                            : `${textPrimary} ${hoverBg}`
-                        }`}
-                      >
-                        <Building2 className="w-4 h-4" />
-                        <span>VRN Office</span>
-                        <ChevronDown
-                          className={`w-4 h-4 transition-transform ${isVrnDropdownOpen ? "rotate-180" : ""}`}
-                        />
-                      </button>
-                      {isVrnDropdownOpen && (
-                        <div
-                          className={`absolute top-full left-0 mt-2 w-56 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}
-                        >
-                          {filteredVrnPages.map((page) => (
-                            <button
-                              key={page.id}
-                              onClick={() => selectSection("vrn", page.id)}
-                              className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                                activeSection === "vrn" && selectedId === page.id
-                                  ? isDarkMode
-                                    ? "bg-indigo-900/40 text-indigo-200 font-medium"
-                                    : "bg-indigo-100 text-indigo-800 font-medium"
-                                  : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
-                              }`}
-                            >
-                              {page.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : filteredVrnPages.length === 1 ? (
-                    <button
-                      onClick={() => selectSection("vrn", filteredVrnPages[0].id)}
-                      className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                        activeSection === "vrn" && selectedId === filteredVrnPages[0].id
-                          ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md"
-                          : `${textPrimary} ${hoverBg}`
-                      }`}
-                    >
-                      <Building2 className="w-4 h-4" />
-                      <span>{filteredVrnPages[0].name}</span>
-                    </button>
-                  ) : null}
-                </>
-              )}
-
-              {hasAccess("dimension") && (
-                <>
-                  {shouldShowDropdown(filteredDimensionPages) ? (
-                    <div className="relative">
-                      <button
-                        onClick={() => {
-                          setIsDimensionDropdownOpen(!isDimensionDropdownOpen);
-                          setIsPaymentDropdownOpen(false);
-                          setIsRccDropdownOpen(false);
-                          setIsVrnDropdownOpen(false);
-                        }}
-                        className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                          isDimensionDropdownOpen || activeSection === "dimension"
-                            ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-md"
-                            : `${textPrimary} ${hoverBg}`
-                        }`}
-                      >
-                        <Building2 className="w-4 h-4" />
-                        <span>Dimension</span>
-                        <ChevronDown
-                          className={`w-4 h-4 transition-transform ${isDimensionDropdownOpen ? "rotate-180" : ""}`}
-                        />
-                      </button>
-                      {isDimensionDropdownOpen && (
-                        <div
-                          className={`absolute top-full left-0 mt-2 w-56 ${dropdownBg} rounded-xl border py-2 z-50 shadow-2xl`}
-                        >
-                          {filteredDimensionPages.map((page) => (
-                            <button
-                              key={page.id}
-                              onClick={() => selectSection("dimension", page.id)}
-                              className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                                activeSection === "dimension" && selectedId === page.id
-                                  ? isDarkMode
-                                    ? "bg-rose-900/40 text-rose-200 font-medium"
-                                    : "bg-rose-100 text-rose-800 font-medium"
-                                  : `${textSecondary} ${isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"}`
-                              }`}
-                            >
-                              {page.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : filteredDimensionPages.length === 1 ? (
-                    <button
-                      onClick={() => selectSection("dimension", filteredDimensionPages[0].id)}
-                      className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                        activeSection === "dimension" && selectedId === filteredDimensionPages[0].id
-                          ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-md"
-                          : `${textPrimary} ${hoverBg}`
-                      }`}
-                    >
-                      <Building2 className="w-4 h-4" />
-                      <span>{filteredDimensionPages[0].name}</span>
-                    </button>
-                  ) : null}
-                </>
-              )}
             </div>
 
             {/* Desktop Right Icons */}
@@ -1862,12 +1335,18 @@ const Dashboard = () => {
                 className={`p-2 rounded-lg ${hoverBg} transition-all`}
                 title={isDarkMode ? "Light Mode" : "Dark Mode"}
               >
-                {isDarkMode ? <Sun className={`w-5 h-5 ${textPrimary}`} /> : <Moon className={`w-5 h-5 ${textPrimary}`} />}
+                {isDarkMode ? (
+                  <Sun className={`w-5 h-5 ${textPrimary}`} />
+                ) : (
+                  <Moon className={`w-5 h-5 ${textPrimary}`} />
+                )}
               </button>
               <button
                 onClick={handleLogout}
                 className={`flex items-center space-x-2 px-3 xl:px-4 py-2 rounded-lg ${
-                  isDarkMode ? "text-red-400 hover:bg-red-900/30 hover:text-red-300" : "text-red-600 hover:bg-red-50 hover:text-red-700"
+                  isDarkMode
+                    ? "text-red-400 hover:bg-red-900/30 hover:text-red-300"
+                    : "text-red-600 hover:bg-red-50 hover:text-red-700"
                 } transition-all text-sm font-medium`}
               >
                 <LogOut className="w-4 h-4" />
@@ -1878,9 +1357,16 @@ const Dashboard = () => {
             {/* Mobile Icons */}
             <div className="flex lg:hidden items-center space-x-2">
               <button onClick={toggleTheme} className={`p-2 rounded-lg ${hoverBg}`}>
-                {isDarkMode ? <Sun className={`w-5 h-5 ${textPrimary}`} /> : <Moon className={`w-5 h-5 ${textPrimary}`} />}
+                {isDarkMode ? (
+                  <Sun className={`w-5 h-5 ${textPrimary}`} />
+                ) : (
+                  <Moon className={`w-5 h-5 ${textPrimary}`} />
+                )}
               </button>
-              <button onClick={() => setIsMobileMenuOpen(true)} className={`p-2 rounded-lg ${hoverBg}`}>
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className={`p-2 rounded-lg ${hoverBg}`}
+              >
                 <Menu className={`w-6 h-6 ${textPrimary}`} />
               </button>
             </div>
@@ -1910,9 +1396,14 @@ const Dashboard = () => {
               >
                 <div>
                   <h2 className={`text-lg font-bold ${textPrimary}`}>Menu</h2>
-                  {userName && <p className={`text-xs ${textSecondary} mt-1`}>{userName}</p>}
+                  {userName && (
+                    <p className={`text-xs ${textSecondary} mt-1`}>{userName}</p>
+                  )}
                 </div>
-                <button onClick={() => setIsMobileMenuOpen(false)} className={`p-2 ${hoverBg} rounded-lg`}>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`p-2 ${hoverBg} rounded-lg`}
+                >
                   <X className={`w-6 h-6 ${textPrimary}`} />
                 </button>
               </div>
@@ -1951,7 +1442,9 @@ const Dashboard = () => {
                     {shouldShowDropdown(filteredPaymentPages) ? (
                       <div>
                         <button
-                          onClick={() => setIsPaymentDropdownOpen(!isPaymentDropdownOpen)}
+                          onClick={() =>
+                            setIsPaymentDropdownOpen(!isPaymentDropdownOpen)
+                          }
                           className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
                             isPaymentDropdownOpen || activeSection === "payment"
                               ? "bg-gradient-to-r from-emerald-700 to-teal-700 text-white shadow-md"
@@ -1971,14 +1464,19 @@ const Dashboard = () => {
                             {filteredPaymentPages.map((page) => (
                               <button
                                 key={page.id}
-                                onClick={() => selectSection("payment", page.id)}
+                                onClick={() =>
+                                  selectSection("payment", page.id)
+                                }
                                 className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-                                  activeSection === "payment" && selectedId === page.id
+                                  activeSection === "payment" &&
+                                  selectedId === page.id
                                     ? isDarkMode
                                       ? "bg-emerald-900/50 text-emerald-200 font-medium"
                                       : "bg-emerald-100 text-emerald-800 font-medium"
                                     : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
-                                        isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
+                                        isDarkMode
+                                          ? "hover:bg-white/5"
+                                          : "hover:bg-gray-100"
                                       }`
                                 }`}
                               >
@@ -1990,15 +1488,20 @@ const Dashboard = () => {
                       </div>
                     ) : filteredPaymentPages.length === 1 ? (
                       <button
-                        onClick={() => selectSection("payment", filteredPaymentPages[0].id)}
+                        onClick={() =>
+                          selectSection("payment", filteredPaymentPages[0].id)
+                        }
                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                          activeSection === "payment" && selectedId === filteredPaymentPages[0].id
+                          activeSection === "payment" &&
+                          selectedId === filteredPaymentPages[0].id
                             ? "bg-gradient-to-r from-emerald-700 to-teal-700 text-white shadow-md"
                             : `${textSecondary} ${hoverBg}`
                         }`}
                       >
                         <DollarSign className="w-5 h-5" />
-                        <span className="font-medium">{filteredPaymentPages[0].name}</span>
+                        <span className="font-medium">
+                          {filteredPaymentPages[0].name}
+                        </span>
                       </button>
                     ) : null}
                   </>
@@ -2009,7 +1512,9 @@ const Dashboard = () => {
                     {shouldShowDropdown(displayRccPages) ? (
                       <div>
                         <button
-                          onClick={() => setIsRccDropdownOpen(!isRccDropdownOpen)}
+                          onClick={() =>
+                            setIsRccDropdownOpen(!isRccDropdownOpen)
+                          }
                           className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
                             isRccDropdownOpen || activeSection === "rcc"
                               ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md"
@@ -2031,12 +1536,15 @@ const Dashboard = () => {
                                 key={page.id}
                                 onClick={() => selectSection("rcc", page.id)}
                                 className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                                  activeSection === "rcc" && selectedId === page.id
+                                  activeSection === "rcc" &&
+                                  selectedId === page.id
                                     ? isDarkMode
                                       ? "bg-purple-900/50 text-purple-200 font-medium"
                                       : "bg-purple-100 text-purple-800 font-medium"
                                     : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
-                                        isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
+                                        isDarkMode
+                                          ? "hover:bg-white/5"
+                                          : "hover:bg-gray-100"
                                       }`
                                 }`}
                               >
@@ -2048,142 +1556,35 @@ const Dashboard = () => {
                       </div>
                     ) : displayRccPages.length === 1 ? (
                       <button
-                        onClick={() => selectSection("rcc", displayRccPages[0].id)}
+                        onClick={() =>
+                          selectSection("rcc", displayRccPages[0].id)
+                        }
                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                          activeSection === "rcc" && selectedId === displayRccPages[0].id
+                          activeSection === "rcc" &&
+                          selectedId === displayRccPages[0].id
                             ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md"
                             : `${textSecondary} ${hoverBg}`
                         }`}
                       >
                         <Building2 className="w-5 h-5" />
-                        <span className="font-medium">{displayRccPages[0].name}</span>
-                      </button>
-                    ) : null}
-                  </>
-                )}
-
-                {hasAccess("vrn") && (
-                  <>
-                    {shouldShowDropdown(filteredVrnPages) ? (
-                      <div>
-                        <button
-                          onClick={() => setIsVrnDropdownOpen(!isVrnDropdownOpen)}
-                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                            isVrnDropdownOpen || activeSection === "vrn"
-                              ? "bg-gradient-to-r from-indigo-700 to-blue-700 text-white shadow-md"
-                              : `${textSecondary} ${hoverBg}`
-                          }`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <Building2 className="w-5 h-5" />
-                            <span className="font-medium">VRN Office</span>
-                          </div>
-                          <ChevronDown
-                            className={`w-4 h-4 transition-transform ${isVrnDropdownOpen ? "rotate-180" : ""}`}
-                          />
-                        </button>
-                        {isVrnDropdownOpen && (
-                          <div className="ml-6 mt-2 space-y-1">
-                            {filteredVrnPages.map((page) => (
-                              <button
-                                key={page.id}
-                                onClick={() => selectSection("vrn", page.id)}
-                                className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-                                  activeSection === "vrn" && selectedId === page.id
-                                    ? isDarkMode
-                                      ? "bg-indigo-900/50 text-indigo-200 font-medium"
-                                      : "bg-indigo-100 text-indigo-800 font-medium"
-                                    : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
-                                        isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
-                                      }`
-                                }`}
-                              >
-                                {page.name}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ) : filteredVrnPages.length === 1 ? (
-                      <button
-                        onClick={() => selectSection("vrn", filteredVrnPages[0].id)}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                          activeSection === "vrn" && selectedId === filteredVrnPages[0].id
-                            ? "bg-gradient-to-r from-indigo-700 to-blue-700 text-white shadow-md"
-                            : `${textSecondary} ${hoverBg}`
-                        }`}
-                      >
-                        <Building2 className="w-5 h-5" />
-                        <span className="font-medium">{filteredVrnPages[0].name}</span>
-                      </button>
-                    ) : null}
-                  </>
-                )}
-
-                {hasAccess("dimension") && (
-                  <>
-                    {shouldShowDropdown(filteredDimensionPages) ? (
-                      <div>
-                        <button
-                          onClick={() => setIsDimensionDropdownOpen(!isDimensionDropdownOpen)}
-                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                            isDimensionDropdownOpen || activeSection === "dimension"
-                              ? "bg-gradient-to-r from-pink-700 to-rose-700 text-white shadow-md"
-                              : `${textSecondary} ${hoverBg}`
-                          }`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <Building2 className="w-5 h-5" />
-                            <span className="font-medium">Dimension Office</span>
-                          </div>
-                          <ChevronDown
-                            className={`w-4 h-4 transition-transform ${isDimensionDropdownOpen ? "rotate-180" : ""}`}
-                          />
-                        </button>
-                        {isDimensionDropdownOpen && (
-                          <div className="ml-6 mt-2 space-y-1">
-                            {filteredDimensionPages.map((page) => (
-                              <button
-                                key={page.id}
-                                onClick={() => selectSection("dimension", page.id)}
-                                className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-                                  activeSection === "dimension" && selectedId === page.id
-                                    ? isDarkMode
-                                      ? "bg-rose-900/50 text-rose-200 font-medium"
-                                      : "bg-rose-100 text-rose-800 font-medium"
-                                    : `${isDarkMode ? "text-gray-300" : "text-gray-600"} ${
-                                        isDarkMode ? "hover:bg-white/5" : "hover:bg-gray-100"
-                                      }`
-                                }`}
-                              >
-                                {page.name}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ) : filteredDimensionPages.length === 1 ? (
-                      <button
-                        onClick={() => selectSection("dimension", filteredDimensionPages[0].id)}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                          activeSection === "dimension" && selectedId === filteredDimensionPages[0].id
-                            ? "bg-gradient-to-r from-pink-700 to-rose-700 text-white shadow-md"
-                            : `${textSecondary} ${hoverBg}`
-                        }`}
-                      >
-                        <Building2 className="w-5 h-5" />
-                        <span className="font-medium">{filteredDimensionPages[0].name}</span>
+                        <span className="font-medium">
+                          {displayRccPages[0].name}
+                        </span>
                       </button>
                     ) : null}
                   </>
                 )}
               </div>
 
-              <div className={`p-4 sm:p-5 border-t ${isDarkMode ? "border-white/10" : "border-gray-200"}`}>
+              <div
+                className={`p-4 sm:p-5 border-t ${isDarkMode ? "border-white/10" : "border-gray-200"}`}
+              >
                 <button
                   onClick={handleLogout}
                   className={`w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-xl ${
-                    isDarkMode ? "text-red-400 hover:bg-red-900/30" : "text-red-600 hover:bg-red-50"
+                    isDarkMode
+                      ? "text-red-400 hover:bg-red-900/30"
+                      : "text-red-600 hover:bg-red-50"
                   } transition-all font-medium`}
                 >
                   <LogOut className="w-5 h-5" />
@@ -2216,7 +1617,9 @@ const Dashboard = () => {
               <div className="flex flex-col items-center justify-center h-full text-center py-12 sm:py-16 lg:py-20">
                 <div
                   className={`w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 ${
-                    isDarkMode ? "bg-gradient-to-br from-indigo-500/20 to-purple-500/20" : "bg-gradient-to-br from-indigo-200 to-purple-200"
+                    isDarkMode
+                      ? "bg-gradient-to-br from-indigo-500/20 to-purple-500/20"
+                      : "bg-gradient-to-br from-indigo-200 to-purple-200"
                   } rounded-2xl flex items-center justify-center mb-6 sm:mb-8 animate-pulse`}
                 >
                   <DollarSign
@@ -2238,9 +1641,7 @@ const Dashboard = () => {
                   className={`${isDarkMode ? "text-indigo-200/70" : "text-indigo-700/80"} max-w-lg text-base sm:text-lg px-4`}
                 >
                   {filteredPaymentPages.length === 0 &&
-                  displayRccPages.length === 0 &&
-                  filteredVrnPages.length === 0 &&
-                  filteredDimensionPages.length === 0
+                  displayRccPages.length === 0
                     ? "No modules available for your account."
                     : "Select a module from the navigation bar to start managing payments, approvals and reports."}
                 </p>
@@ -2258,7 +1659,10 @@ const Dashboard = () => {
             transform: translate(0, 0);
           }
           50% {
-            transform: translate(${Math.random() > 0.5 ? "" : "-"}40px, -80px);
+            transform: translate(
+              ${Math.random() > 0.5 ? "" : "-"}40px,
+              -80px
+            );
           }
         }
         .animate-pulse-slow {
