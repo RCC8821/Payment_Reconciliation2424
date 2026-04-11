@@ -29,7 +29,7 @@ const sheets = google.sheets({ version: 'v4', auth });
 const drive = google.drive({ version: 'v3', auth, supportsAllDrives: true });
 
 const spreadsheetId = process.env.SPREADSHEET_ID;
-const SPREADSHEET_ID_OFFICE_EXPENSES = process.env.SPREADSHEET_ID_OFFICE_EXPENSES;
+const OfficeExpenseID = process.env.SPREADSHEET_ID_OFFICE_EXPENSES;
 const Summary_ID = process.env.SPREADSHEET_ID_Summary;
 const GOOGLE_DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || 'root'; // default root
 const SPREADSHEET_GST_SHEET_ID=process.env.SPREADSHEET_GST_ID
@@ -38,7 +38,7 @@ module.exports = {
   sheets, 
   drive, 
   spreadsheetId, 
-  SPREADSHEET_ID_OFFICE_EXPENSES,
+  OfficeExpenseID,
   GOOGLE_DRIVE_FOLDER_ID ,
   Summary_ID,
   SPREADSHEET_GST_SHEET_ID

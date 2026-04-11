@@ -2,7 +2,7 @@
 
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { sheets, SPREADSHEET_ID_OFFICE_EXPENSES } = require('../config/googleSheet');
+const { sheets, OfficeExpenseID } = require('../config/googleSheet');
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.post('/login', async (req, res) => {
 
   try {
     const response = await sheets.spreadsheets.values.get({
-      spreadsheetId:SPREADSHEET_ID_OFFICE_EXPENSES,
+      spreadsheetId:OfficeExpenseID,
       range: 'Users!A:D',          // ← अब A:D ले रहे हैं (D = Name)
     });
 

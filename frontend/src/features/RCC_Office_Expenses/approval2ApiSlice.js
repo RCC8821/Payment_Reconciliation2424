@@ -1,8 +1,6 @@
-
-
+// features/RCC_Office_Expenses/approval2ApiSlice.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-// VITE project mein .env se base URL
 const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 export const approval2ApiSlice = createApi({
@@ -11,17 +9,14 @@ export const approval2ApiSlice = createApi({
     baseUrl,
     prepareHeaders: (headers) => {
       headers.set('Content-Type', 'application/json');
-      // Agar token chahiye to yahan add kar sakte ho
-      // const token = localStorage.getItem('token');
-      // if (token) headers.set('Authorization', `Bearer ${token}`);
       return headers;
     },
   }),
   tagTypes: ['OfficeExpensesLevel2'],
   endpoints: (builder) => ({
-    // Get pending records for level 2 approval
+    // GET - Pending records for level 2 approval
     getPendingOfficeExpensesLevel2: builder.query({
-      query: () => '/api/Expenses/GET-Office-Expenses-Data-Approved2',
+      query: () => '/api/Expenses/Get-Approvel-2',
       providesTags: ['OfficeExpensesLevel2'],
       transformResponse: (response) => {
         if (response.success) {
@@ -34,27 +29,27 @@ export const approval2ApiSlice = createApi({
       },
     }),
 
-    // Update final approval – IMPORTANT: destructuring mein PAYMENT_MODE_3 add karo
-    updateOfficeExpenseFinalApproval: builder.mutation({
-      query: ({ uid, STATUS_3, FINAL_AMOUNT_3, PAYMENT_MODE_3, REMARK_3 }) => ({
-        url: '/api/Expenses/update-RCC-OFFICE-Expenses-Data-Approved2',
+    // POST - Update by OFFBILLUID (all matching rows)
+    updateOfficeExpenseByOFFBILLUID: builder.mutation({
+      query: ({ OFFBILLUID, STATUS_2, PAYMENT_MODE_3, REMARK_2 }) => ({
+        url: '/api/Expenses/Post-Approvel-2',
         method: 'POST',
         body: {
-          uid,
-          STATUS_3,
-          FINAL_AMOUNT_3,
-          PAYMENT_MODE_3,          // ← yeh line ab sahi se kaam karegi
-          REMARK_3,
+          OFFBILLUID,
+          STATUS_2,
+          PAYMENT_MODE_3,
+          REMARK_2,
         },
       }),
-      invalidatesTags: ['OfficeExpensesLevel2'], // list auto-refresh hogi
+      invalidatesTags: ['OfficeExpensesLevel2'],
     }),
   }),
 });
 
+// ✅ IMPORTANT: Yeh exports match hone chahiye
 export const {
   useGetPendingOfficeExpensesLevel2Query,
-  useUpdateOfficeExpenseFinalApprovalMutation,
+  useUpdateOfficeExpenseByOFFBILLUIDMutation,  // ← Yeh naam exactly same hona chahiye
 } = approval2ApiSlice;
 
 export default approval2ApiSlice.reducer;
