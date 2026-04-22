@@ -80,7 +80,7 @@ console.log(apiResponse)
       itemName: it.itemName,
       amount: it.plannedAmount,
       gstType: 'CGST+SGST',
-      gstPercent: 18,
+      gstPercent: 0,
       cgstAmt: 0,
       sgstAmt: 0,
       igstAmt: 0,
@@ -407,7 +407,7 @@ console.log(apiResponse)
                 <div>
                   <label className="block text-sm mb-1.5">GST on Transport %</label>
                   <select value={transportGSTPercent} onChange={e => setTransportGSTPercent(Number(e.target.value))} className="w-full p-2.5 border rounded-lg">
-                    <option>0</option><option>5</option><option>12</option><option>18</option><option>28</option>
+                    <option>0%</option><option>5%</option><option>12%</option><option>18%</option><option>28%</option>
                   </select>
                 </div>
                 <div>

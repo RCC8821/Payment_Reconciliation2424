@@ -7,7 +7,7 @@ export const billEntryApi = createApi({
   baseQuery: fetchBaseQuery({
      baseUrl: BASE_URL, 
   }),
-  tagTypes: ["PendingDimExpenses"],     
+  tagTypes: ["PendingDimExpenses"],   
   endpoints: (builder) => ({
     // GET — list of pending Dimension Office Payment entries
     // (PLANNED_4 has value, ACTUAL_4 is empty)

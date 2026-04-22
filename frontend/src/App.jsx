@@ -18,6 +18,7 @@ import Reconciliation from './components/Payment/Reconciliation';
 import Form from './components/Payment/Form';
 import Actual_Payment_in from './components/Payment/Actual_Payment_in';
 import Transfer_bank_To_bank from './components/Payment/Transfer_bank_To_bank';
+import BankChargesInterestForm from './components/Payment/BankChargesInterestForm';
 
 // RCC Office
 // import RCC_Approvel from './components/RccOffice/RCC_Approvel';
@@ -58,7 +59,7 @@ function App() {
           <Route path="form" element={<Form />} />
           <Route path="actual-payment-in" element={<Actual_Payment_in />} />
           <Route path="transfer-bank-to-bank" element={<Transfer_bank_To_bank />} />
-
+          <Route path='bankchargesinterest' element={<BankChargesInterestForm/>}/>
           {/* RCC Office */}
           
           <Route path="approvel-by-mayanksir" element={<Approvel_By_Mayaksir />} />

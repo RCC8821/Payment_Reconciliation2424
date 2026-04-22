@@ -12,6 +12,7 @@ const Payment  = require('./payment/Payment')
 const Form = require('./payment/Form')
 const Actual_Bank_In= require('./payment/Actual_Bank_In')
 const Bank_to_bank_transfer=require('./payment/bank_to_bank_Transfer')
+const interestCharges= require('./payment/Interest _Charges_Form')
 
 //////////// RCC OFFICE EXPENSES
 
@@ -73,6 +74,8 @@ app.use('/api',Payment)
 app.use('/api',Form)
 app.use('/api',Actual_Bank_In)
 app.use('/api',Bank_to_bank_transfer)
+app.use('/api',interestCharges)
+
 
 ///// RCC OFFICE EXPESES
 
