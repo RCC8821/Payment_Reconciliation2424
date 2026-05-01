@@ -13,8 +13,10 @@ import { bankTransferApiSlice } from './features/Payment/bank_to_bank_transfer_s
 
 import { approval2ApiSlice } from './features/RCC_Office_Expenses/approval2ApiSlice';
 import {dimPaymentApi} from './features/RCC_Office_Expenses/paymentSlice'
-
 import {billEntryApi} from './features/RCC_Office_Expenses/BillEntry'
+import {officeFormApi} from "./features/RCC_Office_Expenses/officeFormSlice"
+
+
 // === Summary ===
 import { mainSummaryApi } from './features/Summary/mainSummarySlice';
 
@@ -35,6 +37,7 @@ export const store = configureStore({
       [billEntryApi.reducerPath]: billEntryApi.reducer,
     [approval2ApiSlice.reducerPath]: approval2ApiSlice.reducer,
      [dimPaymentApi.reducerPath]: dimPaymentApi.reducer,
+     [officeFormApi.reducerPath]: officeFormApi.reducer,
 
    
 
@@ -59,6 +62,7 @@ export const store = configureStore({
         .concat(billEntryApi.middleware)
       .concat(approval2ApiSlice.middleware)
      .concat(dimPaymentApi.middleware)
+     .concat(officeFormApi.middleware)
 
       
 

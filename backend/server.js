@@ -20,6 +20,7 @@ const interestCharges= require('./payment/Interest _Charges_Form')
 const Approvel_2=require('./RCC_OFFICE_EXPENSES/Approvel_2')
 const billEntry= require('./RCC_OFFICE_EXPENSES/BillEntry')
 const payment =require('./RCC_OFFICE_EXPENSES/Payment')
+const officeForm= require('./RCC_OFFICE_EXPENSES/OfficeForm')
 
 
 ////////////////   Summary  ///////////
@@ -83,6 +84,7 @@ app.use('/api',interestCharges)
 app.use('/api/Expenses',Approvel_2)
 app.use('/api/Expenses',billEntry)
 app.use('/api/Expenses',payment)
+app.use('/api/Expenses',officeForm)
 
 
 //////////////////////////// Summary /////

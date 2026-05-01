@@ -25,7 +25,7 @@ import BankChargesInterestForm from './components/Payment/BankChargesInterestFor
 import Approvel_By_Mayaksir from './components/RccOffice/Approvel_By_Mayaksir';
 import BillEntry from './components/RccOffice/BillEntry';
 import ExpensesPayemnt from './components/RccOffice/ExpensesPayemnt';
-
+import OfficeForm from './components/RccOffice/OfficeForm';
 // GST
 import GstData from './components/GST/GstData';
 
@@ -40,6 +40,7 @@ function App() {
       <Routes>
         {/* Public route - Login */}
         <Route path="/" element={<Login />} />
+        <Route path="OfficeForm" element={<OfficeForm />} />
 
         {/* Protected Dashboard + Nested Routes */}
         <Route
@@ -65,6 +66,7 @@ function App() {
           <Route path="approvel-by-mayanksir" element={<Approvel_By_Mayaksir />} />
           <Route path="Bill-Entry" element={<BillEntry />} />
           <Route path="Expenses-Payemnt" element={<ExpensesPayemnt />} />
+          
         
 
          
