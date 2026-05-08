@@ -1,3 +1,5 @@
+
+
 const express = require('express');
 const router = express.Router();
 const { Readable } = require('stream');
@@ -61,38 +63,50 @@ function getISTTimestamp() {
   const istOffset = 5.5 * 60 * 60 * 1000;
   const istDate = new Date(now.getTime() + istOffset);
 
-  const dd = String(istDate.getUTCDate()).padStart(2, '0');
-  const mm = String(istDate.getUTCMonth() + 1).padStart(2, '0');
+  const dd  = String(istDate.getUTCDate()).padStart(2, '0');
+  const mm  = String(istDate.getUTCMonth() + 1).padStart(2, '0');
   const yyyy = istDate.getUTCFullYear();
-  const hh = String(istDate.getUTCHours()).padStart(2, '0');
+  const hh  = String(istDate.getUTCHours()).padStart(2, '0');
   const min = String(istDate.getUTCMinutes()).padStart(2, '0');
-  const ss = String(istDate.getUTCSeconds()).padStart(2, '0');
+  const ss  = String(istDate.getUTCSeconds()).padStart(2, '0');
 
   return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
 }
 
 // ============================================
-// Helper: Generate Bill Number
+// Helper: Generate Bill Number ✅ FIXED
 // ============================================
 async function generateBillNumber() {
   try {
     const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: OfficeExpenseID,        
+      spreadsheetId: OfficeExpenseID,
       range: 'RCC_OFFICE_FMS!B:B',
     });
 
     const rows = response.data.values || [];
     let maxNumber = 0;
 
-    for (let i = 7; i < rows.length; i++) {
+    console.log(`Total rows fetched for bill number: ${rows.length}`);
+
+    // ✅ Row 9 se start (index 8)
+    for (let i = 8; i < rows.length; i++) {
       const billNo = rows[i]?.[0];
-      if (billNo && billNo.startsWith('RCC-OFF')) {
-        const num = parseInt(billNo.replace('RCC-OFF', ''));
-        if (!isNaN(num) && num > maxNumber) maxNumber = num;
+
+      // ✅ FIXED: Sahi prefix "RCC-OFF" check karo
+      if (billNo && billNo.toString().trim().startsWith('RCC-OFF')) {
+        const numStr = billNo.toString().trim().replace('RCC-OFF', '');
+        const num = parseInt(numStr);
+        if (!isNaN(num) && num > maxNumber) {
+          maxNumber = num;
+        }
       }
     }
 
-    return `RCC-OFF${(maxNumber + 1).toString().padStart(4, '0')}`;
+    const nextNumber = `RCC-OFF${(maxNumber + 1).toString().padStart(4, '0')}`;
+    console.log(`✅ Generated Bill Number: ${nextNumber} (max was: ${maxNumber})`);
+
+    return nextNumber;
+
   } catch (error) {
     console.error('Error generating bill number:', error);
     return 'RCC-OFF0001';
@@ -100,24 +114,27 @@ async function generateBillNumber() {
 }
 
 // ============================================
-// Helper: Get Last UID
+// Helper: Get Last UID ✅ FIXED
 // ============================================
 async function getLastUID() {
   try {
     const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: OfficeExpenseID,        // ✅ FIXED
+      spreadsheetId: OfficeExpenseID,
       range: 'RCC_OFFICE_FMS!C:C',
     });
 
     const rows = response.data.values || [];
     let maxUID = 0;
 
-    for (let i = 7; i < rows.length; i++) {
+    // ✅ Row 9 se start (index 8)
+    for (let i = 8; i < rows.length; i++) {
       const uid = parseInt(rows[i]?.[0]);
       if (!isNaN(uid) && uid > maxUID) maxUID = uid;
     }
 
+    console.log(`✅ Last UID found: ${maxUID}`);
     return maxUID;
+
   } catch (error) {
     console.error('Error getting last UID:', error);
     return 0;
@@ -125,7 +142,7 @@ async function getLastUID() {
 }
 
 // ============================================
-// Helper: Get Available Rows
+// Helper: Get Available Rows ✅ FIXED
 // ============================================
 async function getAvailableRows(needed) {
   try {
@@ -137,7 +154,7 @@ async function getAvailableRows(needed) {
     const rows = response.data.values || [];
     const emptyRows = [];
 
-    // ✅ FIX: i = 8 matlab Row 9 se start (pehle i = 7 tha jo Row 8 tha)
+    // ✅ Row 9 se start (index 8)
     for (let i = 8; i < rows.length; i++) {
       const cellValue = rows[i]?.[0];
       const isEmpty = !cellValue || cellValue.toString().trim() === '';
@@ -149,6 +166,7 @@ async function getAvailableRows(needed) {
       if (emptyRows.length === needed) break;
     }
 
+    // Agar enough empty rows nahi hain
     if (emptyRows.length < needed) {
       const totalRows = Math.max(rows.length, 8);
       const startAppend = totalRows + 1;
@@ -159,28 +177,31 @@ async function getAvailableRows(needed) {
       }
     }
 
+    console.log(`✅ Available rows for ${needed} items:`, emptyRows);
     return emptyRows;
 
   } catch (error) {
     console.error('Error getting available rows:', error);
-    return Array.from({ length: needed }, (_, i) => 9 + i); // ✅ fallback bhi Row 9 se
+    return Array.from({ length: needed }, (_, i) => 9 + i);
   }
 }
 
-
+// ============================================
+// GET Route - Dropdown Data
+// ============================================
 router.get('/Dropdown-Data', async (req, res) => {
   try {
-    const { 
-      action, 
-      subhead, 
-      itemName, 
-      getFormRaised, 
-      getProjectName  // ✅ naya param
+    const {
+      action,
+      subhead,
+      itemName,
+      getFormRaised,
+      getProjectName
     } = req.query;
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: OfficeExpenseID,
-      range: 'Project_Data!D4:L',  // ✅ D se L tak
+      range: 'Project_Data!D4:L',
     });
 
     const rows = response.data.values;
@@ -219,7 +240,7 @@ router.get('/Dropdown-Data', async (req, res) => {
         '',                       // I = index 5
         'Form_Raised_Form',       // J = index 6
         '',                       // K = index 7
-        'Project_Name',           // L = index 8 ✅
+        'Project_Name',           // L = index 8
       ];
     }
 
@@ -230,15 +251,15 @@ router.get('/Dropdown-Data', async (req, res) => {
     // ----------------------------------------
     // Column Indexes
     // ----------------------------------------
-    const subheadIndex      = 0;  // D
-    const itemNameIndex     = 1;  // E
-    const unitIndex         = 2;  // F
-    const skuCodeIndex      = 3;  // G
-    const formRaisedIndex   = 6;  // J
-    const projectNameIndex  = 8;  // L ✅
+    const subheadIndex     = 0; // D
+    const itemNameIndex    = 1; // E
+    const unitIndex        = 2; // F
+    const skuCodeIndex     = 3; // G
+    const formRaisedIndex  = 6; // J
+    const projectNameIndex = 8; // L
 
     // ----------------------------------------
-    // ✅ NEW Case: Project Name Dropdown
+    // Case: Project Name Dropdown
     // ----------------------------------------
     if (getProjectName === 'true') {
       const uniqueProjectNames = [
@@ -250,9 +271,9 @@ router.get('/Dropdown-Data', async (req, res) => {
       ];
 
       console.log('Project Names fetched:', uniqueProjectNames);
-      return res.json({ 
-        type: 'projectName', 
-        data: uniqueProjectNames 
+      return res.json({
+        type: 'projectName',
+        data: uniqueProjectNames
       });
     }
 
@@ -283,8 +304,8 @@ router.get('/Dropdown-Data', async (req, res) => {
 
         if (!subheadMap.has(subheadVal)) {
           subheadMap.set(subheadVal, {
-            subhead: subheadVal,
-            items: [],
+            subhead:    subheadVal,
+            items:      [],
             formRaised: new Set(),
           });
         }
@@ -295,10 +316,10 @@ router.get('/Dropdown-Data', async (req, res) => {
         if (itemNameVal) {
           subheadData.items.push({
             itemName:    itemNameVal,
-            unit:        row[unitIndex]          || '',
-            skuCode:     row[skuCodeIndex]       || '',
-            formRaised:  row[formRaisedIndex]    || '',
-            projectName: row[projectNameIndex]   || '', // ✅
+            unit:        row[unitIndex]        || '',
+            skuCode:     row[skuCodeIndex]     || '',
+            formRaised:  row[formRaisedIndex]  || '',
+            projectName: row[projectNameIndex] || '',
           });
         }
 
@@ -337,7 +358,7 @@ router.get('/Dropdown-Data', async (req, res) => {
           unit:        row[unitIndex]        || '',
           skuCode:     row[skuCodeIndex]     || '',
           formRaised:  row[formRaisedIndex]  || '',
-          projectName: row[projectNameIndex] || '', // ✅
+          projectName: row[projectNameIndex] || '',
         }))
         .filter((item) => item.itemName);
 
@@ -350,7 +371,7 @@ router.get('/Dropdown-Data', async (req, res) => {
     if (subhead && itemName) {
       const selectedItem = dataRows.find(
         (row) =>
-          row[subheadIndex] === subhead && 
+          row[subheadIndex] === subhead &&
           row[itemNameIndex] === itemName
       );
 
@@ -364,7 +385,7 @@ router.get('/Dropdown-Data', async (req, res) => {
           unit:        selectedItem[unitIndex]        || '',
           skuCode:     selectedItem[skuCodeIndex]     || '',
           formRaised:  selectedItem[formRaisedIndex]  || '',
-          projectName: selectedItem[projectNameIndex] || '', // ✅
+          projectName: selectedItem[projectNameIndex] || '',
         },
       });
     }
@@ -380,9 +401,8 @@ router.get('/Dropdown-Data', async (req, res) => {
   }
 });
 
-
 // ============================================
-// POST Route - Submit Payment Data
+// POST Route - Submit Payment Data ✅ UPDATED
 // ============================================
 router.post('/post-form-data', async (req, res) => {
   try {
@@ -401,24 +421,24 @@ router.post('/post-form-data', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const timestamp = getISTTimestamp();
-
-    const billNumber = await generateBillNumber();
-    const lastUID = await getLastUID();
+    const timestamp    = getISTTimestamp();
+    const billNumber   = await generateBillNumber();
+    const lastUID      = await getLastUID();
     const availableRows = await getAvailableRows(items.length);
 
     console.log(
       `billNumber: ${billNumber} | lastUID: ${lastUID} | rows: ${availableRows}`
     );
 
-    const batchData = [];
+    const batchData     = [];
     const uploadedPhotos = [];
 
     for (let i = 0; i < items.length; i++) {
-      const item = items[i];
+      const item   = items[i];
       const rowNum = availableRows[i];
-      const uid = lastUID + (i + 1);
+      const uid    = lastUID + (i + 1);
 
+      // ✅ Bill Photo Upload
       let billPhotoUrl = '';
       if (item.billPhoto && item.billPhoto.startsWith('data:')) {
         const uniqueId = `${billNumber}_uid${uid}_${Date.now()}`;
@@ -429,22 +449,26 @@ router.post('/post-form-data', async (req, res) => {
         uploadedPhotos.push(billPhotoUrl);
       }
 
+      // ✅ 17 columns (A to Q) - Description included
       const rowData = new Array(17).fill('');
 
-      rowData[0] = timestamp;
-      rowData[1] = billNumber;
-      rowData[2] = uid;
-      rowData[3] = officeName;
-      rowData[4] = payeeName;
-      rowData[6] = item.subhead;
-      rowData[7] = item.itemName;
-      rowData[8] = item.unit;
-      rowData[9] = item.skuCode;
-      rowData[10] = item.quantity;
-      rowData[11] = item.amount;
-      rowData[14] = item.formRaisedBy;
-      rowData[15] = billPhotoUrl;
-      rowData[16] = remarks || '';
+      rowData[0]  = timestamp;              // A: Timestamp
+      rowData[1]  = billNumber;             // B: RCC_Bill_No
+      rowData[2]  = uid;                    // C: UID
+      rowData[3]  = officeName;             // D: OFFICE_NAME
+      rowData[4]  = payeeName;              // E: PAYEE_NAME
+      rowData[5]  = item.subhead;           // F: EXPENSES_SUBHEAD
+      rowData[6]  = item.itemName;          // G: ITEM_NAME
+      rowData[7]  = item.description || ''; // H: DESCRIPTION ✅ NEW
+      rowData[8]  = item.unit;              // I: UNIT
+      rowData[9]  = item.skuCode;           // J: SKU_CODE
+      rowData[10] = item.quantity;          // K: QTY
+      rowData[11] = item.amount;            // L: AMOUNT
+      rowData[12] = '';                     // M: (empty)
+      rowData[13] = '';                     // N: (empty)
+      rowData[14] = item.formRaisedBy;      // O: RAISED_BY
+      rowData[15] = billPhotoUrl;           // P: Bill_Photo
+      rowData[16] = remarks || '';          // Q: REMARKS
 
       batchData.push({
         range: `RCC_OFFICE_FMS!A${rowNum}:Q${rowNum}`,
@@ -456,7 +480,7 @@ router.post('/post-form-data', async (req, res) => {
     // Google Sheets Batch Update
     // ----------------------------------------
     await sheets.spreadsheets.values.batchUpdate({
-      spreadsheetId: OfficeExpenseID,        // ✅ FIXED
+      spreadsheetId: OfficeExpenseID,
       requestBody: {
         valueInputOption: 'USER_ENTERED',
         data: batchData,
@@ -490,8 +514,3 @@ router.post('/post-form-data', async (req, res) => {
 });
 
 module.exports = router;
-
-
-
-
-

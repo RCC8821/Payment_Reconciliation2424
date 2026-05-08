@@ -1,10 +1,9 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useGetAllFormDataQuery, useSubmitPaymentMutation } from '../../features/RCC_Office_Expenses/officeFormSlice';
-import { useGetProjectNamesQuery } from '../../features/RCC_Office_Expenses/officeFormSlice'; // ✅ Project Names
+import { useGetProjectNamesQuery } from '../../features/RCC_Office_Expenses/officeFormSlice';
 
 // ─── Reusable Searchable Dropdown ─────────────────────────────────────────────
 function SearchableDropdown({ value, onChange, onSelect, options, placeholder, disabled, renderOption }) {
@@ -28,7 +27,7 @@ function SearchableDropdown({ value, onChange, onSelect, options, placeholder, d
           type="text"
           value={value}
           onChange={(e) => { onChange(e.target.value); setOpen(true); }}
-          onFocus={e => { if (!disabled) { e.target.style.borderColor = '#6366f1'; setOpen(true); } }}
+          onFocus={e => { if (!disabled) { e.target.style.borderColor = '#0ea5e9'; setOpen(true); } }}
           onBlur={e => { e.target.style.borderColor = '#e2e8f0'; }}
           disabled={disabled}
           placeholder={placeholder}
@@ -51,8 +50,8 @@ function SearchableDropdown({ value, onChange, onSelect, options, placeholder, d
       {open && options.length > 0 && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-          background: '#fff', border: '1.5px solid #e0e7ff',
-          borderRadius: '10px', boxShadow: '0 8px 24px rgba(99,102,241,0.12)',
+          background: '#fff', border: '1.5px solid #bae6fd',
+          borderRadius: '10px', boxShadow: '0 8px 24px rgba(14,165,233,0.12)',
           maxHeight: '220px', overflowY: 'auto', zIndex: 9999,
         }}>
           {options.map((opt, idx) => (
@@ -69,7 +68,7 @@ function SearchableDropdown({ value, onChange, onSelect, options, placeholder, d
                 borderBottom: idx < options.length - 1 ? '1px solid #f1f5f9' : 'none',
                 transition: 'background 0.12s',
               }}
-              onMouseEnter={e => e.currentTarget.style.background = '#f0f4ff'}
+              onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               {renderOption ? renderOption(opt) : opt}
@@ -106,46 +105,50 @@ function Input({ value, onChange, placeholder, type = 'text', disabled, readOnly
         outline: 'none', transition: 'border-color 0.2s',
         boxSizing: 'border-box', cursor: (disabled || readOnly) ? 'not-allowed' : 'text',
       }}
-      onFocus={e => { if (!disabled && !readOnly) e.target.style.borderColor = '#6366f1'; }}
+      onFocus={e => { if (!disabled && !readOnly) e.target.style.borderColor = '#0ea5e9'; }}
       onBlur={e => { e.target.style.borderColor = '#e2e8f0'; }}
     />
   );
 }
 
+// ✅ UPDATED: description add, remarks remove
 const EMPTY_ITEM = () => ({
   id: Date.now() + Math.random(),
   subhead: '', subheadSearch: '',
   itemName: '', itemNameSearch: '',
+  description: '', // ✅ NEW
   unit: '', skuCode: '',
-  quantity: '', amount: '', remarks: ''
+  quantity: '', amount: ''
+  // ✅ remarks hataya - global level pe hai
 });
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-export default function OfficeForm() {
+export default function RCCOfficeForm() {
 
-  // ✅ Office Name ab fixed nahi — Project Name dropdown se aayega
-  const [selectedOfficeName, setSelectedOfficeName]     = useState('');
-  const [officeNameSearch, setOfficeNameSearch]         = useState('');
+  const [selectedOfficeName, setSelectedOfficeName] = useState('');
+  const [officeNameSearch, setOfficeNameSearch]     = useState('');
+  const [payeeName, setPayeeName]                   = useState('');
+  const [selectedFormRaised, setSelectedFormRaised] = useState('');
+  const [formRaisedSearch, setFormRaisedSearch]     = useState('');
+  const [billPhoto, setBillPhoto]                   = useState('');
+  const [billPhotoPreview, setBillPhotoPreview]     = useState('');
+  const [fileInputKey, setFileInputKey]             = useState(0);
+  const [remarks, setRemarks]                       = useState(''); 
+  const [items, setItems]                           = useState([EMPTY_ITEM()]);
 
-  const [payeeName, setPayeeName]                       = useState('');
-  const [selectedFormRaised, setSelectedFormRaised]     = useState('');
-  const [formRaisedSearch, setFormRaisedSearch]         = useState('');
-  const [billPhoto, setBillPhoto]                       = useState('');
-  const [billPhotoPreview, setBillPhotoPreview]         = useState('');
-  const [fileInputKey, setFileInputKey]                 = useState(0);
-  const [items, setItems]                               = useState([EMPTY_ITEM()]);
+  // ✅ Camera & Gallery refs
+  const galleryInputRef = useRef(null);
+  const cameraInputRef  = useRef(null);
 
-  // ── APIs ──────────────────────────────────────────────────────────────────
-  const { data: allData, isLoading }                    = useGetAllFormDataQuery();
-  const [submitPayment, { isLoading: submitting }]      = useSubmitPaymentMutation();
+  const { data: allData, isLoading }           = useGetAllFormDataQuery();
+  const [submitPayment, { isLoading: submitting }] = useSubmitPaymentMutation();
 
-  // ✅ Project Names API (L Column)
   const {
     data: projectNames = [],
     isLoading: isProjectNamesLoading,
   } = useGetProjectNamesQuery();
 
-  // ── Filtered Project Names ────────────────────────────────────────────────
+  // ── Filtered Project Names ─────────────────────────────────────────────────
   const filteredProjectNames = useMemo(() => {
     if (!officeNameSearch) return projectNames;
     return projectNames.filter(p =>
@@ -153,7 +156,7 @@ export default function OfficeForm() {
     );
   }, [officeNameSearch, projectNames]);
 
-  // ── Form Raised Options ───────────────────────────────────────────────────
+  // ── Form Raised Options ────────────────────────────────────────────────────
   const allFormRaisedOptions = useMemo(() => {
     if (!allData?.formRaised) return [];
     const all = new Set();
@@ -181,7 +184,7 @@ export default function OfficeForm() {
     return list.filter(i => i.itemName.toLowerCase().includes(search.toLowerCase()));
   };
 
-  // ── Item Handlers ─────────────────────────────────────────────────────────
+  // ── Item Handlers ──────────────────────────────────────────────────────────
   const addItemAfter = (afterIndex) => {
     setItems(prev => {
       const newItems = [...prev];
@@ -202,7 +205,9 @@ export default function OfficeForm() {
   const handleSubheadSelect = (id, subhead) => {
     updateItem(id, {
       subhead, subheadSearch: subhead,
-      itemName: '', itemNameSearch: '', unit: '', skuCode: ''
+      itemName: '', itemNameSearch: '',
+      description: '', // ✅ Reset on subhead change
+      unit: '', skuCode: ''
     });
   };
 
@@ -213,6 +218,7 @@ export default function OfficeForm() {
     });
   };
 
+  // ✅ Common photo handler - Camera & Gallery dono ke liye
   const handleBillPhoto = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -224,7 +230,43 @@ export default function OfficeForm() {
     reader.readAsDataURL(file);
   };
 
+  const removeBillPhoto = () => {
+    setBillPhoto('');
+    setBillPhotoPreview('');
+    setFileInputKey(prev => prev + 1);
+    if (galleryInputRef.current) galleryInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+  };
+
   const totalAmount = items.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
+
+  // ✅ Form Validation - Remarks chhod ke sab required
+  const missingFields = useMemo(() => {
+    const missing = [];
+
+    if (!selectedOfficeName)    missing.push('Office Name');
+    if (!payeeName.trim())      missing.push('Payee Name');
+    if (!selectedFormRaised)    missing.push('Form Raised By');
+    if (!billPhoto)             missing.push('Bill Photo');
+
+    items.forEach((item, index) => {
+      const num = index + 1;
+      if (!item.subhead)                                    missing.push(`Item #${num} Subhead`);
+      if (!item.itemName)                                   missing.push(`Item #${num} Item Name`);
+      if (!item.description.trim())                         missing.push(`Item #${num} Description`);
+      if (!item.quantity || parseFloat(item.quantity) <= 0) missing.push(`Item #${num} Quantity`);
+      if (!item.amount   || parseFloat(item.amount)   <= 0) missing.push(`Item #${num} Amount`);
+    });
+
+    return missing;
+  }, [selectedOfficeName, payeeName, selectedFormRaised, billPhoto, items]);
+
+  const isFormValid = missingFields.length === 0;
+
+  // ✅ Completion %
+  const totalRequired     = 4 + (items.length * 5);
+  const filledCount       = totalRequired - missingFields.length;
+  const completionPercent = Math.round((filledCount / totalRequired) * 100);
 
   // ✅ Reset Form
   const resetForm = () => {
@@ -236,39 +278,35 @@ export default function OfficeForm() {
     setBillPhoto('');
     setBillPhotoPreview('');
     setFileInputKey(prev => prev + 1);
+    setRemarks('');
     setItems([EMPTY_ITEM()]);
   };
 
-  // ── Submit ────────────────────────────────────────────────────────────────
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedOfficeName) return alert('Please select Office Name (Project)'); // ✅
-    if (!payeeName)          return alert('Please enter Payee Name');
-    if (!selectedFormRaised) return alert('Please select Form Raised By');
 
-    for (const item of items) {
-      if (!item.subhead)   return alert('Please select subhead for all items');
-      if (!item.itemName)  return alert('Please select item name for all items');
-      if (!item.quantity)  return alert('Please enter quantity for all items');
-      if (!item.amount)    return alert('Please enter amount for all items');
+    if (!isFormValid) {
+      alert(`❌ Please fill all required fields:\n\n${missingFields.join('\n')}`);
+      return;
     }
 
     const payload = {
-      officeName: selectedOfficeName, // ✅ Dynamic project name
+      officeName:   selectedOfficeName,
       payeeName,
       expensesHead: 'Office Expenses',
       items: items.map(i => ({
         subhead:      i.subhead,
         itemName:     i.itemName,
+        description:  i.description || '', // ✅ NEW
         unit:         i.unit,
         skuCode:      i.skuCode,
         quantity:     i.quantity,
         amount:       i.amount,
         formRaisedBy: selectedFormRaised,
         billPhoto:    billPhoto || '',
-        remarks:      i.remarks || '',
       })),
-      remarks: '',
+      remarks: remarks || '', // ✅ Global remarks
     };
 
     try {
@@ -280,74 +318,85 @@ export default function OfficeForm() {
     }
   };
 
-  // ── Loading ───────────────────────────────────────────────────────────────
+  // ── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: '12px', fontFamily: 'DM Sans, sans-serif' }}>
-        <div style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <div style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: '#0ea5e9', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
         <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>Loading form data...</p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #eef2ff 0%, #fafafa 55%, #ecfdf5 100%)', padding: '32px 16px', fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #e0f2fe 0%, #fafafa 55%, #ecfdf5 100%)', padding: '32px 16px', fontFamily: "'DM Sans', 'Segoe UI', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
-      <div style={{ maxWidth: '780px', margin: '0 auto', background: '#fff', borderRadius: '20px', boxShadow: '0 4px 32px rgba(99,102,241,0.10)', overflow: 'visible' }}>
+      <div style={{ maxWidth: '780px', margin: '0 auto', background: '#fff', borderRadius: '20px', boxShadow: '0 4px 32px rgba(14,165,233,0.10)', overflow: 'visible' }}>
 
         {/* ── Header ── */}
-        <div style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', borderRadius: '20px 20px 0 0', padding: '24px 32px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: '46px', height: '46px', background: 'rgba(255,255,255,0.18)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🧾</div>
-          <div>
+        <div style={{ background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', borderRadius: '20px 20px 0 0', padding: '24px 32px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ width: '46px', height: '46px', background: 'rgba(255,255,255,0.18)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🏗️</div>
+          <div style={{ flex: 1 }}>
             <h1 style={{ margin: 0, color: '#fff', fontSize: '20px', fontWeight: '800', letterSpacing: '-0.01em' }}>
-              Office Expenses Form
+              RCC Office Expenses Form
             </h1>
             <p style={{ margin: '2px 0 0', color: 'rgba(255,255,255,0.72)', fontSize: '13px' }}>
-              {/* ✅ Dynamic office name header me bhi */}
               {selectedOfficeName || 'Select Project'} · Submit expense claims
             </p>
           </div>
+
+          {/* ✅ Completion Badge */}
+          <div style={{
+            background: completionPercent === 100 ? 'rgba(34,197,94,0.25)' : 'rgba(255,255,255,0.15)',
+            borderRadius: '20px', padding: '6px 14px',
+            fontSize: '12px', fontWeight: '700',
+            color: completionPercent === 100 ? '#bbf7d0' : 'rgba(255,255,255,0.85)',
+            border: completionPercent === 100 ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(255,255,255,0.25)',
+          }}>
+            {completionPercent === 100 ? '✅' : '📝'} {completionPercent}%
+          </div>
+        </div>
+
+        {/* ✅ Progress Bar */}
+        <div style={{ height: '3px', background: '#e2e8f0' }}>
+          <div style={{
+            height: '100%',
+            width: `${completionPercent}%`,
+            background: completionPercent === 100
+              ? 'linear-gradient(90deg, #22c55e, #10b981)'
+              : 'linear-gradient(90deg, #0ea5e9, #0284c7)',
+            transition: 'width 0.4s ease',
+            borderRadius: '0 2px 2px 0',
+          }} />
         </div>
 
         <form onSubmit={handleSubmit} style={{ padding: '32px' }}>
 
           {/* ── Section: Basic Info ── */}
-          <div style={{ fontSize: '12px', fontWeight: '700', color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: '#0ea5e9', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span>📋</span> Basic Information
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
 
-            {/* ✅ Office Name — Project Names Dropdown */}
+            {/* ✅ Office Name */}
             <div>
               <Label required>Office Name (Project)</Label>
               <SearchableDropdown
                 value={officeNameSearch}
-                onChange={(val) => {
-                  setOfficeNameSearch(val);
-                  setSelectedOfficeName('');
-                }}
-                onSelect={(name) => {
-                  setSelectedOfficeName(name);
-                  setOfficeNameSearch(name);
-                }}
+                onChange={(val) => { setOfficeNameSearch(val); setSelectedOfficeName(''); }}
+                onSelect={(name) => { setSelectedOfficeName(name); setOfficeNameSearch(name); }}
                 options={filteredProjectNames}
-                placeholder={
-                  isProjectNamesLoading
-                    ? '⏳ Loading projects...'
-                    : 'Search project name...'
-                }
+                placeholder={isProjectNamesLoading ? '⏳ Loading projects...' : 'Search project name...'}
                 disabled={isProjectNamesLoading}
               />
-
-              {/* ✅ Selected Badge */}
               {selectedOfficeName && (
                 <div style={{
                   marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -362,8 +411,6 @@ export default function OfficeForm() {
                   >✕</span>
                 </div>
               )}
-
-              {/* ✅ Count Badge */}
               {!isProjectNamesLoading && projectNames.length > 0 && (
                 <div style={{ fontSize: '11px', color: '#10b981', marginTop: '4px', fontWeight: '600' }}>
                   ✓ {projectNames.length} projects loaded
@@ -378,8 +425,10 @@ export default function OfficeForm() {
                 value={payeeName}
                 onChange={e => setPayeeName(e.target.value)}
                 placeholder="Enter payee name"
-                required
               />
+              {payeeName.trim() && (
+                <div style={{ fontSize: '11px', color: '#10b981', marginTop: '4px', fontWeight: '600' }}>✓ Filled</div>
+              )}
             </div>
 
             {/* Form Raised By */}
@@ -392,36 +441,135 @@ export default function OfficeForm() {
                 options={filteredFormRaised}
                 placeholder="Type to search or select person..."
               />
+              {selectedFormRaised && (
+                <div style={{ fontSize: '11px', color: '#10b981', marginTop: '4px', fontWeight: '600' }}>
+                  ✓ {selectedFormRaised}
+                </div>
+              )}
             </div>
 
-            {/* Bill Photo */}
+            {/* ✅ Bill Photo - Camera + Gallery */}
             <div style={{ gridColumn: '1 / -1' }}>
-              <Label>Bill Photo (Optional)</Label>
+              <Label required>Bill Photo</Label>
+
+              {/* Hidden Inputs */}
               <input
-                required
-                key={fileInputKey}
+                ref={galleryInputRef}
+                key={`gallery-${fileInputKey}`}
                 type="file"
                 accept="image/*"
                 onChange={handleBillPhoto}
-                style={{
-                  width: '100%', padding: '9px 12px',
-                  border: '1.5px dashed #c7d2fe', borderRadius: '10px',
-                  fontSize: '13px', color: '#64748b',
-                  cursor: 'pointer', background: '#fafbff'
-                }}
+                style={{ display: 'none' }}
               />
-              {billPhotoPreview && (
-                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <img src={billPhotoPreview} alt="Bill" style={{ height: '60px', borderRadius: '8px', border: '1.5px solid #e0e7ff' }} />
+              <input
+                ref={cameraInputRef}
+                key={`camera-${fileInputKey}`}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleBillPhoto}
+                style={{ display: 'none' }}
+              />
+
+              {/* ✅ Gallery + Camera Buttons */}
+              {!billPhotoPreview && (
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  {/* Gallery */}
                   <button
                     type="button"
-                    onClick={() => { setBillPhoto(''); setBillPhotoPreview(''); setFileInputKey(prev => prev + 1); }}
-                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '12px', padding: 0 }}
+                    onClick={() => galleryInputRef.current?.click()}
+                    style={{
+                      flex: 1, minWidth: '140px', padding: '14px 16px',
+                      background: '#f0f9ff', border: '1.5px dashed #7dd3fc',
+                      borderRadius: '12px', cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center',
+                      gap: '6px', transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#e0f2fe'; e.currentTarget.style.borderColor = '#38bdf8'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#f0f9ff'; e.currentTarget.style.borderColor = '#7dd3fc'; }}
                   >
-                    ✕ Remove
+                    <span style={{ fontSize: '24px' }}>🖼️</span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#0284c7' }}>Choose from Gallery</span>
+                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>Select existing photo</span>
+                  </button>
+
+                  {/* Camera */}
+                  <button
+                    type="button"
+                    onClick={() => cameraInputRef.current?.click()}
+                    style={{
+                      flex: 1, minWidth: '140px', padding: '14px 16px',
+                      background: '#fafbff', border: '1.5px dashed #a7f3d0',
+                      borderRadius: '12px', cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center',
+                      gap: '6px', transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#34d399'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#fafbff'; e.currentTarget.style.borderColor = '#a7f3d0'; }}
+                  >
+                    <span style={{ fontSize: '24px' }}>📷</span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#059669' }}>Take Photo</span>
+                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>Open camera to capture</span>
                   </button>
                 </div>
               )}
+
+              {/* ✅ Photo Preview */}
+              {billPhotoPreview && (
+                <div style={{
+                  marginTop: '8px', padding: '12px',
+                  background: '#f0fdf4', border: '1.5px solid #86efac',
+                  borderRadius: '12px',
+                  display: 'flex', alignItems: 'center', gap: '14px',
+                }}>
+                  <img
+                    src={billPhotoPreview} alt="Bill"
+                    style={{ height: '70px', width: '70px', objectFit: 'cover', borderRadius: '10px', border: '2px solid #bae6fd' }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#15803d', marginBottom: '4px' }}>✅ Photo attached</div>
+                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>Bill photo selected successfully</div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => galleryInputRef.current?.click()}
+                      style={{ background: '#f0f9ff', color: '#0284c7', border: '1px solid #bae6fd', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
+                    >
+                      🔄 Change
+                    </button>
+                    <button
+                      type="button"
+                      onClick={removeBillPhoto}
+                      style={{ background: '#fff0f0', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '8px', padding: '5px 10px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ✅ Global Remarks - Optional */}
+            <div style={{ gridColumn: '1 / -1' }}>
+              <Label>Remarks (Optional)</Label>
+              <textarea
+                value={remarks}
+                onChange={e => setRemarks(e.target.value)}
+                placeholder="Any general notes or remarks for this bill..."
+                rows={2}
+                style={{
+                  width: '100%', padding: '10px 12px',
+                  border: '1.5px solid #e2e8f0', borderRadius: '10px',
+                  fontSize: '14px', color: '#1e293b', resize: 'vertical',
+                  fontFamily: 'inherit', background: '#fff', outline: 'none',
+                  transition: 'border-color 0.2s',
+                }}
+                onFocus={e => e.target.style.borderColor = '#0ea5e9'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+              />
             </div>
           </div>
 
@@ -429,177 +577,262 @@ export default function OfficeForm() {
           <div style={{ height: '1px', background: '#f1f5f9', margin: '28px 0' }} />
 
           {/* ── Section: Items ── */}
-          <div style={{ fontSize: '12px', fontWeight: '700', color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: '#0ea5e9', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span>📦</span> Items Details
           </div>
 
-          {items.map((item, index) => (
-            <div key={item.id}>
-              <div style={{ border: '1.5px solid #e0e7ff', borderRadius: '14px', padding: '20px', background: '#fafbff' }}>
+          {items.map((item, index) => {
+            // ✅ Per-item completion check
+            const itemComplete =
+              item.subhead &&
+              item.itemName &&
+              item.description.trim() &&
+              item.quantity && parseFloat(item.quantity) > 0 &&
+              item.amount && parseFloat(item.amount) > 0;
 
-                {/* Item Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <span style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', borderRadius: '8px', padding: '4px 12px', fontSize: '12px', fontWeight: '700' }}>
-                    Item #{index + 1}
-                  </span>
-                  {items.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeItem(item.id)}
-                      style={{ background: '#fff0f0', color: '#ef4444', border: '1.5px solid #fecaca', borderRadius: '8px', padding: '4px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
-                      onMouseLeave={e => e.currentTarget.style.background = '#fff0f0'}
-                    >
-                      ✕ Remove
-                    </button>
-                  )}
-                </div>
+            return (
+              <div key={item.id}>
+                <div style={{
+                  border: itemComplete ? '1.5px solid #86efac' : '1.5px solid #bae6fd',
+                  borderRadius: '14px', padding: '20px',
+                  background: itemComplete ? '#f0fdf4' : '#f0f9ff',
+                  transition: 'all 0.3s',
+                }}>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  {/* Item Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        background: itemComplete
+                          ? 'linear-gradient(135deg,#22c55e,#10b981)'
+                          : 'linear-gradient(135deg,#0ea5e9,#0284c7)',
+                        color: '#fff', borderRadius: '8px',
+                        padding: '4px 12px', fontSize: '12px', fontWeight: '700',
+                      }}>
+                        {itemComplete ? '✅' : '📝'} Item #{index + 1}
+                      </span>
+                      {itemComplete && (
+                        <span style={{ fontSize: '11px', color: '#10b981', fontWeight: '600' }}>Complete</span>
+                      )}
+                    </div>
 
-                  {/* Subhead */}
-                  <div>
-                    <Label required>Subhead</Label>
-                    <SearchableDropdown
-                      value={item.subheadSearch}
-                      onChange={(val) => updateItem(item.id, { subheadSearch: val, ...(val === '' ? { subhead: '' } : {}) })}
-                      onSelect={(subhead) => handleSubheadSelect(item.id, subhead)}
-                      options={getFilteredSubheads(item.subheadSearch)}
-                      placeholder="Search subhead..."
-                    />
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.id)}
+                        style={{ background: '#fff0f0', color: '#ef4444', border: '1.5px solid #fecaca', borderRadius: '8px', padding: '4px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#fff0f0'}
+                      >
+                        ✕ Remove
+                      </button>
+                    )}
                   </div>
 
-                  {/* Item Name */}
-                  <div>
-                    <Label required>Item Name</Label>
-                    <SearchableDropdown
-                      value={item.itemNameSearch}
-                      onChange={(val) => {
-                        if (!item.subhead) { alert('Please select subhead first'); return; }
-                        updateItem(item.id, { itemNameSearch: val, ...(val === '' ? { itemName: '', unit: '', skuCode: '' } : {}) });
-                      }}
-                      onSelect={(opt) => handleItemSelect(item.id, opt)}
-                      options={getFilteredItems(item.subhead, item.itemNameSearch)}
-                      placeholder={item.subhead ? 'Search item...' : 'Select subhead first'}
-                      disabled={!item.subhead}
-                      renderOption={(opt) => (
-                        <div>
-                          <div style={{ fontWeight: '600', color: '#1e293b', fontSize: '13px' }}>{opt.itemName}</div>
-                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-                            Unit: {opt.unit} · SKU: {opt.skuCode}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+
+                    {/* Subhead */}
+                    <div>
+                      <Label required>Subhead</Label>
+                      <SearchableDropdown
+                        value={item.subheadSearch}
+                        onChange={(val) => updateItem(item.id, { subheadSearch: val, ...(val === '' ? { subhead: '' } : {}) })}
+                        onSelect={(subhead) => handleSubheadSelect(item.id, subhead)}
+                        options={getFilteredSubheads(item.subheadSearch)}
+                        placeholder="Search subhead..."
+                      />
+                      {item.subhead && (
+                        <div style={{ fontSize: '11px', color: '#10b981', marginTop: '4px', fontWeight: '600' }}>✓ Selected</div>
+                      )}
+                    </div>
+
+                    {/* Item Name */}
+                    <div>
+                      <Label required>Item Name</Label>
+                      <SearchableDropdown
+                        value={item.itemNameSearch}
+                        onChange={(val) => {
+                          if (!item.subhead) { alert('Please select subhead first'); return; }
+                          updateItem(item.id, { itemNameSearch: val, ...(val === '' ? { itemName: '', unit: '', skuCode: '' } : {}) });
+                        }}
+                        onSelect={(opt) => handleItemSelect(item.id, opt)}
+                        options={getFilteredItems(item.subhead, item.itemNameSearch)}
+                        placeholder={item.subhead ? 'Search item...' : 'Select subhead first'}
+                        disabled={!item.subhead}
+                        renderOption={(opt) => (
+                          <div>
+                            <div style={{ fontWeight: '600', color: '#1e293b', fontSize: '13px' }}>{opt.itemName}</div>
+                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                              Unit: {opt.unit} · SKU: {opt.skuCode}
+                            </div>
                           </div>
+                        )}
+                      />
+                      {item.itemName && (
+                        <div style={{ fontSize: '11px', color: '#10b981', marginTop: '4px', fontWeight: '600' }}>✓ Selected</div>
+                      )}
+                    </div>
+
+                    {/* ✅ Description - Required */}
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <Label required>Description</Label>
+                      <textarea
+                        value={item.description}
+                        onChange={e => updateItem(item.id, { description: e.target.value })}
+                        placeholder="Enter item description (e.g., brand, size, specifications...)"
+                        rows={2}
+                        style={{
+                          width: '100%', padding: '10px 12px',
+                          border: `1.5px solid ${item.description.trim() ? '#86efac' : '#e2e8f0'}`,
+                          borderRadius: '10px',
+                          fontSize: '14px', color: '#1e293b', resize: 'vertical',
+                          fontFamily: 'inherit', background: '#fff', outline: 'none',
+                          transition: 'border-color 0.2s',
+                        }}
+                        onFocus={e => e.target.style.borderColor = '#0ea5e9'}
+                        onBlur={e => e.target.style.borderColor = item.description.trim() ? '#86efac' : '#e2e8f0'}
+                      />
+                      {item.description.trim() && (
+                        <div style={{ fontSize: '11px', color: '#10b981', marginTop: '4px', fontWeight: '600' }}>✓ Filled</div>
+                      )}
+                    </div>
+
+                    {/* Unit */}
+                    <div>
+                      <Label>Unit</Label>
+                      <Input value={item.unit} readOnly placeholder="Auto-filled" />
+                    </div>
+
+                    {/* SKU Code */}
+                    <div>
+                      <Label>SKU Code</Label>
+                      <Input value={item.skuCode} readOnly placeholder="Auto-filled" />
+                    </div>
+
+                    {/* Quantity */}
+                    <div>
+                      <Label required>Quantity</Label>
+                      <Input
+                        type="number" value={item.quantity}
+                        onChange={e => updateItem(item.id, { quantity: e.target.value })}
+                        placeholder="0" min="0" step="1"
+                      />
+                      {item.quantity && parseFloat(item.quantity) > 0 && (
+                        <div style={{ fontSize: '11px', color: '#10b981', marginTop: '4px', fontWeight: '600' }}>✓ {item.quantity} qty</div>
+                      )}
+                    </div>
+
+                    {/* Amount */}
+                    <div>
+                      <Label required>Amount (₹)</Label>
+                      <Input
+                        type="number" value={item.amount}
+                        onChange={e => updateItem(item.id, { amount: e.target.value })}
+                        placeholder="0.00" min="0" step="0.01"
+                      />
+                      {item.amount && parseFloat(item.amount) > 0 && (
+                        <div style={{ fontSize: '11px', color: '#10b981', marginTop: '4px', fontWeight: '600' }}>
+                          ✓ ₹{parseFloat(item.amount).toLocaleString('en-IN')}
                         </div>
                       )}
-                    />
-                  </div>
+                    </div>
 
-                  {/* Unit */}
-                  <div>
-                    <Label>Unit</Label>
-                    <Input value={item.unit} readOnly placeholder="Auto-filled" />
-                  </div>
+                    {/* ✅ Remarks REMOVED from item level */}
 
-                  {/* SKU Code */}
-                  <div>
-                    <Label>SKU Code</Label>
-                    <Input value={item.skuCode} readOnly placeholder="Auto-filled" />
-                  </div>
-
-                  {/* Quantity */}
-                  <div>
-                    <Label required>Quantity</Label>
-                    <Input
-                      type="number" value={item.quantity}
-                      onChange={e => updateItem(item.id, { quantity: e.target.value })}
-                      placeholder="0" min="0" step="1" required
-                    />
-                  </div>
-
-                  {/* Amount */}
-                  <div>
-                    <Label required>Amount (₹)</Label>
-                    <Input
-                      type="number" value={item.amount}
-                      onChange={e => updateItem(item.id, { amount: e.target.value })}
-                      placeholder="0.00" min="0" step="0.01" required
-                    />
-                  </div>
-
-                  {/* Remarks */}
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <Label>Remarks (Optional)</Label>
-                    <textarea
-                      value={item.remarks}
-                      onChange={e => updateItem(item.id, { remarks: e.target.value })}
-                      placeholder="Any notes for this item..."
-                      rows={2}
-                      style={{
-                        width: '100%', padding: '10px 12px',
-                        border: '1.5px solid #e2e8f0', borderRadius: '10px',
-                        fontSize: '14px', color: '#1e293b', resize: 'vertical',
-                        fontFamily: 'inherit', background: '#fff', outline: 'none'
-                      }}
-                      onFocus={e => e.target.style.borderColor = '#6366f1'}
-                      onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-                    />
                   </div>
                 </div>
-              </div>
 
-              {/* Add Item Below */}
-              <div style={{ margin: '10px 0' }}>
-                <button
-                  type="button"
-                  onClick={() => addItemAfter(index)}
-                  style={{
-                    width: '100%', padding: '9px',
-                    background: '#fff', color: '#6366f1',
-                    border: '1.5px dashed #a5b4fc', borderRadius: '10px',
-                    fontSize: '13px', fontWeight: '700', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#f0f4ff'; e.currentTarget.style.borderColor = '#6366f1'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#a5b4fc'; }}
-                >
-                  + Add Item Below
-                </button>
+                {/* Add Item Below */}
+                <div style={{ margin: '10px 0' }}>
+                  <button
+                    type="button"
+                    onClick={() => addItemAfter(index)}
+                    style={{
+                      width: '100%', padding: '9px',
+                      background: '#fff', color: '#0ea5e9',
+                      border: '1.5px dashed #7dd3fc', borderRadius: '10px',
+                      fontSize: '13px', fontWeight: '700', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                      transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#f0f9ff'; e.currentTarget.style.borderColor = '#0ea5e9'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#7dd3fc'; }}
+                  >
+                    + Add Item Below
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* ── Total ── */}
-          <div style={{ background: 'linear-gradient(135deg,#f0f4ff,#faf5ff)', border: '1.5px solid #e0e7ff', borderRadius: '12px', padding: '16px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', marginTop: '8px' }}>
+          <div style={{ background: 'linear-gradient(135deg,#f0f9ff,#e0f2fe)', border: '1.5px solid #bae6fd', borderRadius: '12px', padding: '16px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', marginTop: '8px' }}>
             <div>
               <div style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total Amount</div>
               <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '2px' }}>
                 {items.length} item{items.length !== 1 ? 's' : ''}
               </div>
             </div>
-            <div style={{ fontSize: '30px', fontWeight: '800', color: '#6366f1', letterSpacing: '-0.02em' }}>
+            <div style={{ fontSize: '30px', fontWeight: '800', color: '#0284c7', letterSpacing: '-0.02em' }}>
               ₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
 
-          {/* ── Submit ── */}
+          {/* ✅ Missing Fields Warning */}
+          {!isFormValid && (
+            <div style={{
+              background: '#fffbeb', border: '1.5px solid #fde68a',
+              borderRadius: '12px', padding: '12px 16px', marginBottom: '16px',
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#b45309', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                ⚠️ {missingFields.length} field{missingFields.length !== 1 ? 's' : ''} remaining
+              </div>
+              <div style={{ fontSize: '11px', color: '#92400e', lineHeight: '1.6' }}>
+                {missingFields.slice(0, 5).map((field, i) => (
+                  <span key={i} style={{
+                    display: 'inline-block', background: '#fef3c7', borderRadius: '6px',
+                    padding: '2px 8px', margin: '2px 4px 2px 0', fontSize: '11px', fontWeight: '500',
+                  }}>
+                    {field}
+                  </span>
+                ))}
+                {missingFields.length > 5 && (
+                  <span style={{
+                    display: 'inline-block', background: '#fef3c7', borderRadius: '6px',
+                    padding: '2px 8px', margin: '2px 4px 2px 0', fontSize: '11px', fontWeight: '600', color: '#b45309',
+                  }}>
+                    +{missingFields.length - 5} more
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ✅ Submit Button */}
           <button
             type="submit"
-            disabled={submitting}
+            disabled={!isFormValid || submitting}
             style={{
               width: '100%',
-              background: submitting ? '#c7d2fe' : 'linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%)',
-              color: '#fff', border: 'none', borderRadius: '12px',
+              background: (!isFormValid || submitting)
+                ? '#e2e8f0'
+                : 'linear-gradient(135deg,#0ea5e9 0%,#0284c7 100%)',
+              color: (!isFormValid || submitting) ? '#94a3b8' : '#fff',
+              border: 'none', borderRadius: '12px',
               padding: '14px', fontSize: '16px', fontWeight: '700',
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              boxShadow: submitting ? 'none' : '0 4px 16px rgba(99,102,241,0.35)',
-              letterSpacing: '0.01em', transition: 'all 0.2s',
+              cursor: (!isFormValid || submitting) ? 'not-allowed' : 'pointer',
+              boxShadow: (!isFormValid || submitting) ? 'none' : '0 4px 16px rgba(14,165,233,0.35)',
+              letterSpacing: '0.01em', transition: 'all 0.3s',
             }}
-            onMouseEnter={e => { if (!submitting) e.currentTarget.style.opacity = '0.92'; }}
+            onMouseEnter={e => { if (isFormValid && !submitting) e.currentTarget.style.opacity = '0.92'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
           >
             {submitting
               ? '⏳ Submitting...'
-              : `🚀 Submit ${items.length} Item${items.length !== 1 ? 's' : ''}`}
+              : !isFormValid
+                ? `📝 Fill ${missingFields.length} required field${missingFields.length !== 1 ? 's' : ''} to submit`
+                : `🚀 Submit ${items.length} Item${items.length !== 1 ? 's' : ''} · ₹${totalAmount.toLocaleString('en-IN')}`
+            }
           </button>
 
         </form>
