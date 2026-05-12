@@ -452,7 +452,7 @@ router.get('/Get-Payment', async (req, res) => {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: OfficeExpenseID,
-      range: 'RCC_OFFICE_FMS!A8:BB',
+      range: 'RCC_OFFICE_FMS!A8:BI',
     });
 
     const rows = response.data.values || [];
@@ -467,8 +467,8 @@ router.get('/Get-Payment', async (req, res) => {
 
     const filteredData = rows
       .filter((row) => {
-  const cell52 = row[52] ? row[52].toString().trim() : "";
-  const cell53 = row[53] ? row[53].toString().trim() : "";
+  const cell52 = row[59] ? row[59].toString().trim() : "";
+  const cell53 = row[60] ? row[60].toString().trim() : "";
 
   return cell52 !== "" && cell53 === "";
 })
@@ -497,12 +497,16 @@ router.get('/Get-Payment', async (req, res) => {
         SGST_4: (row[44] || '').toString().trim(),
         IGST_4: (row[45] || '').toString().trim(),
         TOTAL_AMOUNT_4: (row[46] || '').toString().trim(),
-        TRASNPORT_CHARGES_4: (row[47] || '').toString().trim(),
-        Transport_Gst_4: (row[48] || '').toString().trim(),
-        NET_AMOUNT_4: (row[49] || '').toString().trim(),
-        REMARK_4: (row[50] || '').toString().trim(),
-        PLANNED_5: (row[52] || '').toString().trim(),
-        ACTUAL_5: (row[53] || '').toString().trim(),
+        TOTAL_BILL_AMOUNT_4: (row[47] || '').toString().trim(),
+        CGST_4: (row[48] || '').toString().trim(),
+        SGST_4: (row[49] || '').toString().trim(),
+        IGST_4: (row[50] || '').toString().trim(),
+        TRASNPORT_CHARGES_4: (row[51] || '').toString().trim(),
+        Transport_Gst_4: (row[52] || '').toString().trim(),
+        NET_AMOUNT_4: (row[53] || '').toString().trim(),
+        REMARK_4: (row[54] || '').toString().trim(),
+        PLANNED_5: (row[59] || '').toString().trim(),
+        ACTUAL_5: (row[60] || '').toString().trim(),
       }));
 
     return res.json({
@@ -691,7 +695,7 @@ router.post('/Post-Payment', async (req, res) => {
   
     const updates = [
       {
-        range: `RCC_OFFICE_FMS!BC${sheetRowNumber}`,
+        range: `RCC_OFFICE_FMS!BJ${sheetRowNumber}`,
         values: [[STATUS_5 || '']],
       },
       // {
@@ -699,32 +703,32 @@ router.post('/Post-Payment', async (req, res) => {
       //   values: [[NET_AMOUNT_5 || '']],         // NET AMOUNT
       // },
       {
-        range: `RCC_OFFICE_FMS!BF${sheetRowNumber}`,
+        range: `RCC_OFFICE_FMS!BM${sheetRowNumber}`,
         values: [[TDS_5 || '']],                // TDS
       },
      {
-  range: `RCC_OFFICE_FMS!BG${sheetRowNumber}`,
+  range: `RCC_OFFICE_FMS!BN${sheetRowNumber}`,
   values: [[BALANCE_AMOUNT_5 || '']],
 },
       // BG → PAID_AMOUNT skipped
       {
-        range: `RCC_OFFICE_FMS!BH${sheetRowNumber}`,
+        range: `RCC_OFFICE_FMS!BO${sheetRowNumber}`,
         values: [[BANK_DETAILS_5 || '']],
       },
       {
-        range: `RCC_OFFICE_FMS!BI${sheetRowNumber}`,
+        range: `RCC_OFFICE_FMS!BP${sheetRowNumber}`,
         values: [[PAYMENT_MODE_5 || '']],
       },
       {
-        range: `RCC_OFFICE_FMS!BJ${sheetRowNumber}`,
+        range: `RCC_OFFICE_FMS!BQ${sheetRowNumber}`,
         values: [[PAYMENT_DETAILS_5 || '']],
       },
       {
-        range: `RCC_OFFICE_FMS!BK${sheetRowNumber}`,
+        range: `RCC_OFFICE_FMS!BR${sheetRowNumber}`,
         values: [[PAYMENT_DATE_5 || '']],
       },
       {
-        range: `RCC_OFFICE_FMS!BL${sheetRowNumber}`,
+        range: `RCC_OFFICE_FMS!BS${sheetRowNumber}`,
         values: [[Remark_5 || '']],
       },
     ];

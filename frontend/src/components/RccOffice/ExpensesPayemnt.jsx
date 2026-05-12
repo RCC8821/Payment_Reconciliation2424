@@ -1198,6 +1198,7 @@ const ExpensesPayemnt = () => {
   const { data: apiData, isLoading, isError, refetch } = useGetPendingDimPaymentsQuery();
   const [updateDimPayment, { isLoading: isSubmitting }] = useUpdateDimPaymentMutation();
 
+  console.log("API Data:", apiData);
   // ✅ Bank dropdown — same as before (useGetDropdownDataQuery)
   const {
     data: dropdownData,

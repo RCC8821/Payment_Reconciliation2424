@@ -1,6 +1,7 @@
+
 // const express = require('express');
 // const router = express.Router();
-// const { sheets, OfficeExpenseID } = require('../config/googleSheet'); // path adjust karo
+// const { sheets, OfficeExpenseID } = require('../config/googleSheet');
 
 // // GET route
 // router.get('/Get-Expenses-Entry', async (req, res) => {
@@ -67,181 +68,40 @@
 // });
 
 
-
-// // POST route
-// // router.post('/Post-Expenses-Entry', async (req, res) => {
-// //   try {
-// //     const {
-// //       uid,
-// //       STATUS_4,
-// //       Vendor_Name_4,
-// //       BILL_NO_4,
-// //       BILL_DATE_4,
-// //       BASIC_AMOUNT_4,
-// //       CGST_4,
-// //       SGST_4,
-// //       IGST_4,
-// //       TOTAL_AMOUNT_4,
-// //       TRASNPORT_CHARGES_4,
-// //       Transport_Gst_4,
-// //       NET_AMOUNT_4,
-// //       Remark_4,
-// //     } = req.body;
-
-// //     console.log('Received body:', req.body);
-
-// //     if (!uid) {
-// //       return res.status(400).json({
-// //         success: false,
-// //         message: 'uid (Bill No) is required',
-// //       });
-// //     }
-
-// //     const trimmedBillNo = String(uid).trim();
-
-// //     const response = await sheets.spreadsheets.values.get({
-// //       spreadsheetId: OfficeExpenseID,
-// //       range: 'RCC_OFFICE_FMS!B7:B',
-// //     });
-
-// //     const rows = response.data.values || [];
-
-// //     if (rows.length === 0) {
-// //       return res.status(404).json({
-// //         success: false,
-// //         message: 'No data in sheet',
-// //       });
-// //     }
-
-// //     // Sab matching rows collect karo
-// //     const matchingRows = [];
-// //     rows.forEach((row, index) => {
-// //       if (row && row[0]) {
-// //         const cellValue = String(row[0]).trim();
-// //         if (cellValue === trimmedBillNo) {
-// //           matchingRows.push({
-// //             rowIndex: index,
-// //             rowNumber: 7 + index,
-// //           });
-// //         }
-// //       }
-// //     });
-
-// //     if (matchingRows.length === 0) {
-// //       return res.status(404).json({
-// //         success: false,
-// //         message: 'No matching Bill No found',
-// //         searchedFor: trimmedBillNo,
-// //       });
-// //     }
-
-// //     // Last row
-// //     const lastRow = matchingRows[matchingRows.length - 1];
-// //     const lastRowNumber = lastRow.rowNumber;
-
-// //     console.log(`Found ${matchingRows.length} matches → last row: ${lastRowNumber}`);
-
-// //     const requests = [];
-
-// //     // 1. SABHI matching rows mein STATUS_4 update kar do
-// //     if (STATUS_4 !== undefined && STATUS_4 !== null && STATUS_4 !== '') {
-// //       matchingRows.forEach(({ rowNumber }) => {
-// //         requests.push({
-// //           range: `RCC_OFFICE_FMS!AL${rowNumber}`,
-// //           values: [[STATUS_4]],
-// //         });
-// //       });
-// //     }
-
-// //     // 2. Sirf LAST row mein baaki fields update kar do
-// //     const addLastOnly = (colLetter, value) => {
-// //       if (value !== undefined && value !== null && value !== '') {
-// //         requests.push({
-// //           range: `RCC_OFFICE_FMS!${colLetter}${lastRowNumber}`,
-// //           values: [[value]],
-// //         });
-// //       }
-// //     };
-
-// //     addLastOnly('AN', Vendor_Name_4);
-// //     addLastOnly('AO', BILL_NO_4);
-// //     addLastOnly('AP', BILL_DATE_4);
-// //     addLastOnly('AQ', BASIC_AMOUNT_4);
-// //     addLastOnly('AR', CGST_4);
-// //     addLastOnly('AS', SGST_4);
-// //     addLastOnly('AT', IGST_4);
-// //     addLastOnly('AU', TOTAL_AMOUNT_4);
-// //     addLastOnly('AV', TRASNPORT_CHARGES_4);
-// //     addLastOnly('AW', Transport_Gst_4);
-// //     addLastOnly('AX', NET_AMOUNT_4);
-// //     addLastOnly('AY', Remark_4);
-
-// //     if (requests.length === 0) {
-// //       return res.status(400).json({
-// //         success: false,
-// //         message: 'No fields to update',
-// //       });
-// //     }
-
-// //     await sheets.spreadsheets.values.batchUpdate({
-// //       spreadsheetId: OfficeExpenseID,
-// //       resource: {
-// //         valueInputOption: 'USER_ENTERED',
-// //         data: requests,
-// //       },
-// //     });
-
-// //     return res.json({
-// //       success: true,
-// //       message: 'Data updated: STATUS_4 sabhi rows mein, baaki sirf last row mein',
-// //       updatedRows: matchingRows.length,
-// //       lastRow: lastRowNumber,
-// //       statusValueUsed: STATUS_4 || '(not provided)',
-// //     });
-// //   } catch (error) {
-// //     console.error('Expenses Entry POST Error:', error);
-// //     return res.status(500).json({
-// //       success: false,
-// //       message: 'Server error',
-// //       error: error.message,
-// //     });
-// //   }
-// // });
-
-
-
-
+// // POST route - ✅ C column ki uid se match karke data update karo
 // router.post('/Post-Expenses-Entry', async (req, res) => {
 //   try {
 //     const {
-//       uid,
+//       uid,           // ← OFFBILLUID (bill group)
 //       STATUS_4,
 //       Vendor_Name_4,
 //       BILL_NO_4,
 //       BILL_DATE_4,
-//       BASIC_AMOUNT_4,
-//       CGST_4,
-//       SGST_4,
-//       IGST_4,
-//       TOTAL_AMOUNT_4,
 //       TRASNPORT_CHARGES_4,
 //       Transport_Gst_4,
 //       NET_AMOUNT_4,
 //       Remark_4,
+//       items,         // ← Array of per-item data with itemUid
 //     } = req.body;
 
 //     console.log('Received body:', req.body);
 
+//     // ✅ Validation
 //     if (!uid) {
 //       return res.status(400).json({
 //         success: false,
-//         message: 'uid is required',
+//         message: 'uid (OFFBILLUID) is required',
 //       });
 //     }
 
-//     const trimmedUid = String(uid).trim();
+//     if (!items || !Array.isArray(items) || items.length === 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'items array is required',
+//       });
+//     }
 
-//     // ✅ अब B की जगह C column से uid match होगा
+//     // ✅ Sheet से C column की सारी values लाओ
 //     const response = await sheets.spreadsheets.values.get({
 //       spreadsheetId: OfficeExpenseID,
 //       range: 'RCC_OFFICE_FMS!C7:C',
@@ -256,76 +116,81 @@
 //       });
 //     }
 
-//     // ✅ C column me uid search karo
-//     const matchingRows = [];
+//     // ✅ C column में हर uid का row number map बनाओ
+//     const uidToRowNumber = {};
 //     rows.forEach((row, index) => {
 //       if (row && row[0]) {
 //         const cellValue = String(row[0]).trim();
-//         if (cellValue === trimmedUid) {
-//           matchingRows.push({
-//             rowIndex: index,
-//             rowNumber: 7 + index,
-//           });
-//         }
+//         // C column में unique uid है
+//         uidToRowNumber[cellValue] = 7 + index; // row 7 से start
 //       }
 //     });
 
-//     if (matchingRows.length === 0) {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'No matching uid found in C column',
-//         searchedFor: trimmedUid,
-//       });
-//     }
-
-//     // ✅ Agar C column me uid unique hai to same row update hogi
-//     // Best practice: duplicate uid na ho
-//     if (matchingRows.length > 1) {
-//       return res.status(409).json({
-//         success: false,
-//         message: 'Duplicate uid found in C column. uid should be unique.',
-//         searchedFor: trimmedUid,
-//         matchingRows: matchingRows.map(r => r.rowNumber),
-//       });
-//     }
-
-//     const targetRowNumber = matchingRows[0].rowNumber;
-
-//     console.log(`Matched uid "${trimmedUid}" in C column at row ${targetRowNumber}`);
+//     console.log('UID to Row Map:', uidToRowNumber);
 
 //     const requests = [];
 
-//     const addToTarget = (colLetter, value) => {
-//       if (value !== undefined && value !== null && value !== '') {
-//         requests.push({
-//           range: `RCC_OFFICE_FMS!${colLetter}${targetRowNumber}`,
-//           values: [[value]],
-//         });
-//       }
-//     };
+//     // ✅ हर item के लिए उसकी uid से row ढूंढो और data update करो
+//     const notFoundUids = [];
 
-//     // ✅ Sab data sirf matched row me jayega
-//     addToTarget('AL', STATUS_4);
-//     addToTarget('AN', Vendor_Name_4);
-//     addToTarget('AO', BILL_NO_4);
-//     addToTarget('AP', BILL_DATE_4);
-//     addToTarget('AQ', BASIC_AMOUNT_4);
-//     addToTarget('AR', CGST_4);
-//     addToTarget('AS', SGST_4);
-//     addToTarget('AT', IGST_4);
-//     addToTarget('AU', TOTAL_AMOUNT_4);
-//     addToTarget('AV', TRASNPORT_CHARGES_4);
-//     addToTarget('AW', Transport_Gst_4);
-//     addToTarget('AX', NET_AMOUNT_4);
-//     addToTarget('AY', Remark_4);
+//     items.forEach((item) => {
+//       const itemUid = String(item.itemUid || '').trim();
+
+//       if (!itemUid) return;
+
+//       const targetRowNumber = uidToRowNumber[itemUid];
+
+//       if (!targetRowNumber) {
+//         notFoundUids.push(itemUid);
+//         return;
+//       }
+
+//       console.log(`Item uid "${itemUid}" → Row ${targetRowNumber}`);
+
+//       const addToRow = (colLetter, value) => {
+//         if (value !== undefined && value !== null && value !== '') {
+//           requests.push({
+//             range: `RCC_OFFICE_FMS!${colLetter}${targetRowNumber}`,
+//             values: [[value]],
+//           });
+//         }
+//       };
+
+//       // ✅ STATUS - हर row में जाएगा
+//       addToRow('AL', STATUS_4);
+
+//       // ✅ Common fields - हर row में same जाएगा
+//       addToRow('AN', Vendor_Name_4);
+//       addToRow('AO', BILL_NO_4);
+//       addToRow('AP', BILL_DATE_4);
+
+//       // ✅ Per-item fields - हर row में अलग जाएगा
+//       addToRow('AQ', item.BASIC_AMOUNT_4);
+//       addToRow('AR', item.CGST_4);
+//       addToRow('AS', item.SGST_4);
+//       addToRow('AT', item.IGST_4);
+//       addToRow('AU', item.TOTAL_AMOUNT_4);
+
+//       // ✅ Transport & Net - हर row में same जाएगा
+//       addToRow('AV', TRASNPORT_CHARGES_4);
+//       addToRow('AW', Transport_Gst_4);
+//       addToRow('AX', NET_AMOUNT_4);
+//       addToRow('AY', Remark_4);
+//     });
+
+//     if (notFoundUids.length > 0) {
+//       console.warn('These uids not found in C column:', notFoundUids);
+//     }
 
 //     if (requests.length === 0) {
 //       return res.status(400).json({
 //         success: false,
-//         message: 'No fields to update',
+//         message: 'No matching rows found to update',
+//         notFoundUids,
 //       });
 //     }
 
+//     // ✅ Batch update
 //     await sheets.spreadsheets.values.batchUpdate({
 //       spreadsheetId: OfficeExpenseID,
 //       resource: {
@@ -336,9 +201,10 @@
 
 //     return res.json({
 //       success: true,
-//       message: `Data updated successfully on matched uid row`,
-//       uid: trimmedUid,
-//       updatedRow: targetRowNumber,
+//       message: `Data updated successfully for ${items.length} items`,
+//       offBillUid: uid,
+//       updatedItems: items.length - notFoundUids.length,
+//       notFoundUids: notFoundUids.length > 0 ? notFoundUids : undefined,
 //     });
 
 //   } catch (error) {
@@ -352,6 +218,14 @@
 // });
 
 // module.exports = router;
+
+
+
+
+
+////////
+
+
 
 
 
@@ -399,7 +273,7 @@ router.get('/Get-Expenses-Entry', async (req, res) => {
         UNIT_1: (row[8] || '').toString().trim(),
         SKU_CODE_1: (row[9] || '').toString().trim(),
         Qty_1: (row[10] || '').toString().trim(),
-        Amount: (row[24] || '').toString().trim(),
+        Amount: (row[11] || '').toString().trim(),
         DEPARTMENT_1: (row[12] || '').toString().trim(),
         APPROVAL_DOER: (row[13] || '').toString().trim(),
         RAISED_BY_1: (row[14] || '').toString().trim(),
@@ -425,12 +299,11 @@ router.get('/Get-Expenses-Entry', async (req, res) => {
   }
 });
 
-
-// POST route - ✅ C column ki uid se match karke data update karo
+// POST route - Group by BILL_NO_4 and put totals in last row of each group
 router.post('/Post-Expenses-Entry', async (req, res) => {
   try {
     const {
-      uid,           // ← OFFBILLUID (bill group)
+      uid,           // OFFBILLUID (bill group)
       STATUS_4,
       Vendor_Name_4,
       BILL_NO_4,
@@ -439,12 +312,12 @@ router.post('/Post-Expenses-Entry', async (req, res) => {
       Transport_Gst_4,
       NET_AMOUNT_4,
       Remark_4,
-      items,         // ← Array of per-item data with itemUid
+      items,         // Array of per-item data with itemUid
     } = req.body;
 
     console.log('Received body:', req.body);
 
-    // ✅ Validation
+    // Validation
     if (!uid) {
       return res.status(400).json({
         success: false,
@@ -459,10 +332,11 @@ router.post('/Post-Expenses-Entry', async (req, res) => {
       });
     }
 
-    // ✅ Sheet से C column की सारी values लाओ
+    // Sheet से C column और AO column (BILL_NO) की सारी values लाओ
+    // We need to get all rows that match this OFFBILLUID to find which rows have same BILL_NO
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: OfficeExpenseID,
-      range: 'RCC_OFFICE_FMS!C7:C',
+      range: 'RCC_OFFICE_FMS!A7:AY', // A se AY tak to get all needed columns
     });
 
     const rows = response.data.values || [];
@@ -474,23 +348,58 @@ router.post('/Post-Expenses-Entry', async (req, res) => {
       });
     }
 
-    // ✅ C column में हर uid का row number map बनाओ
-    const uidToRowNumber = {};
+    // First, find all rows that belong to this OFFBILLUID and build their current data
+    // Row index 1 = column B (OFFBILLUID), index 2 = column C (item uid), index 40 = column AO (BILL_NO_4)
+    const billGroupRows = [];
     rows.forEach((row, index) => {
-      if (row && row[0]) {
-        const cellValue = String(row[0]).trim();
-        // C column में unique uid है
-        uidToRowNumber[cellValue] = 7 + index; // row 7 से start
+      const rowOffBillUID = row[1] ? String(row[1]).trim() : ''; // Column B
+      if (rowOffBillUID === uid) {
+        billGroupRows.push({
+          rowNumber: 7 + index, // Row 7 से start (since A7 is first data row)
+          itemUid: row[2] ? String(row[2]).trim() : '', // Column C
+          currentBillNo: row[40] ? String(row[40]).trim() : '', // Column AO - existing BILL_NO_4
+          currentBasicAmount: row[42] ? row[42] : '', // Column AQ - BASIC_AMOUNT_4
+          currentCGST: row[43] ? row[43] : '', // Column AR - CGST_4
+          currentSGST: row[44] ? row[44] : '', // Column AS - SGST_4
+          currentIGST: row[45] ? row[45] : '', // Column AT - IGST_4
+          currentTotalAmount: row[46] ? row[46] : '', // Column AU - TOTAL_AMOUNT_4
+        });
       }
     });
 
-    console.log('UID to Row Map:', uidToRowNumber);
+    // Create a map from itemUid to rowNumber
+    const uidToRowNumber = {};
+    billGroupRows.forEach(row => {
+      uidToRowNumber[row.itemUid] = row.rowNumber;
+    });
 
     const requests = [];
-
-    // ✅ हर item के लिए उसकी uid से row ढूंढो और data update करो
     const notFoundUids = [];
 
+    // Track which rows belong to which BILL_NO (since all rows in this bill group will have same BILL_NO_4)
+    // We need to put the totals only in the LAST row of this bill group when grouped by BILL_NO
+    // Since all rows in this bill group share the same BILL_NO, the last row of the group is simply the last row in billGroupRows
+    
+    // Sort billGroupRows by row number to identify the last row
+    const sortedBillGroupRows = [...billGroupRows].sort((a, b) => a.rowNumber - b.rowNumber);
+    const lastRowRowNumber = sortedBillGroupRows.length > 0 ? sortedBillGroupRows[sortedBillGroupRows.length - 1].rowNumber : null;
+
+    // Calculate totals
+    let totalBasicAmount = 0;
+    let totalCGST = 0;
+    let totalSGST = 0;
+    let totalIGST = 0;
+    let totalRowAmount = 0;
+
+    items.forEach((item) => {
+      totalBasicAmount += Number(item.BASIC_AMOUNT_4) || 0;
+      totalCGST += Number(item.CGST_4) || 0;
+      totalSGST += Number(item.SGST_4) || 0;
+      totalIGST += Number(item.IGST_4) || 0;
+      totalRowAmount += Number(item.TOTAL_AMOUNT_4) || 0;
+    });
+
+    // Process each item for individual updates
     items.forEach((item) => {
       const itemUid = String(item.itemUid || '').trim();
 
@@ -514,27 +423,67 @@ router.post('/Post-Expenses-Entry', async (req, res) => {
         }
       };
 
-      // ✅ STATUS - हर row में जाएगा
+      // STATUS - every row gets this
       addToRow('AL', STATUS_4);
 
-      // ✅ Common fields - हर row में same जाएगा
+      // Common fields - every row gets same values
       addToRow('AN', Vendor_Name_4);
       addToRow('AO', BILL_NO_4);
       addToRow('AP', BILL_DATE_4);
 
-      // ✅ Per-item fields - हर row में अलग जाएगा
+      // Per-item fields
       addToRow('AQ', item.BASIC_AMOUNT_4);
       addToRow('AR', item.CGST_4);
       addToRow('AS', item.SGST_4);
       addToRow('AT', item.IGST_4);
       addToRow('AU', item.TOTAL_AMOUNT_4);
-
-      // ✅ Transport & Net - हर row में same जाएगा
-      addToRow('AV', TRASNPORT_CHARGES_4);
-      addToRow('AW', Transport_Gst_4);
-      addToRow('AX', NET_AMOUNT_4);
-      addToRow('AY', Remark_4);
     });
+
+    // Now add the TOTAL rows - ONLY in the last row of this bill group
+    if (lastRowRowNumber) {
+      console.log(`Adding totals to last row: ${lastRowRowNumber}`);
+      
+      const addTotalToLastRow = (colLetter, value) => {
+        if (value !== undefined && value !== null && value !== '') {
+          requests.push({
+            range: `RCC_OFFICE_FMS!${colLetter}${lastRowRowNumber}`,
+            values: [[value]],
+          });
+        }
+      };
+
+      // AV column = Total of AQ column (BASIC_AMOUNT_4) for all rows with same BILL_NO
+      addTotalToLastRow('AV', totalBasicAmount.toFixed(2));
+      
+      // AW column = Total of AR column (CGST_4)
+      addTotalToLastRow('AW', totalCGST.toFixed(2));
+      
+      // AX column = Total of AS column (SGST_4)
+      addTotalToLastRow('AX', totalSGST.toFixed(2));
+      
+      // AY column = Total of AT column (IGST_4)
+      addTotalToLastRow('AY', totalIGST.toFixed(2));
+      
+      // AZ column = TRASNPORT_CHARGES_4
+      if (TRASNPORT_CHARGES_4) {
+        addTotalToLastRow('AZ', TRASNPORT_CHARGES_4);
+      }
+      
+      // BA column = Transport_Gst_4
+      if (Transport_Gst_4) {
+        addTotalToLastRow('BA', Transport_Gst_4);
+      }
+      
+      // BB column = NET_AMOUNT_4 (Total of totalRowAmount + transport charges + transport GST)
+      if (NET_AMOUNT_4) {
+        addTotalToLastRow('BB', NET_AMOUNT_4);
+      }
+      
+      // BC column = Remark_4
+      if (Remark_4) {
+        addTotalToLastRow('BC', Remark_4);
+      }
+    }
 
     if (notFoundUids.length > 0) {
       console.warn('These uids not found in C column:', notFoundUids);
@@ -548,7 +497,7 @@ router.post('/Post-Expenses-Entry', async (req, res) => {
       });
     }
 
-    // ✅ Batch update
+    // Batch update
     await sheets.spreadsheets.values.batchUpdate({
       spreadsheetId: OfficeExpenseID,
       resource: {
@@ -561,8 +510,17 @@ router.post('/Post-Expenses-Entry', async (req, res) => {
       success: true,
       message: `Data updated successfully for ${items.length} items`,
       offBillUid: uid,
+      billNo: BILL_NO_4,
       updatedItems: items.length - notFoundUids.length,
       notFoundUids: notFoundUids.length > 0 ? notFoundUids : undefined,
+      totals: {
+        totalBasicAmount: totalBasicAmount.toFixed(2),
+        totalCGST: totalCGST.toFixed(2),
+        totalSGST: totalSGST.toFixed(2),
+        totalIGST: totalIGST.toFixed(2),
+        totalRowAmount: totalRowAmount.toFixed(2),
+        lastRowNumber: lastRowRowNumber,
+      },
     });
 
   } catch (error) {
