@@ -1,5 +1,5 @@
 const express = require("express");
-const { sheets, Summary_ID } = require("../config/googleSheet");
+const { sheets, Summary_ID,OUTSTANDING_ID } = require("../config/googleSheet");
 
 const router = express.Router();
 
@@ -142,15 +142,15 @@ router.get("/Bank-Balance",async (req,res)=>{
 
 router.get("/outStanding", async (req, res) => {
   try {
-    if (!Summary_ID) {
+    if (!OUTSTANDING_ID) {
       return res.status(500).json({
         success: false,
-        error: "Summary_ID is not configured",
+        error: "OUTSTANDING_ID is not configured",
       });
     }
 
     const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: Summary_ID,
+      spreadsheetId: OUTSTANDING_ID,
       range: "Out_Standing_Data!A3:J", // ← adjust end row if needed
       valueRenderOption: "FORMATTED_VALUE",
     });

@@ -31,6 +31,7 @@ const drive = google.drive({ version: 'v3', auth, supportsAllDrives: true });
 const spreadsheetId = process.env.SPREADSHEET_ID;
 const OfficeExpenseID = process.env.SPREADSHEET_ID_OFFICE_EXPENSES;
 const Summary_ID = process.env.SPREADSHEET_ID_Summary;
+const OUTSTANDING_ID=process.env.SPREADESHEET_ID_OUTSTANDING
 const GOOGLE_DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || 'root'; // default root
 const SPREADSHEET_GST_SHEET_ID=process.env.SPREADSHEET_GST_ID
 
@@ -41,5 +42,6 @@ module.exports = {
   OfficeExpenseID,
   GOOGLE_DRIVE_FOLDER_ID ,
   Summary_ID,
+  OUTSTANDING_ID,
   SPREADSHEET_GST_SHEET_ID
 };
