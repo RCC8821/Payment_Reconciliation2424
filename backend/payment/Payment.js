@@ -1,7 +1,7 @@
 
 
 const express = require('express');
-const { sheets, spreadsheetId } = require('../config/googleSheet');
+const { sheets, spreadsheetId,SPREADSHEET_Bank_ID } = require('../config/googleSheet');
 const router = express.Router();
 
 // ── GET: Reconciliation data ──────────────────────────────────────────────
@@ -49,7 +49,7 @@ router.get('/bank-balance/:bankName', async (req, res) => {
 
     const range    = `'${bankName}'!F3`;
     const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
+      spreadsheetId:SPREADSHEET_Bank_ID,
       range,
     });
 
@@ -173,5 +173,6 @@ router.post('/update-reconciliation', async (req, res) => {
     });
   }
 });
+
 
 module.exports = router;
